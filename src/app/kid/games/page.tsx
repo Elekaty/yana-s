@@ -12,7 +12,7 @@ export default async function GamesPage() {
     <div className="grid gap-4">
       <PlayChoice href="/kid/games/bay" title={copy.bay} hint={en ? "Bubbles, fruit, and words" : "Bulles, fruits et mots"} emoji="🫧" tone="hot" />
       <PlayChoice href="/kid/games/lagoon" title={copy.lagoon} hint={en ? "A path of arrows" : "Un chemin de flèches"} emoji="🌊" tone="grape" />
-      <PlayChoice href="/kid/games/cove" title={copy.cove} hint={en ? "Draw, paint, and songs" : "Dessin, peinture et chansons"} emoji="🎨" tone="sun" />
+      <PlayChoice href="/kid/games/cove" title={copy.cove} hint={en ? "Draw, paint, and stickers" : "Dessin, peinture et collages"} emoji="🎨" tone="sun" />
     </div>
   );
 }

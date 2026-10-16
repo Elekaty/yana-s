@@ -79,6 +79,11 @@ const dictionary = {
     paper: "Feuille",
     outline: "Mochi",
     eraser: "Gomme",
+    stickers: "Coller",
+    stickerHint: "Touche une pièce. Elle se colle toute seule.",
+    cat: "Chat",
+    dog: "Chien",
+    penguin: "Pingouin",
   },
   en: {
     hello: "Hello",
@@ -158,6 +163,11 @@ const dictionary = {
     paper: "Paper",
     outline: "Mochi",
     eraser: "Eraser",
+    stickers: "Stick",
+    stickerHint: "Tap a piece. It sticks on by itself.",
+    cat: "Cat",
+    dog: "Dog",
+    penguin: "Penguin",
   },
 } as const;
 

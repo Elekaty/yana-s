@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import Link from "next/link";
 import type { Copy } from "@/lib/i18n";
+import { StickerPlay } from "@/components/kid/sticker-play";
 
 const colors = [
   { hex: "#FFD23F", fr: "jaune", en: "yellow" },
@@ -35,7 +36,7 @@ const stampGlyph: Record<Stamp, string> = {
 export function DrawBoard({ copy, lang }: { copy: Copy; lang: "fr" | "en" }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const drawing = useRef(false);
-  const [mode, setMode] = useState<"draw" | "paint">("draw");
+  const [mode, setMode] = useState<"draw" | "paint" | "stickers">("draw");
   const [colorIndex, setColorIndex] = useState(0);
   const [tool, setTool] = useState<Tool>("pen");
   const [brush, setBrush] = useState(0);
@@ -145,15 +146,22 @@ export function DrawBoard({ copy, lang }: { copy: Copy; lang: "fr" | "en" }) {
 
   return (
     <div className="grid gap-3">
-      <div className="grid grid-cols-2 gap-2" role="group" aria-label={lang === "en" ? "Drawing or painting" : "Dessin ou peinture"}>
+      <div className="grid grid-cols-3 gap-2" role="group" aria-label={lang === "en" ? "Drawing, painting, or stickers" : "Dessin, peinture ou collage"}>
         <ModeButton active={mode === "draw"} onClick={() => { setMode("draw"); setTool("pen"); }}>
           {copy.draw}
         </ModeButton>
         <ModeButton active={mode === "paint"} onClick={() => { setMode("paint"); setTool("pen"); }}>
           {copy.paint}
         </ModeButton>
+        <ModeButton active={mode === "stickers"} onClick={() => setMode("stickers")}>
+          {copy.stickers}
+        </ModeButton>
       </div>
-      <p className="text-center text-lg">{mode === "paint" ? copy.paintHint : copy.drawHint}</p>
+      <p className="text-center text-lg">{mode === "paint" ? copy.paintHint : mode === "stickers" ? copy.stickerHint : copy.drawHint}</p>
+      {mode === "stickers" ? (
+        <StickerPlay copy={copy} lang={lang} />
+      ) : (
+        <>
       <div className="rounded-[28px] bg-white p-2" style={{ boxShadow: mode === "paint" ? "0 0 0 4px #7C3AED" : "0 0 0 4px #FFD23F" }}>
         <canvas
           ref={canvasRef}
@@ -221,6 +229,8 @@ export function DrawBoard({ copy, lang }: { copy: Copy; lang: "fr" | "en" }) {
       <button type="button" onClick={clear} className="flex h-14 items-center justify-center rounded-full bg-hot text-2xl">
         {copy.clear}
       </button>
+        </>
+      )}
       <Link href="/kid/games/cove" className="flex h-14 items-center justify-center rounded-full bg-white/15 text-2xl">
         {copy.back}
       </Link>
@@ -234,7 +244,7 @@ function ModeButton({ active, onClick, children }: { active: boolean; onClick: (
       type="button"
       aria-pressed={active}
       onClick={onClick}
-      className={active ? "h-14 rounded-full bg-sun text-2xl text-plum ring-4 ring-white" : "h-14 rounded-full bg-white/15 text-2xl"}
+      className={active ? "h-14 rounded-full bg-sun text-lg text-plum ring-4 ring-white" : "h-14 rounded-full bg-white/15 text-lg"}
     >
       {children}
     </button>
