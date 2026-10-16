@@ -29,9 +29,11 @@ create table if not exists study_clocks (
 alter table homework_runs enable row level security;
 alter table study_clocks enable row level security;
 
+drop policy if exists homework_runs_all on homework_runs;
 create policy homework_runs_all on homework_runs for all to authenticated
   using (is_member(family_id)) with check (is_member(family_id));
 
+drop policy if exists study_clocks_all on study_clocks;
 create policy study_clocks_all on study_clocks for all to authenticated
   using (is_member(family_id)) with check (is_member(family_id));
 

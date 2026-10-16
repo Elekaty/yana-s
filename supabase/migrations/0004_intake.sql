@@ -29,9 +29,11 @@ create table if not exists allowed_senders (
 alter table telegram_chats enable row level security;
 alter table allowed_senders enable row level security;
 
+drop policy if exists telegram_chats_select on telegram_chats;
 create policy telegram_chats_select on telegram_chats for select to authenticated
   using (is_member(family_id));
 
+drop policy if exists allowed_senders_all on allowed_senders;
 create policy allowed_senders_all on allowed_senders for all to authenticated
   using (is_member(family_id)) with check (is_member(family_id));
 

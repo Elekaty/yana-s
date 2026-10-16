@@ -1,19 +1,53 @@
--- Phase 1 core schema. is_member, archive_message, and award_stars match the plan exactly.
+-- 0001 core
+-- Family tables, the two-tick archive rule, and stars. Safe to run again if these already exist.
 
 create extension if not exists pgcrypto with schema extensions;
 
-create type member_role as enum ('parent', 'guest');
-create type message_source as enum ('telegram', 'email', 'upload');
-create type message_tier as enum ('urgent', 'important', 'fyi');
-create type message_status as enum ('new', 'archived');
-create type task_status as enum ('pending', 'completed');
-create type reminder_target as enum ('parent', 'child');
-create type reminder_status as enum ('pending', 'sent', 'done', 'snoozed');
-create type roster_status as enum ('off', 'flying', 'standby', 'layover');
-create type game_type as enum ('flashcard', 'logic', 'physical');
-create type purchase_status as enum ('requested', 'approved', 'denied');
+do $$
+begin
+  begin
+    create type member_role as enum ('parent', 'guest');
+  exception when duplicate_object then null;
+  end;
+  begin
+    create type message_source as enum ('telegram', 'email', 'upload');
+  exception when duplicate_object then null;
+  end;
+  begin
+    create type message_tier as enum ('urgent', 'important', 'fyi');
+  exception when duplicate_object then null;
+  end;
+  begin
+    create type message_status as enum ('new', 'archived');
+  exception when duplicate_object then null;
+  end;
+  begin
+    create type task_status as enum ('pending', 'completed');
+  exception when duplicate_object then null;
+  end;
+  begin
+    create type reminder_target as enum ('parent', 'child');
+  exception when duplicate_object then null;
+  end;
+  begin
+    create type reminder_status as enum ('pending', 'sent', 'done', 'snoozed');
+  exception when duplicate_object then null;
+  end;
+  begin
+    create type roster_status as enum ('off', 'flying', 'standby', 'layover');
+  exception when duplicate_object then null;
+  end;
+  begin
+    create type game_type as enum ('flashcard', 'logic', 'physical');
+  exception when duplicate_object then null;
+  end;
+  begin
+    create type purchase_status as enum ('requested', 'approved', 'denied');
+  exception when duplicate_object then null;
+  end;
+end $$;
 
-create table families (
+create table if not exists families (
   id uuid primary key default gen_random_uuid(),
   name text not null,
   pin_hash text,
@@ -22,7 +56,7 @@ create table families (
   created_at timestamptz not null default now()
 );
 
-create table members (
+create table if not exists members (
   id uuid primary key default gen_random_uuid(),
   family_id uuid not null references families(id) on delete cascade,
   user_id uuid not null references auth.users(id) on delete cascade,
@@ -31,7 +65,7 @@ create table members (
   unique (user_id)
 );
 
-create table children (
+create table if not exists children (
   id uuid primary key default gen_random_uuid(),
   family_id uuid not null references families(id) on delete cascade,
   name text not null,
@@ -41,7 +75,7 @@ create table children (
   settings jsonb not null default '{}'::jsonb
 );
 
-create table messages (
+create table if not exists messages (
   id uuid primary key default gen_random_uuid(),
   family_id uuid not null references families(id) on delete cascade,
   source message_source not null,
@@ -62,7 +96,7 @@ create table messages (
   unique (family_id, source, external_id)
 );
 
-create table message_acks (
+create table if not exists message_acks (
   message_id uuid not null references messages(id) on delete cascade,
   member_id uuid not null references members(id) on delete cascade,
   acked_at timestamptz not null default now(),
@@ -70,7 +104,7 @@ create table message_acks (
   primary key (message_id, member_id)
 );
 
-create table attachments (
+create table if not exists attachments (
   id uuid primary key default gen_random_uuid(),
   family_id uuid not null references families(id) on delete cascade,
   message_id uuid references messages(id) on delete cascade,
@@ -79,7 +113,7 @@ create table attachments (
   created_at timestamptz not null default now()
 );
 
-create table events (
+create table if not exists events (
   id uuid primary key default gen_random_uuid(),
   family_id uuid not null references families(id) on delete cascade,
   title text not null,
@@ -89,7 +123,7 @@ create table events (
   remind_offsets int[]
 );
 
-create table homework_scans (
+create table if not exists homework_scans (
   id uuid primary key default gen_random_uuid(),
   family_id uuid not null references families(id) on delete cascade,
   image_path text not null,
@@ -97,7 +131,7 @@ create table homework_scans (
   created_at timestamptz not null default now()
 );
 
-create table tasks (
+create table if not exists tasks (
   id uuid primary key default gen_random_uuid(),
   family_id uuid not null references families(id) on delete cascade,
   message_id uuid references messages(id) on delete set null,
@@ -115,7 +149,7 @@ create table tasks (
   assignee_member_id uuid references members(id) on delete set null
 );
 
-create table reminders (
+create table if not exists reminders (
   id uuid primary key default gen_random_uuid(),
   family_id uuid not null references families(id) on delete cascade,
   target reminder_target not null,
@@ -128,7 +162,7 @@ create table reminders (
   snooze_count int not null default 0
 );
 
-create table roster_days (
+create table if not exists roster_days (
   family_id uuid not null references families(id) on delete cascade,
   member_id uuid not null references members(id) on delete cascade,
   date date not null,
@@ -138,7 +172,7 @@ create table roster_days (
   primary key (family_id, member_id, date)
 );
 
-create table availability (
+create table if not exists availability (
   family_id uuid not null references families(id) on delete cascade,
   member_id uuid not null references members(id) on delete cascade,
   weekday int not null check (weekday between 0 and 6),
@@ -147,7 +181,7 @@ create table availability (
   primary key (member_id, weekday)
 );
 
-create table sessions (
+create table if not exists sessions (
   id uuid primary key default gen_random_uuid(),
   family_id uuid not null references families(id) on delete cascade,
   child_id uuid not null references children(id) on delete cascade,
@@ -158,7 +192,7 @@ create table sessions (
   status text
 );
 
-create table mini_games (
+create table if not exists mini_games (
   id uuid primary key default gen_random_uuid(),
   family_id uuid not null references families(id) on delete cascade,
   task_id uuid references tasks(id) on delete cascade,
@@ -166,7 +200,7 @@ create table mini_games (
   game_data jsonb not null default '{}'::jsonb
 );
 
-create table game_sessions (
+create table if not exists game_sessions (
   id uuid primary key default gen_random_uuid(),
   family_id uuid not null references families(id) on delete cascade,
   child_id uuid not null references children(id) on delete cascade,
@@ -176,7 +210,7 @@ create table game_sessions (
   created_at timestamptz not null default now()
 );
 
-create table skill_progress (
+create table if not exists skill_progress (
   family_id uuid not null references families(id) on delete cascade,
   child_id uuid not null references children(id) on delete cascade,
   skill text not null,
@@ -186,7 +220,7 @@ create table skill_progress (
   primary key (child_id, skill)
 );
 
-create table stories (
+create table if not exists stories (
   id uuid primary key default gen_random_uuid(),
   family_id uuid references families(id) on delete cascade,
   slug text not null unique,
@@ -195,7 +229,7 @@ create table stories (
   pages jsonb not null default '[]'::jsonb
 );
 
-create table skills (
+create table if not exists skills (
   id uuid primary key default gen_random_uuid(),
   family_id uuid references families(id) on delete cascade,
   area text not null,
@@ -205,7 +239,7 @@ create table skills (
   sort int not null default 0
 );
 
-create table story_reads (
+create table if not exists story_reads (
   family_id uuid not null references families(id) on delete cascade,
   child_id uuid not null references children(id) on delete cascade,
   story_id uuid not null references stories(id) on delete cascade,
@@ -213,7 +247,7 @@ create table story_reads (
   primary key (child_id, story_id)
 );
 
-create table voice_recordings (
+create table if not exists voice_recordings (
   id uuid primary key default gen_random_uuid(),
   family_id uuid not null references families(id) on delete cascade,
   child_id uuid not null references children(id) on delete cascade,
@@ -222,7 +256,7 @@ create table voice_recordings (
   parent_reaction text
 );
 
-create table rewards (
+create table if not exists rewards (
   id uuid primary key default gen_random_uuid(),
   family_id uuid not null references families(id) on delete cascade,
   title text not null,
@@ -230,7 +264,7 @@ create table rewards (
   active boolean not null default true
 );
 
-create table purchases (
+create table if not exists purchases (
   id uuid primary key default gen_random_uuid(),
   family_id uuid not null references families(id) on delete cascade,
   reward_id uuid not null references rewards(id) on delete cascade,
@@ -238,7 +272,7 @@ create table purchases (
   status purchase_status not null default 'requested'
 );
 
-create table star_ledger (
+create table if not exists star_ledger (
   id uuid primary key default gen_random_uuid(),
   family_id uuid references families(id) on delete cascade,
   child_id uuid not null references children(id) on delete cascade,
@@ -247,7 +281,7 @@ create table star_ledger (
   created_at timestamptz not null default now()
 );
 
-create table friends_unlocked (
+create table if not exists friends_unlocked (
   id uuid primary key default gen_random_uuid(),
   family_id uuid not null references families(id) on delete cascade,
   child_id uuid not null references children(id) on delete cascade,
@@ -256,7 +290,7 @@ create table friends_unlocked (
   unique (child_id, friend)
 );
 
-create table child_outfits (
+create table if not exists child_outfits (
   id uuid primary key default gen_random_uuid(),
   family_id uuid not null references families(id) on delete cascade,
   child_id uuid not null references children(id) on delete cascade,
@@ -264,7 +298,7 @@ create table child_outfits (
   equipped boolean not null default false
 );
 
-create table jobs (
+create table if not exists jobs (
   id uuid primary key default gen_random_uuid(),
   family_id uuid references families(id) on delete cascade,
   kind text not null,
@@ -274,7 +308,7 @@ create table jobs (
   run_at timestamptz not null default now()
 );
 
-create table push_subscriptions (
+create table if not exists push_subscriptions (
   id uuid primary key default gen_random_uuid(),
   family_id uuid not null references families(id) on delete cascade,
   member_id uuid references members(id) on delete cascade,
@@ -283,9 +317,9 @@ create table push_subscriptions (
   created_at timestamptz not null default now()
 );
 
-create index members_family_idx on members (family_id);
-create index children_family_idx on children (family_id);
-create index messages_family_idx on messages (family_id, status);
+create index if not exists members_family_idx on members (family_id);
+create index if not exists children_family_idx on children (family_id);
+create index if not exists messages_family_idx on messages (family_id, status);
 
 create or replace function fill_ack_family()
 returns trigger
@@ -298,6 +332,7 @@ begin
   return new;
 end $$;
 
+drop trigger if exists message_acks_family on message_acks;
 create trigger message_acks_family
 before insert on message_acks
 for each row execute function fill_ack_family();
@@ -313,6 +348,7 @@ begin
   return new;
 end $$;
 
+drop trigger if exists star_ledger_family on star_ledger;
 create trigger star_ledger_family
 before insert on star_ledger
 for each row execute function fill_ledger_family();
@@ -333,6 +369,7 @@ begin
   return new;
 end $$;
 
+drop trigger if exists families_protect on families;
 create trigger families_protect
 before update on families
 for each row execute function protect_family_secrets();
@@ -349,6 +386,7 @@ begin
   return new;
 end $$;
 
+drop trigger if exists children_protect_stars on children;
 create trigger children_protect_stars
 before update on children
 for each row execute function protect_star_balance();
@@ -365,6 +403,7 @@ begin
   return new;
 end $$;
 
+drop trigger if exists members_protect_role on members;
 create trigger members_protect_role
 before update on members
 for each row execute function protect_member_role();
@@ -381,15 +420,16 @@ begin
   return new;
 end $$;
 
+drop trigger if exists messages_protect_archive on messages;
 create trigger messages_protect_archive
 before update on messages
 for each row execute function protect_message_archive();
 
 -- Critical SQL, implemented exactly.
-create function is_member(fam uuid) returns boolean language sql stable security definer set search_path=public as $$
+create or replace function is_member(fam uuid) returns boolean language sql stable security definer set search_path=public as $$
   select exists(select 1 from members where family_id=fam and user_id=auth.uid()) $$;
 
-create function archive_message(p_msg uuid) returns void language plpgsql security definer set search_path=public as $$
+create or replace function archive_message(p_msg uuid) returns void language plpgsql security definer set search_path=public as $$
 declare fam uuid;
 begin
   select family_id into fam from messages where id=p_msg;
@@ -402,7 +442,7 @@ begin
   update messages set status='archived', archived_at=now() where id=p_msg;
 end $$;
 
-create function award_stars(p_child uuid, p_amount int, p_reason text) returns int
+create or replace function award_stars(p_child uuid, p_amount int, p_reason text) returns int
 language plpgsql security definer set search_path=public as $$
 declare fam uuid; today_total int; bal int;
 begin
@@ -630,65 +670,97 @@ alter table child_outfits enable row level security;
 alter table jobs enable row level security;
 alter table push_subscriptions enable row level security;
 
+drop policy if exists families_select on families;
 create policy families_select on families for select to authenticated using (is_member(id));
+drop policy if exists families_update on families;
 create policy families_update on families for update to authenticated
   using (is_member(id)) with check (is_member(id));
 
+drop policy if exists members_select on members;
 create policy members_select on members for select to authenticated using (is_member(family_id));
+drop policy if exists members_update on members;
 create policy members_update on members for update to authenticated
   using (is_member(family_id)) with check (is_member(family_id));
 
+drop policy if exists children_select on children;
 create policy children_select on children for select to authenticated using (is_member(family_id));
+drop policy if exists children_update on children;
 create policy children_update on children for update to authenticated
   using (is_member(family_id)) with check (is_member(family_id));
 
+drop policy if exists messages_select on messages;
 create policy messages_select on messages for select to authenticated using (is_member(family_id));
+drop policy if exists messages_insert on messages;
 create policy messages_insert on messages for insert to authenticated with check (is_member(family_id));
+drop policy if exists messages_update on messages;
 create policy messages_update on messages for update to authenticated
   using (is_member(family_id)) with check (is_member(family_id));
 
+drop policy if exists message_acks_all on message_acks;
 create policy message_acks_all on message_acks for all to authenticated
   using (is_member(family_id)) with check (is_member(family_id));
+drop policy if exists attachments_all on attachments;
 create policy attachments_all on attachments for all to authenticated
   using (is_member(family_id)) with check (is_member(family_id));
+drop policy if exists events_all on events;
 create policy events_all on events for all to authenticated
   using (is_member(family_id)) with check (is_member(family_id));
+drop policy if exists tasks_all on tasks;
 create policy tasks_all on tasks for all to authenticated
   using (is_member(family_id)) with check (is_member(family_id));
+drop policy if exists reminders_all on reminders;
 create policy reminders_all on reminders for all to authenticated
   using (is_member(family_id)) with check (is_member(family_id));
+drop policy if exists roster_days_all on roster_days;
 create policy roster_days_all on roster_days for all to authenticated
   using (is_member(family_id)) with check (is_member(family_id));
+drop policy if exists availability_all on availability;
 create policy availability_all on availability for all to authenticated
   using (is_member(family_id)) with check (is_member(family_id));
+drop policy if exists sessions_all on sessions;
 create policy sessions_all on sessions for all to authenticated
   using (is_member(family_id)) with check (is_member(family_id));
+drop policy if exists homework_scans_all on homework_scans;
 create policy homework_scans_all on homework_scans for all to authenticated
   using (is_member(family_id)) with check (is_member(family_id));
+drop policy if exists mini_games_all on mini_games;
 create policy mini_games_all on mini_games for all to authenticated
   using (is_member(family_id)) with check (is_member(family_id));
+drop policy if exists game_sessions_all on game_sessions;
 create policy game_sessions_all on game_sessions for all to authenticated
   using (is_member(family_id)) with check (is_member(family_id));
+drop policy if exists skill_progress_all on skill_progress;
 create policy skill_progress_all on skill_progress for all to authenticated
   using (is_member(family_id)) with check (is_member(family_id));
+drop policy if exists stories_select on stories;
 create policy stories_select on stories for select to authenticated
   using (family_id is null or is_member(family_id));
+drop policy if exists skills_select on skills;
 create policy skills_select on skills for select to authenticated
   using (family_id is null or is_member(family_id));
+drop policy if exists story_reads_all on story_reads;
 create policy story_reads_all on story_reads for all to authenticated
   using (is_member(family_id)) with check (is_member(family_id));
+drop policy if exists voice_recordings_all on voice_recordings;
 create policy voice_recordings_all on voice_recordings for all to authenticated
   using (is_member(family_id)) with check (is_member(family_id));
+drop policy if exists rewards_all on rewards;
 create policy rewards_all on rewards for all to authenticated
   using (is_member(family_id)) with check (is_member(family_id));
+drop policy if exists purchases_all on purchases;
 create policy purchases_all on purchases for all to authenticated
   using (is_member(family_id)) with check (is_member(family_id));
+drop policy if exists star_ledger_select on star_ledger;
 create policy star_ledger_select on star_ledger for select to authenticated using (is_member(family_id));
+drop policy if exists friends_unlocked_all on friends_unlocked;
 create policy friends_unlocked_all on friends_unlocked for all to authenticated
   using (is_member(family_id)) with check (is_member(family_id));
+drop policy if exists child_outfits_all on child_outfits;
 create policy child_outfits_all on child_outfits for all to authenticated
   using (is_member(family_id)) with check (is_member(family_id));
+drop policy if exists jobs_select on jobs;
 create policy jobs_select on jobs for select to authenticated using (family_id is not null and is_member(family_id));
+drop policy if exists push_subscriptions_all on push_subscriptions;
 create policy push_subscriptions_all on push_subscriptions for all to authenticated
   using (is_member(family_id)) with check (is_member(family_id));
 
@@ -713,6 +785,7 @@ values
   ('family', 'family', false)
 on conflict (id) do nothing;
 
+drop policy if exists family_storage_read on storage.objects;
 create policy family_storage_read on storage.objects
   for select to authenticated
   using (
@@ -720,6 +793,7 @@ create policy family_storage_read on storage.objects
     and public.is_member(public.storage_family(name))
   );
 
+drop policy if exists family_storage_insert on storage.objects;
 create policy family_storage_insert on storage.objects
   for insert to authenticated
   with check (
@@ -727,6 +801,7 @@ create policy family_storage_insert on storage.objects
     and public.is_member(public.storage_family(name))
   );
 
+drop policy if exists family_storage_update on storage.objects;
 create policy family_storage_update on storage.objects
   for update to authenticated
   using (
@@ -738,6 +813,7 @@ create policy family_storage_update on storage.objects
     and public.is_member(public.storage_family(name))
   );
 
+drop policy if exists family_storage_delete on storage.objects;
 create policy family_storage_delete on storage.objects
   for delete to authenticated
   using (
