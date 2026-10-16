@@ -4,7 +4,6 @@ import { PARENT_UNLOCK_COOKIE, readUnlock } from "@/lib/pin-cookie";
 import { REMEMBER_COOKIE, authCookieOptions, wantsRemember } from "@/lib/supabase/remember";
 
 export async function proxy(request: NextRequest) {
-  if (request.nextUrl.pathname === "/auth/callback") return NextResponse.next();
   let response = NextResponse.next({ request });
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,

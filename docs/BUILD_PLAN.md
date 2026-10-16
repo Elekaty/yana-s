@@ -50,7 +50,7 @@ Each step's prompt should begin with: "Read `docs/strategy.md` and the Phase 0 r
 8. Typed everywhere, tests for the planner, classifier rules, validators and SQL functions, `.env.example`, seed script, README. Lint, typecheck and tests must pass before a phase is "done".
 
 **Two experiences.**
-- **Parent:** email login (magic link). Tabs: Inbox, Calendar, To do, Progress, Setup. English. Enter parent area only with the PIN; leaving it locks it.
+- **Parent:** email and password. Tabs: Inbox, Calendar, To do, Progress, Setup. English. Enter parent area only with the PIN; leaving it locks it.
 - **Kid mode:** runs on the family device under a parent session. Tabs: Home, Homework, Games, Store. Exiting requires the parent PIN (hash stored in `families.pin_hash`, verified server-side). Kid screens never show the inbox.
 
 **Design.** Purple/pink palette (plum #2A0B4A, grape #7C3AED, hot pink #FF2E93, sun #FFD23F), Fredoka font, 56px kid touch targets, max 3 choices per kid screen, phone portrait and a two-pane tablet layout at 820px+, light and dark themes, respect `prefers-reduced-motion`. Match the prototype.

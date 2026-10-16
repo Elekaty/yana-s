@@ -4,7 +4,7 @@ A private app for two parents and Yana. Parents can sign in, and a homework phot
 
 ## Demo
 
-1. Open the site and enter a parent email. Leave **Remember this device** on, then open the link in this same browser. The next visit on this device stays signed in.
+1. Open the site, create a parent account with an email and a password, and leave **Remember this device** on. The next visit on this device stays signed in.
 2. Create the family, type your name, Yana's name, and a 4 to 6 digit PIN.
 3. On Setup, copy the invite code.
 4. In a private window, sign in as the other parent and choose **Join with a code**.
@@ -44,11 +44,6 @@ npm run dev
 ```
 
 Copy `.env.example` to `.env.local` and fill it in. `.env.local` is not committed.
-
-In Supabase: **Authentication → URL configuration**. Set Site URL to `http://localhost:3000` while developing, and add redirect URLs:
-
-- `http://localhost:3000/auth/callback`
-- `https://YOUR-APP.vercel.app/auth/callback`
 
 In the Supabase SQL editor, run these one at a time: `supabase/migrations/0001_core.sql`, `0002_scan_types.sql`, `0003_homework_play.sql`, `0004_intake.sql`, `0005_inbox.sql`, `0006_calendar.sql`, `0007_roster.sql`, `0008_stories.sql`, `0009_town.sql`, and `0010_plan.sql`. Each file is safe to run again. Then:
 

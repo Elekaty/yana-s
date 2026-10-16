@@ -21,7 +21,7 @@ Work from `docs/BUILD_PLAN.md`. One step at a time. Do not start the next step u
 7. Queue every long task in `jobs` (save the original first). Never rely on one long serverless request.
 8. Typed everywhere. Tests for the planner, classifier, validators, and SQL functions. `.env.example`, seed script, README. Lint, typecheck, and tests must pass before a step is done.
 
-**Two experiences.** Parent: magic-link email login; tabs Inbox, Calendar, To do, Progress, Setup; English; PIN to enter, lock on leave. Kid mode: same parent session; tabs Home, Homework, Games, Store; PIN to exit (`families.pin_hash`, verified server-side). Kid screens never show the inbox.
+**Two experiences.** Parent: email and password; tabs Inbox, Calendar, To do, Progress, Setup; English; PIN to enter, lock on leave. Kid mode: same parent session; tabs Home, Homework, Games, Store; PIN to exit (`families.pin_hash`, verified server-side). Kid screens never show the inbox.
 
 **Design.** Plum `#2A0B4A`, grape `#7C3AED`, hot pink `#FF2E93`, sun `#FFD23F`, Fredoka, 56px kid targets, max 3 choices per kid screen, phone portrait and two-pane tablet at 820px+, light/dark, `prefers-reduced-motion`. Match `ui/mochi-app-prototype.html`.
 
