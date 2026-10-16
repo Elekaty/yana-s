@@ -1,6 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { PARENT_UNLOCK_COOKIE, readUnlock } from "@/lib/pin-cookie";
+import { BUILD_PREVIEW } from "@/lib/preview";
 import { REMEMBER_COOKIE, authCookieOptions, wantsRemember } from "@/lib/supabase/remember";
 
 export async function proxy(request: NextRequest) {
@@ -42,10 +43,12 @@ export async function proxy(request: NextRequest) {
     return redirect;
   };
 
-  if (user && path === "/login") return redirectTo("/");
-  if (!user && needsUser) return redirectTo("/login");
+  if (BUILD_PREVIEW && (path === "/login" || path === "/join")) return redirectTo("/kid/home");
+  if (BUILD_PREVIEW && path === "/parent/unlock") return redirectTo("/parent");
+  if (!BUILD_PREVIEW && user && path === "/login") return redirectTo("/");
+  if (!BUILD_PREVIEW && !user && needsUser) return redirectTo("/login");
 
-  if (user && parentGate) {
+  if (!BUILD_PREVIEW && user && parentGate) {
     const unlock = await readUnlock(request.cookies.get(PARENT_UNLOCK_COOKIE)?.value, process.env.CRON_SECRET ?? "");
     if (!unlock || unlock.sub !== user.id) return redirectTo("/parent/unlock");
   }

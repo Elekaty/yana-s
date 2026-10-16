@@ -1,15 +1,16 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { BreakGate } from "@/components/kid/break-gate";
+import { KidNav } from "@/components/kid/kid-nav";
 import { getFamily } from "@/lib/family";
 import { t } from "@/lib/i18n";
+import { BUILD_PREVIEW } from "@/lib/preview";
 import { ensureStudyClock } from "@/lib/study/load";
 
 export const dynamic = "force-dynamic";
 
 export default async function KidLayout({ children }: { children: React.ReactNode }) {
   const { supabase, user, family } = await getFamily();
-  if (!user) redirect("/login");
+  if (!BUILD_PREVIEW && !user) redirect("/login");
   if (!family) redirect("/join");
   const copy = t(family.child_language);
   const links = [
@@ -35,13 +36,7 @@ export default async function KidLayout({ children }: { children: React.ReactNod
       >
         <div className="mx-auto flex min-h-dvh max-w-5xl flex-col min-[820px]:flex-row">
           <main className="flex-1 p-4 pt-16 min-[820px]:p-6 min-[820px]:pt-16">{children}</main>
-          <nav className="grid grid-cols-3 border-t border-white/15 min-[820px]:w-48 min-[820px]:grid-cols-1 min-[820px]:border-t-0 min-[820px]:border-l min-[820px]:pt-16">
-            {links.map(([label, href]) => (
-              <Link key={href} href={href} className="flex h-14 items-center justify-center text-lg">
-                {label}
-              </Link>
-            ))}
-          </nav>
+          <KidNav links={links} />
         </div>
       </BreakGate>
     </div>

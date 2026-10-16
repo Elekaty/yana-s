@@ -77,7 +77,7 @@ export function Salon({
     if (forced || paused || reduce) return;
     const wait = 6000 + Math.random() * 1000;
     const id = window.setTimeout(() => {
-      const pool: MochiState[] = ["idle", "wander", "think", "greet", "cheer"];
+      const pool: MochiState[] = [...MOCHI_STATES];
       setAuto(pool[Math.floor(Math.random() * pool.length)] ?? "idle");
     }, wait);
     return () => window.clearTimeout(id);
@@ -151,15 +151,37 @@ export function Salon({
           <rect x="240" y="250" width="70" height="70" rx="20" fill="#9b6cf0" />
         </g>
         <motion.g
-          animate={reduce || paused || state !== "wander" ? { x: 0 } : { x: [0, 90, -70, 0] }}
-          transition={{ duration: 6, repeat: state === "wander" && !paused ? Infinity : 0, ease: "easeInOut" }}
+          animate={
+            reduce || paused
+              ? { x: 0, y: 0 }
+              : state === "wander"
+                ? { x: [0, 90, -70, 0], y: 0 }
+                : state === "chase-yarn"
+                  ? { x: [0, 140, 0], y: [0, -10, 0] }
+                  : state === "cheer"
+                    ? { x: 0, y: [0, -18, 0] }
+                    : { x: 0, y: 0 }
+          }
+          transition={{ duration: state === "cheer" ? 0.6 : 6, repeat: !reduce && !paused && (state === "wander" || state === "chase-yarn" || state === "cheer") ? Infinity : 0, ease: "easeInOut" }}
         >
-          <g data-p="cat" transform={flip ? "translate(760 0) scale(-1 1)" : undefined}>
+          <g
+            data-p="cat"
+            role="button"
+            tabIndex={0}
+            aria-label={lang === "en" ? "Tap Mochi for the next move" : "Touche Mochi pour le mouvement suivant"}
+            transform={flip ? "translate(760 0) scale(-1 1)" : undefined}
+            onClick={() => setAuto(MOCHI_STATES[(MOCHI_STATES.indexOf(state) + 1) % MOCHI_STATES.length] ?? "greet")}
+            onKeyDown={(event) => {
+              if (event.key === "Enter" || event.key === " ") {
+                setAuto(MOCHI_STATES[(MOCHI_STATES.indexOf(state) + 1) % MOCHI_STATES.length] ?? "greet");
+              }
+            }}
+          >
             <ellipse cx="430" cy="360" rx="78" ry="48" fill="#fff" />
             <ellipse cx="430" cy="368" rx="60" ry="28" fill="#f3f0ff" />
             <motion.g
               animate={state === "purr" && !reduce ? { scale: [1, 1.08, 0.96, 1] } : { scale: 1 }}
-              transition={{ duration: 0.45 }}
+              transition={{ duration: 0.45, repeat: state === "purr" && !reduce ? Infinity : 0 }}
             >
               <circle cx="390" cy="250" r="28" fill="#fff" />
               <circle cx="470" cy="250" r="28" fill="#fff" />
@@ -228,6 +250,7 @@ export function Salon({
           </g>
         ) : null}
       </svg>
+      <p className="absolute top-3 left-3 rounded-full bg-sun px-3 py-1 text-sm font-semibold text-plum">{moveLabel(state, lang)}</p>
       {bubble ? (
         <button
           type="button"
@@ -249,6 +272,21 @@ export function Salon({
       <p className="px-4 pb-4 text-center text-lg">{line}</p>
     </div>
   );
+}
+
+function moveLabel(state: MochiState, lang: "fr" | "en") {
+  const labels: Record<MochiState, { fr: string; en: string }> = {
+    idle: { fr: "Mochi attend", en: "Mochi waits" },
+    wander: { fr: "Mochi se promène", en: "Mochi walks" },
+    "chase-yarn": { fr: "Mochi court après la laine", en: "Mochi chases the yarn" },
+    nap: { fr: "Mochi fait la sieste", en: "Mochi naps" },
+    purr: { fr: "Mochi ronronne", en: "Mochi purrs" },
+    cheer: { fr: "Mochi applaudit", en: "Mochi cheers" },
+    think: { fr: "Mochi réfléchit", en: "Mochi thinks" },
+    "sleepy-at-bedtime": { fr: "Mochi a sommeil", en: "Mochi is sleepy" },
+    greet: { fr: "Mochi dit bonjour", en: "Mochi says hello" },
+  };
+  return labels[state][lang];
 }
 
 function lineFor(state: MochiState, lang: "fr" | "en", name: string) {
