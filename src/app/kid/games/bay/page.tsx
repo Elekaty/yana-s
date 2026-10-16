@@ -15,8 +15,8 @@ export default async function BayPage() {
       <Link href="/kid/games/bay/fruit" className="flex h-14 items-center justify-center rounded-full bg-hot text-2xl">
         {copy.fruits}
       </Link>
-      <Link href="/kid/games" className="flex h-14 items-center justify-center rounded-full bg-white/15 text-2xl">
-        {copy.back}
+      <Link href="/kid/games/bay/more" className="flex h-14 items-center justify-center rounded-full bg-grape text-2xl">
+        {copy.plus}
       </Link>
     </div>
   );

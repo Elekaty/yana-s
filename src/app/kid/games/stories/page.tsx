@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { StoryLibrary } from "@/components/kid/StoryLibrary";
 import { getFamily } from "@/lib/family";
 import { t } from "@/lib/i18n";
 import { ensureStories } from "@/lib/stories/seed";
@@ -8,6 +9,7 @@ export const dynamic = "force-dynamic";
 export default async function StoriesPage({ searchParams }: { searchParams: Promise<{ i?: string }> }) {
   const { supabase, family } = await getFamily();
   const copy = t(family?.child_language);
+  const lang = family?.child_language === "en" ? "en" : "fr";
   try {
     await ensureStories();
   } catch {
@@ -22,6 +24,7 @@ export default async function StoriesPage({ searchParams }: { searchParams: Prom
         <Link href="/kid/games" className="flex h-14 items-center justify-center rounded-full bg-white/15 text-2xl">
           {copy.back}
         </Link>
+        <StoryLibrary lang={lang} />
       </div>
     );
   }
@@ -41,6 +44,7 @@ export default async function StoriesPage({ searchParams }: { searchParams: Prom
       <Link href="/kid/games" className="flex h-14 items-center justify-center rounded-full bg-white/15 text-2xl">
         {copy.back}
       </Link>
+      <StoryLibrary lang={lang} />
     </div>
   );
 }
