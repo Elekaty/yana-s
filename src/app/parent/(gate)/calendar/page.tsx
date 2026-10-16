@@ -4,24 +4,40 @@ import { Button } from "@/components/ui/button";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 import { dayKey, holidayOn, monthCells, visibleHolidays, type Holiday } from "@/lib/calendar/plan";
 import { getFamily } from "@/lib/family";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { isMissingTable } from "@/lib/supabase/db-error";
 
 export const dynamic = "force-dynamic";
 
 export default async function CalendarPage({ searchParams }: { searchParams: Promise<{ month?: string }> }) {
-  const { supabase, family } = await getFamily();
+  const { supabase, user, family } = await getFamily();
   if (!family) return null;
   const timeZone = family.timezone || "Europe/Paris";
   const today = dayKey(new Date(), timeZone);
   const requested = (await searchParams).month ?? today.slice(0, 7);
   const month = /^\d{4}-\d{2}$/.test(requested) ? requested : today.slice(0, 7);
-  const [{ data: events }, { data: reminders }, { data: roster }, { data: holidayRows, error: holidayError }, { data: familyRow, error: familyError }] = await Promise.all([
-    supabase.from("events").select("id, title, starts_at").eq("family_id", family.family_id).order("starts_at"),
-    supabase.from("reminders").select("id, due_at, status, note, escalated, target, ref_type, ref_id").neq("status", "done").order("due_at").limit(12),
-    supabase.from("roster_days").select("date, status").eq("family_id", family.family_id),
-    supabase.from("school_calendar").select("family_id, label, starts_on, ends_on, zone, kind"),
-    supabase.from("families").select("ics_token, settings").eq("id", family.family_id).single(),
-  ]);
-  if (holidayError || familyError) {
+  const preview = !user || family.family_id === "preview";
+  const own = preview
+    ? { data: [] as { id: string; title: string; starts_at: string }[], error: null }
+    : await supabase.from("events").select("id, title, starts_at").eq("family_id", family.family_id).order("starts_at");
+  const reminderQuery = preview
+    ? { data: [] as { id: string; due_at: string; status: string; note: string | null; escalated: boolean; target: string; ref_type: string; ref_id: string }[] }
+    : await supabase.from("reminders").select("id, due_at, status, note, escalated, target, ref_type, ref_id").neq("status", "done").order("due_at").limit(12);
+  const rosterQuery = preview
+    ? { data: [] as { date: string; status: string }[] }
+    : await supabase.from("roster_days").select("date, status").eq("family_id", family.family_id);
+  const holidayQuery = preview ? await sharedHolidays() : await supabase.from("school_calendar").select("family_id, label, starts_on, ends_on, zone, kind");
+  const familyQuery = preview
+    ? { data: { ics_token: null, settings: { school_zone: "A" } }, error: null }
+    : await supabase.from("families").select("ics_token, settings").eq("id", family.family_id).maybeSingle();
+  const events = own.data;
+  const reminders = reminderQuery.data;
+  const roster = rosterQuery.data;
+  const holidayRows = holidayQuery.data;
+  const holidayError = holidayQuery.error;
+  const familyRow = familyQuery.data;
+  const familyError = familyQuery.error;
+  if (isMissingTable(holidayError) || isMissingTable(familyError)) {
     return <ParentNote title="Calendar" body="Apply supabase/migrations/0006_calendar.sql in the Supabase SQL editor, then reload this page." />;
   }
 
@@ -47,6 +63,9 @@ export default async function CalendarPage({ searchParams }: { searchParams: Pro
           <a className="underline" href={`/parent/calendar?month=${next}`}>Next</a>
         </div>
       </div>
+      {preview ? (
+        <ParentNote title="School holidays" body="These dates come from the calendar already in Supabase. A family's own events and reminders appear after a parent is signed in." />
+      ) : null}
       {breakToday ? (
         <Card>
           <CardTitle>Break</CardTitle>
@@ -138,4 +157,13 @@ export default async function CalendarPage({ searchParams }: { searchParams: Pro
       ) : null}
     </div>
   );
+}
+
+async function sharedHolidays() {
+  try {
+    const admin = createAdminClient();
+    return await admin.from("school_calendar").select("family_id, label, starts_on, ends_on, zone, kind").is("family_id", null);
+  } catch {
+    return { data: [], error: null };
+  }
 }

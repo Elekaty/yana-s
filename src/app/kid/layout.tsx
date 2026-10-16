@@ -25,7 +25,7 @@ export default async function KidLayout({ children }: { children: React.ReactNod
   const voice = (child?.settings as { voice?: boolean } | null)?.voice !== false;
 
   return (
-    <div className="kid min-h-dvh bg-plum text-white" style={{ fontFamily: "var(--font-fredoka), ui-rounded, system-ui, sans-serif" }}>
+    <div className="kid min-h-dvh bg-[radial-gradient(circle_at_top,_#6d3aa8_0%,_#2A0B4A_46%,_#1a062c_100%)] text-white" style={{ fontFamily: "var(--font-fredoka), ui-rounded, system-ui, sans-serif" }}>
       <BreakGate
         settings={loaded?.settings ?? null}
         initial={loaded ? { ...loaded.clock, updatedAt: loaded.updatedAt } : null}

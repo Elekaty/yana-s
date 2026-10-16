@@ -15,7 +15,7 @@ export default async function StorePage({ searchParams }: { searchParams: Promis
   if (rewards.length === 0) {
     return (
       <div className="grid gap-4">
-        <p className="text-center text-2xl">{copy.soon}</p>
+        <p className="rounded-[28px] bg-white/10 px-4 py-6 text-center text-2xl ring-2 ring-sun/70">{copy.soon}</p>
         <Link href="/kid/town" className="flex h-14 items-center justify-center rounded-full bg-grape text-2xl">
           {copy.town}
         </Link>

@@ -26,32 +26,38 @@ export function HomeScreen({
 
   return (
     <div className="flex flex-col gap-4">
-      <p className="text-xl">
-        {balance} {copy.stars}
-      </p>
-      {nudge ? <p className="text-2xl">{nudge}</p> : null}
-      <Salon
-        forced={null}
-        childName={childName}
-        lang={lang}
-        onMeetFriend={(friend: BubbleFriend) => {
-          void meetFriend(friend).then((result) => {
-            if (result.fresh) setBalance(result.stars);
-          });
-        }}
-      />
-      <section className="rounded-3xl bg-sun px-4 py-4 text-plum">
-        <p className="text-sm">{copy.today}</p>
+      <div className="flex items-end justify-between gap-3">
+        <div>
+          <p className="text-sm text-sun">{copy.hello}</p>
+          <h1 className="text-4xl leading-none">{childName || "Yana"}</h1>
+        </div>
+        <p className="rounded-full bg-sun px-4 py-2 text-lg font-semibold text-plum shadow-[0_6px_0_#e0b520]">{balance} ★</p>
+      </div>
+      {nudge ? <p className="rounded-2xl bg-hot/90 px-4 py-3 text-xl">{nudge}</p> : null}
+      <div className="rounded-[32px] p-1 shadow-[0_0_0_4px_#FFD23F]">
+        <Salon
+          forced={null}
+          childName={childName}
+          lang={lang}
+          onMeetFriend={(friend: BubbleFriend) => {
+            void meetFriend(friend).then((result) => {
+              if (result.fresh) setBalance(result.stars);
+            });
+          }}
+        />
+      </div>
+      <section className="rounded-[28px] bg-sun px-4 py-4 text-plum shadow-[0_8px_0_#e0b520]">
+        <p className="text-sm font-semibold">{copy.today}</p>
         <p className="text-2xl">{today || copy.noHomework}</p>
         <Link href="/kid/homework" className="mt-3 flex h-14 items-center justify-center rounded-full bg-plum text-lg text-white">
           {copy.homeworkGo}
         </Link>
       </section>
       <div className="grid grid-cols-2 gap-3">
-        <Link href="/kid/store" className="flex h-14 items-center justify-center rounded-full bg-hot text-lg">
+        <Link href="/kid/store" className="flex h-16 items-center justify-center rounded-full bg-hot text-lg shadow-[0_6px_0_#c4186e]">
           {copy.store}
         </Link>
-        <Link href="/parent/unlock" className="flex h-14 items-center justify-center rounded-full bg-white/15 text-lg">
+        <Link href="/parent/unlock" className="flex h-16 items-center justify-center rounded-full bg-white/15 text-lg ring-2 ring-white/30">
           {copy.parents}
         </Link>
       </div>

@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 import { getFamily } from "@/lib/family";
 import { canArchive, canUndo, type Tier } from "@/lib/inbox/sort";
+import { isMissingTable } from "@/lib/supabase/db-error";
 
 export const dynamic = "force-dynamic";
 
@@ -20,16 +21,27 @@ const TIER_ORDER: Record<string, number> = { urgent: 0, important: 1, fyi: 2 };
 
 export default async function InboxPage({ searchParams }: { searchParams: Promise<{ folder?: string; q?: string }> }) {
   const { supabase, user, family } = await getFamily();
-  if (!family || !user) return null;
+  if (!family) return null;
   const query = await searchParams;
   const archive = query.folder === "archive";
+  if (!user) {
+    return (
+      <div className="space-y-4">
+        <h1 className="text-2xl font-semibold tracking-tight">{archive ? "Archive" : "Inbox"}</h1>
+        <ParentNote
+          title="Nothing here"
+          body="The inbox tables are in place. School messages show up after a parent is signed in. Sign-in is off while the app is still being built, so this list stays empty."
+        />
+      </div>
+    );
+  }
   const { data: messages, error } = await supabase
     .from("messages")
     .select("id, source, sender, title, summary_en, original_text, read_status, tier, confidence, please_check, status, created_at")
     .eq("status", archive ? "archived" : "new")
     .order("created_at", { ascending: false })
     .limit(40);
-  if (error) {
+  if (isMissingTable(error)) {
     return (
       <ParentNote
         title={archive ? "Archive" : "Inbox"}

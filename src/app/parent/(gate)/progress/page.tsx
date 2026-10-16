@@ -6,11 +6,13 @@ import { getFamily } from "@/lib/family";
 import { skillStatus, weekCounts } from "@/lib/plan/outline";
 import { ensureOutline } from "@/lib/plan/seed";
 import { ensureStories } from "@/lib/stories/seed";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { isMissingTable } from "@/lib/supabase/db-error";
 
 export const dynamic = "force-dynamic";
 
 export default async function ProgressPage() {
-  const { supabase, family } = await getFamily();
+  const { supabase, user, family } = await getFamily();
   if (!family) return null;
   try {
     await ensureStories();
@@ -29,7 +31,7 @@ export default async function ProgressPage() {
     outlineReady = false;
   }
   const week = weekStart(family.timezone || "Europe/Paris");
-  const [{ data: sessions }, { data: runs }, { data: reads }, { data: rewards }, { data: requests }, { data: skills }, { data: progress }] = await Promise.all([
+  const [{ data: sessions }, { data: runs }, { data: reads }, { data: rewards }, { data: requests }, skillQuery, { data: progress }] = await Promise.all([
     supabase.from("game_sessions").select("game, created_at").eq("family_id", family.family_id).gte("created_at", week),
     supabase.from("homework_runs").select("id").eq("family_id", family.family_id).eq("status", "done").gte("updated_at", week),
     supabase.from("story_reads").select("story_id").eq("family_id", family.family_id).gte("completed_at", week),
@@ -38,6 +40,18 @@ export default async function ProgressPage() {
     supabase.from("skills").select("skill_key, area, title_fr, explanation_en, ask_fr, sort").is("family_id", null).order("sort"),
     family.child_id ? supabase.from("skill_progress").select("skill, level").eq("child_id", family.child_id) : Promise.resolve({ data: [] }),
   ]);
+  let skills = skillQuery.data ?? [];
+  let skillsMissing = isMissingTable(skillQuery.error);
+  if (skills.length === 0 && !skillsMissing) {
+    try {
+      const admin = createAdminClient();
+      const shared = await admin.from("skills").select("skill_key, area, title_fr, explanation_en, ask_fr, sort").is("family_id", null).order("sort");
+      if (isMissingTable(shared.error)) skillsMissing = true;
+      else skills = shared.data ?? [];
+    } catch {
+      skills = [];
+    }
+  }
   const counts = weekCounts((sessions ?? []).map((session) => String(session.game)));
   const waiting = (recordings ?? []).filter((row) => !row.parent_reaction).length;
   const levels = new Map((progress ?? []).map((row) => [row.skill, Number(row.level)]));
@@ -55,30 +69,39 @@ export default async function ProgressPage() {
         title="This week"
         body={`${runs?.length ?? 0} homework, ${counts.games} games, ${counts.logic} logic, ${voiceThisWeek} voice, ${reads?.length ?? 0} stories. ${family.star_balance} stars. ${waiting} recording${waiting === 1 ? "" : "s"} waiting for a reaction.`}
       />
-      {!outlineReady || (skills ?? []).length === 0 ? (
-        <ParentNote title="Skills" body="Paste supabase/migrations/0010_plan.sql in the Supabase SQL editor. This is a general outline." />
+      {skills.length === 0 ? (
+        <ParentNote
+          title="Skills"
+          body={outlineReady && !skillsMissing ? "The outline has no lines yet." : "Paste supabase/migrations/0010_plan.sql in the Supabase SQL editor. This is a general outline."}
+        />
       ) : (
         <Card>
           <CardTitle>General outline</CardTitle>
-          <CardDescription>Play can raise a skill. A higher status you set stays.</CardDescription>
+          <CardDescription>
+            {user && family.child_id
+              ? "Play can raise a skill. A higher status you set stays."
+              : "This outline is on. A parent sets Practicing or Strong after sign-in."}
+          </CardDescription>
           <ul className="mt-3 space-y-3">
-            {(skills ?? []).map((skill) => (
+            {skills.map((skill) => (
               <li key={skill.skill_key}>
                 <p className="font-medium">{skill.title_fr}</p>
                 <p className="text-sm text-muted-foreground">{skill.area} · {skillStatus(levels.get(skill.skill_key) ?? 0)} · {skill.explanation_en}</p>
                 <p className="text-sm">Ask her: {skill.ask_fr}</p>
-                <div className="mt-1 flex gap-2">
-                  <form action={raiseSkill}>
-                    <input type="hidden" name="key" value={skill.skill_key} />
-                    <input type="hidden" name="level" value="1" />
-                    <Button type="submit" variant="outline">Practicing</Button>
-                  </form>
-                  <form action={raiseSkill}>
-                    <input type="hidden" name="key" value={skill.skill_key} />
-                    <input type="hidden" name="level" value="3" />
-                    <Button type="submit" variant="outline">Strong</Button>
-                  </form>
-                </div>
+                {user && family.child_id ? (
+                  <div className="mt-1 flex gap-2">
+                    <form action={raiseSkill}>
+                      <input type="hidden" name="key" value={skill.skill_key} />
+                      <input type="hidden" name="level" value="1" />
+                      <Button type="submit" variant="outline">Practicing</Button>
+                    </form>
+                    <form action={raiseSkill}>
+                      <input type="hidden" name="key" value={skill.skill_key} />
+                      <input type="hidden" name="level" value="3" />
+                      <Button type="submit" variant="outline">Strong</Button>
+                    </form>
+                  </div>
+                ) : null}
               </li>
             ))}
           </ul>

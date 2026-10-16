@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { HomeworkPlayer } from "@/components/kid/homework-player";
 import { getFamily } from "@/lib/family";
 import { t } from "@/lib/i18n";
@@ -10,7 +11,19 @@ export default async function HomeworkPage() {
   const { supabase, family } = await getFamily();
   const copy = t(family?.child_language);
   const lang = family?.child_language === "en" ? "en" : "fr";
-  if (!family?.child_id) return <h1 className="text-4xl">{copy.noHomework}</h1>;
+  if (!family?.child_id) {
+    return (
+      <div className="grid justify-items-center gap-4 pt-6 text-center">
+        <p className="text-6xl" aria-hidden>
+          📚
+        </p>
+        <h1 className="text-4xl">{copy.noHomework}</h1>
+        <Link href="/kid/games" className="flex h-14 w-full max-w-xs items-center justify-center rounded-full bg-sun text-2xl text-plum shadow-[0_6px_0_#e0b520]">
+          {copy.games}
+        </Link>
+      </div>
+    );
+  }
 
   const [{ data: child }, loaded, { data: scan }] = await Promise.all([
     supabase.from("children").select("settings").eq("id", family.child_id).maybeSingle(),
