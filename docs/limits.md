@@ -23,9 +23,20 @@ Sources: [Cron jobs usage](https://vercel.com/docs/cron-jobs/usage-and-pricing) 
 
 The scan uses Gemini Flash (`gemini-3.8-flash`, then `gemini-2.5-flash` if that model is missing) with JSON output. The daily quota for this key is shown in Google AI Studio and changes, so it is not copied here. The prompt does not include the child's name, the parents' names, or an address. The photo is sent only after a parent chooses Scan.
 
+## Telegram
+
+The Bot API is free. `getFile` can download a file up to 20 MB; this app stores files up to 8 MB. The webhook checks `X-Telegram-Bot-Api-Secret-Token`. Photos are saved in private storage and are not sent to Gemini unless a parent presses **Read this photo**.
+
+## Email
+
+Sources: [Email Routing limits](https://developers.cloudflare.com/email-service/platform/limits/) and [Workers limits](https://developers.cloudflare.com/workers/platform/limits/), checked 16 October 2026.
+
+- Inbound Email Routing is free and unlimited. A message can be up to 25 MB. 200 routing rules per domain.
+- The worker in `scripts/email-worker.js` runs on the Workers free plan: 100,000 requests a day and about 10 ms of CPU. It forwards only the first 200 KB, and the app then reads the plain-text part. A long attachment can be cut off. The Vercel function body limit is still 4.5 MB.
+
 ## Not used yet
 
-Telegram Bot API, Cloudflare Email Routing, and web push are wired as environment variables only. Their free limits get recorded in the step that turns them on.
+Web push is an environment variable only. Its free limit is recorded in the step that turns it on.
 
 ## Voice
 

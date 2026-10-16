@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getFamily } from "@/lib/family";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { processNextQueued } from "@/lib/intake/run";
 import { processNextScan } from "@/lib/scan/process";
 
 export const maxDuration = 60;
@@ -10,35 +10,26 @@ export async function POST(request: Request) {
   const header = request.headers.get("authorization") ?? "";
   const cron = process.env.CRON_SECRET && header === `Bearer ${process.env.CRON_SECRET}`;
 
-  let familyId = "";
   if (cron) {
-    familyId = body.familyId ?? (await nextQueuedFamily());
-    if (!familyId) return NextResponse.json({ processed: false });
-  } else {
-    const { user, family } = await getFamily();
-    if (!user || !family || family.my_role !== "parent") {
-      return NextResponse.json({ error: "Parents only" }, { status: 401 });
+    try {
+      const result = body.familyId
+        ? await processNextScan(body.familyId, body.scanId)
+        : await processNextQueued();
+      return NextResponse.json(result);
+    } catch {
+      return NextResponse.json({ processed: false }, { status: 500 });
     }
-    familyId = family.family_id;
+  }
+
+  const { user, family } = await getFamily();
+  if (!user || !family || family.my_role !== "parent") {
+    return NextResponse.json({ error: "Parents only" }, { status: 401 });
   }
 
   try {
-    const result = await processNextScan(familyId, body.scanId);
+    const result = await processNextScan(family.family_id, body.scanId);
     return NextResponse.json(result);
   } catch {
     return NextResponse.json({ error: "could not read" }, { status: 422 });
   }
-}
-
-async function nextQueuedFamily() {
-  const admin = createAdminClient();
-  const { data } = await admin
-    .from("jobs")
-    .select("family_id")
-    .eq("kind", "scan")
-    .eq("status", "queued")
-    .order("run_at", { ascending: true })
-    .limit(1)
-    .maybeSingle();
-  return (data?.family_id as string | undefined) ?? "";
 }

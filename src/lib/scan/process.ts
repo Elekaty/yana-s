@@ -57,6 +57,7 @@ export async function processNextScan(familyId: string, scanId?: string) {
     .eq("family_id", familyId)
     .eq("kind", "scan")
     .eq("status", "queued")
+    .lte("run_at", new Date().toISOString())
     .order("run_at", { ascending: true });
   if (error) throw new Error(error.message);
   const job = (jobs ?? []).find((item) => !scanId || (item.payload as { scan_id?: string }).scan_id === scanId);

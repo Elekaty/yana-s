@@ -13,6 +13,20 @@ A private app for two parents and Yana. Parents can sign in, and a homework phot
 7. Open `/dev/mochi` to see Mochi's states in the salon.
 8. Open Scan, photograph a worksheet, and wait for the English card. A bad photo stays saved and offers Retry.
 9. Open Kid mode. Home shows Mochi. Homework walks through the scanned steps, with hints, and remembers the place after a refresh. The break screen stays up until a parent enters the PIN.
+10. On Setup, register the Telegram webhook, send `/link` and the family code in the class group, and add the teacher's email. A forwarded email and a group photo each show up in Inbox. The same item sent twice is stored once. If a reading fails, the original stays with **Could not read, open original.**
+
+School mail uses `scripts/email-worker.js` on Cloudflare Email Routing. Point the family address (`invite-code@your-domain`) at that worker. Supabase `pg_cron` and `pg_net` should call the job worker every minute, because Vercel Hobby cron only runs daily:
+
+```sql
+select cron.schedule(
+  'run-jobs',
+  '* * * * *',
+  $$select net.http_post(
+    url := 'https://YOUR-APP.vercel.app/api/jobs/run',
+    headers := '{"Authorization":"Bearer YOUR_CRON_SECRET"}'::jsonb
+  )$$
+);
+```
 
 ## Local
 
@@ -28,7 +42,7 @@ In Supabase: **Authentication → URL configuration**. Set Site URL to `http://l
 - `http://localhost:3000/auth/callback`
 - `https://YOUR-APP.vercel.app/auth/callback`
 
-Apply `supabase/migrations/0001_core.sql` in the Supabase SQL editor (or `npx supabase db push` after `supabase link`). For homework scans, also apply `supabase/migrations/0002_scan_types.sql`. For Yana's homework and the break timer, apply `supabase/migrations/0003_homework_play.sql`. Then:
+Apply these files in the Supabase SQL editor, in order: `supabase/migrations/0001_core.sql`, `0002_scan_types.sql`, `0003_homework_play.sql`, and `0004_intake.sql`. Then:
 
 ```bash
 npm run seed
