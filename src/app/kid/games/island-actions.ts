@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { nextLevel } from "@/lib/plan/outline";
 import { songMatches } from "@/lib/games/cove";
 import { gradeKitchen, type Plate } from "@/lib/games/kitchen";
 import { cleared, levelById, type Dir } from "@/lib/games/lagoon";
@@ -106,7 +107,7 @@ async function awardOnce(game: string, skill: string, stars: number, score: numb
 }
 
 async function bumpSkill(ctx: NonNullable<Awaited<ReturnType<typeof childContext>>>, skill: string) {
-  const { data } = await ctx.supabase.from("skill_progress").select("correct, attempts").eq("child_id", ctx.childId).eq("skill", skill).maybeSingle();
+  const { data } = await ctx.supabase.from("skill_progress").select("correct, attempts, level").eq("child_id", ctx.childId).eq("skill", skill).maybeSingle();
   const correct = Number(data?.correct ?? 0) + 1;
   const attempts = Number(data?.attempts ?? 0) + 1;
   await ctx.supabase.from("skill_progress").upsert(
@@ -116,7 +117,7 @@ async function bumpSkill(ctx: NonNullable<Awaited<ReturnType<typeof childContext
       skill,
       correct,
       attempts,
-      level: correct >= 3 ? 3 : 1,
+      level: nextLevel(Number(data?.level ?? 0), correct >= 3 ? 3 : 1),
     },
     { onConflict: "child_id,skill" },
   );

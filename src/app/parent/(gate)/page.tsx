@@ -1,6 +1,9 @@
 import { TonightCard } from "@/components/parent/tonight-card";
+import { ParentNote } from "@/components/parent-note";
 import { ScanDesk, type Question, type ScanCard } from "@/components/scan/desk";
 import { getFamily } from "@/lib/family";
+import { monthKey, monthPlan, nextMonthKey, type PlanItem } from "@/lib/plan/outline";
+import { ensureOutline } from "@/lib/plan/seed";
 
 export const dynamic = "force-dynamic";
 
@@ -59,9 +62,12 @@ export default async function ParentHomePage() {
   const bayPlayed = played.has("Game Bay") || played.has("bulles") || played.has("fruit");
   const islandsDone = (homeworkDone ? 1 : 0) + (bayPlayed ? 1 : 0) + ISLANDS.filter((island) => island !== "Game Bay" && played.has(island)).length;
 
+  const nextMonth = await nextMonthLine(supabase, family.timezone || "Europe/Paris");
+
   return (
     <div className="space-y-4">
       <TonightCard />
+      {nextMonth ? <ParentNote title="What to expect next month" body={nextMonth} /> : null}
     <ScanDesk
       familyId={family.family_id}
       stars={family.star_balance}
@@ -71,4 +77,16 @@ export default async function ParentHomePage() {
     />
     </div>
   );
+}
+
+async function nextMonthLine(supabase: Awaited<ReturnType<typeof getFamily>>["supabase"], timeZone: string) {
+  try {
+    await ensureOutline();
+  } catch {
+    return "";
+  }
+  const month = nextMonthKey(monthKey(new Date(), timeZone));
+  const { data, error } = await supabase.from("plan_items").select("family_id, item_key, month, period, subject, text, source, done, hidden");
+  if (error) return "";
+  return monthPlan((data ?? []) as PlanItem[], month)[0]?.text ?? "";
 }

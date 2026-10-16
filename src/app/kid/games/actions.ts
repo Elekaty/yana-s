@@ -1,5 +1,6 @@
 "use server";
 
+import { nextLevel } from "@/lib/plan/outline";
 import { getFamily } from "@/lib/family";
 import { gradeRound, tablesFrom } from "@/lib/games/questions";
 
@@ -29,7 +30,7 @@ export async function finishRound(input: { game: "bulles" | "fruit"; level: "eas
   });
   const { data: skill } = await supabase
     .from("skill_progress")
-    .select("correct, attempts")
+    .select("correct, attempts, level")
     .eq("child_id", family.child_id)
     .eq("skill", "tables")
     .maybeSingle();
@@ -42,7 +43,7 @@ export async function finishRound(input: { game: "bulles" | "fruit"; level: "eas
       skill: "tables",
       correct,
       attempts,
-      level: correct >= 15 ? 3 : correct >= 5 ? 1 : 0,
+      level: nextLevel(Number(skill?.level ?? 0), correct >= 15 ? 3 : correct >= 5 ? 1 : 0),
     },
     { onConflict: "child_id,skill" },
   );

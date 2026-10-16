@@ -1,9 +1,12 @@
 import { CopyCode } from "@/app/parent/(gate)/setup/copy-code";
+import { savePractice } from "@/app/parent/(gate)/setup/practice-actions";
 import { setChildLanguage } from "@/app/parent/(gate)/setup/actions";
 import { addSender, registerWebhook, removeSender } from "@/app/parent/(gate)/setup/intake-actions";
 import { confirmRoster, readRoster, saveAvailability, saveEvening, updateDraft, uploadRoster } from "@/app/parent/(gate)/setup/roster-actions";
 import { Button } from "@/components/ui/button";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
+import { studySettings } from "@/lib/study/clock";
+import { tablesFrom } from "@/lib/games/questions";
 import { getFamily } from "@/lib/family";
 
 export const dynamic = "force-dynamic";
@@ -23,7 +26,12 @@ export default async function SetupPage({ searchParams }: { searchParams: Promis
     supabase.from("families").select("settings").eq("id", family.family_id).maybeSingle(),
   ]);
   const parents = (members ?? []).filter((member) => member.role === "parent");
-  const settings = (familyRow?.settings as { mom_member_id?: string; dad_member_id?: string; daily_cap_minutes?: number; evening_from?: string; evening_to?: string } | null) ?? {};
+  const settings = (familyRow?.settings as { mom_member_id?: string; dad_member_id?: string; daily_cap_minutes?: number; evening_from?: string; evening_to?: string; town_star_cap?: number } | null) ?? {};
+  const { data: childRow } = family.child_id
+    ? await supabase.from("children").select("settings").eq("id", family.child_id).maybeSingle()
+    : { data: null };
+  const practice = studySettings(familyRow?.settings);
+  const tables = new Set(tablesFrom(childRow?.settings));
   const rosterNote =
     query.roster === "saved"
       ? "The photo is saved. Press Read the roster. Nothing is confirmed until you press Confirm."
@@ -224,6 +232,34 @@ export default async function SetupPage({ searchParams }: { searchParams: Promis
             </li>
           ))}
         </ul>
+      </Card>
+      <Card>
+        <CardTitle>Practice</CardTitle>
+        <CardDescription>These times are the study block and the break. The town cap limits stars spent on buildings. Tables are the ones in Bulles and Fruits.</CardDescription>
+        <form action={savePractice} className="mt-4 grid gap-3 text-sm">
+          <label>
+            Study minutes
+            <input name="study" type="number" min={5} max={60} defaultValue={practice.studyMinutes} className="mt-1 block h-10 w-24 rounded-md border border-border bg-background px-2" />
+          </label>
+          <label>
+            Break minutes
+            <input name="break" type="number" min={5} max={40} defaultValue={practice.breakMinutes} className="mt-1 block h-10 w-24 rounded-md border border-border bg-background px-2" />
+          </label>
+          <label>
+            Town star cap
+            <input name="townCap" type="number" min={0} max={500} defaultValue={settings.town_star_cap ?? ""} placeholder="No cap" className="mt-1 block h-10 w-24 rounded-md border border-border bg-background px-2" />
+          </label>
+          <fieldset className="flex flex-wrap gap-3">
+            <legend>Tables</legend>
+            {[2, 3, 4, 5, 10].map((table) => (
+              <label key={table} className="flex items-center gap-1">
+                <input type="checkbox" name="table" value={table} defaultChecked={tables.has(table)} />
+                {table}
+              </label>
+            ))}
+          </fieldset>
+          <Button type="submit" className="w-fit">Save practice</Button>
+        </form>
       </Card>
       <Card>
         <CardTitle>{family.child_name ?? "Child"} sees</CardTitle>
