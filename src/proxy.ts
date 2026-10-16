@@ -1,13 +1,16 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { PARENT_UNLOCK_COOKIE, readUnlock } from "@/lib/pin-cookie";
+import { REMEMBER_COOKIE, authCookieOptions, wantsRemember } from "@/lib/supabase/remember";
 
 export async function proxy(request: NextRequest) {
+  if (request.nextUrl.pathname === "/auth/callback") return NextResponse.next();
   let response = NextResponse.next({ request });
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
+      cookieOptions: authCookieOptions(wantsRemember(request.cookies.get(REMEMBER_COOKIE)?.value)),
       cookies: {
         getAll() {
           return request.cookies.getAll();
@@ -34,12 +37,13 @@ export async function proxy(request: NextRequest) {
     const url = request.nextUrl.clone();
     url.pathname = pathname;
     const redirect = NextResponse.redirect(url);
-    response.cookies.getAll().forEach((cookie) => {
-      redirect.cookies.set(cookie);
-    });
+    for (const cookie of response.headers.getSetCookie()) {
+      redirect.headers.append("set-cookie", cookie);
+    }
     return redirect;
   };
 
+  if (user && path === "/login") return redirectTo("/");
   if (!user && needsUser) return redirectTo("/login");
 
   if (user && parentGate) {

@@ -4,7 +4,7 @@ A private app for two parents and Yana. Parents can sign in, and a homework phot
 
 ## Demo
 
-1. Open the site and enter a parent email. Open the link in the same browser.
+1. Open the site and enter a parent email. Leave **Remember this device** on, then open the link in this same browser. The next visit on this device stays signed in.
 2. Create the family, type your name, Yana's name, and a 4 to 6 digit PIN.
 3. On Setup, copy the invite code.
 4. In a private window, sign in as the other parent and choose **Join with a code**.

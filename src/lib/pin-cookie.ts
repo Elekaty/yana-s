@@ -32,11 +32,11 @@ async function sign(secret: string, data: string) {
   return bytesToB64url(new Uint8Array(signature));
 }
 
-export async function signUnlock(sub: string, fam: string, secret: string, nowSeconds = Date.now() / 1000) {
+export async function signUnlock(sub: string, fam: string, secret: string, nowSeconds = Date.now() / 1000, lifetimeSeconds = 60 * 60 * 12) {
   const payload: UnlockPayload = {
     sub,
     fam,
-    exp: Math.floor(nowSeconds) + 60 * 60 * 12,
+    exp: Math.floor(nowSeconds) + lifetimeSeconds,
   };
   const body = bytesToB64url(new TextEncoder().encode(JSON.stringify(payload)));
   return `${body}.${await sign(secret, body)}`;
