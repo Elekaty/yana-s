@@ -27,6 +27,8 @@ The scan uses Gemini Flash (`gemini-3.8-flash`, then `gemini-2.5-flash` if that 
 
 The Bot API is free. `getFile` can download a file up to 20 MB; this app stores files up to 8 MB. The webhook checks `X-Telegram-Bot-Api-Secret-Token`. Photos are saved in private storage and are not sent to Gemini unless a parent presses **Read this photo**.
 
+If the class group refuses bots, `workers/telegram-userbot` listens with the parent's own Telegram login and posts each note to `/api/intake/userbot`. That request still has to fit in Vercel's 4.5 MB body, so a photo larger than 3.5 MB is saved as text only. The listener has to stay running on a free host such as Render. A sleeping free web service will miss messages.
+
 ## Email
 
 Sources: [Email Routing limits](https://developers.cloudflare.com/email-service/platform/limits/) and [Workers limits](https://developers.cloudflare.com/workers/platform/limits/), checked 16 October 2026.

@@ -1,0 +1,15 @@
+{
+  "name": "mochi-telegram-userbot",
+  "private": true,
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node index.js",
+    "login": "node login.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.6.1",
+    "telegram": "^2.26.22"
+  }
+}

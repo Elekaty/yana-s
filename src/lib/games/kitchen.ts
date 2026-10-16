@@ -1,49 +1,47 @@
-export const FOODS = ["pomme", "biscuit", "jus"] as const;
-export type Food = (typeof FOODS)[number];
-export type Plate = Record<Food, number>;
+import { countPhrase, kitchenFoods, wordById } from "@/lib/dictionary";
+
+export type Food = string;
+export type Plate = Record<string, number>;
 export type OrderLine = { item: Food; count: number };
 
-const FR = {
-  pomme: ["une pomme", "deux pommes", "trois pommes"],
-  biscuit: ["un biscuit", "deux biscuits", "trois biscuits"],
-  jus: ["un jus", "deux jus", "trois jus"],
-} as const;
-
-const EN = {
-  pomme: ["one apple", "two apples", "three apples"],
-  biscuit: ["one biscuit", "two biscuits", "three biscuits"],
-  jus: ["one juice", "two juices", "three juices"],
-} as const;
-
-export function emptyPlate(): Plate {
-  return { pomme: 0, biscuit: 0, jus: 0 };
+export function emptyPlate(tags?: string[]): Plate {
+  const plate: Plate = {};
+  for (const food of kitchenFoods(tags)) plate[food.id] = 0;
+  return plate;
 }
 
-export function orderAt(index: number): OrderLine[] {
-  const first = FOODS[index % FOODS.length];
+export function orderAt(index: number, tags?: string[]): OrderLine[] {
+  const foods = kitchenFoods(tags);
+  const first = foods[index % foods.length];
   const firstCount = (index % 3) + 1;
-  if (index < 2) return [{ item: first, count: firstCount }];
-  const second = FOODS[(index + 1) % FOODS.length];
+  if (!first) return [];
+  if (index < 2) return [{ item: first.id, count: firstCount }];
+  const second = foods[(index + 1) % foods.length];
   return [
-    { item: first, count: firstCount },
-    { item: second, count: (index % 2) + 1 },
+    { item: first.id, count: firstCount },
+    { item: second.id, count: (index % 2) + 1 },
   ];
 }
 
-export function orderText(order: OrderLine[], lang: "fr" | "en") {
-  const words = lang === "en" ? EN : FR;
-  return order.map((line) => words[line.item][line.count - 1]).join(lang === "en" ? " and " : " et ");
+export function orderText(order: OrderLine[], lang: "fr" | "en", tags?: string[]) {
+  const foods = kitchenFoods(tags);
+  return order
+    .map((line) => {
+      const food = foods.find((item) => item.id === line.item) ?? wordById(line.item);
+      return food ? countPhrase(food, line.count, lang) : String(line.count);
+    })
+    .join(lang === "en" ? " and " : " et ");
 }
 
-export function plateMatches(order: OrderLine[], plate: Plate) {
-  return FOODS.every((food) => {
-    const wanted = order.find((line) => line.item === food)?.count ?? 0;
-    return plate[food] === wanted;
+export function plateMatches(order: OrderLine[], plate: Plate, tags?: string[]) {
+  return kitchenFoods(tags).every((food) => {
+    const wanted = order.find((line) => line.item === food.id)?.count ?? 0;
+    return (plate[food.id] ?? 0) === wanted;
   });
 }
 
-export function gradeKitchen(plates: Plate[]) {
+export function gradeKitchen(plates: Plate[], tags?: string[]) {
   if (plates.length !== 5) return { correct: 0, stars: 0 };
-  const correct = plates.filter((plate, index) => plateMatches(orderAt(index), plate)).length;
+  const correct = plates.filter((plate, index) => plateMatches(orderAt(index, tags), plate, tags)).length;
   return { correct, stars: correct === 5 ? 2 : 0 };
 }

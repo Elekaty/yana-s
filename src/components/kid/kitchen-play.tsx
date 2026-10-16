@@ -4,41 +4,37 @@ import { useState } from "react";
 import Link from "next/link";
 import { finishKitchen } from "@/app/kid/games/island-actions";
 import type { Copy } from "@/lib/i18n";
+import { kitchenFoods } from "@/lib/dictionary";
 import { emptyPlate, orderAt, orderText, plateMatches, type Food, type Plate } from "@/lib/games/kitchen";
 import { playNote } from "@/lib/games/cove";
 
-const foods: { id: Food; emoji: string; fr: string; en: string }[] = [
-  { id: "pomme", emoji: "🍎", fr: "pomme", en: "apple" },
-  { id: "biscuit", emoji: "🍪", fr: "biscuit", en: "biscuit" },
-  { id: "jus", emoji: "🧃", fr: "jus", en: "juice" },
-];
-
-export function KitchenPlay({ lang, copy }: { lang: "fr" | "en"; copy: Copy }) {
+export function KitchenPlay({ lang, copy, tags }: { lang: "fr" | "en"; copy: Copy; tags?: string[] }) {
+  const foods = kitchenFoods(tags);
   const [customer, setCustomer] = useState(0);
-  const [plate, setPlate] = useState<Plate>(emptyPlate());
+  const [plate, setPlate] = useState<Plate>(emptyPlate(tags));
   const [done, setDone] = useState<Plate[]>([]);
   const [stars, setStars] = useState<number | null>(null);
-  const order = orderAt(customer);
+  const order = orderAt(customer, tags);
 
   async function add(food: Food) {
     playNote(520);
-    const next = { ...plate, [food]: plate[food] + 1 };
-    if (next[food] > 3) {
-      setPlate(emptyPlate());
+    const next = { ...plate, [food]: (plate[food] ?? 0) + 1 };
+    if ((next[food] ?? 0) > 3) {
+      setPlate(emptyPlate(tags));
       return;
     }
-    if (!plateMatches(order, next)) {
+    if (!plateMatches(order, next, tags)) {
       setPlate(next);
       return;
     }
     const plates = [...done, next];
     setDone(plates);
-    setPlate(emptyPlate());
+    setPlate(emptyPlate(tags));
     if (plates.length < 5) {
       setCustomer(customer + 1);
       return;
     }
-    const result = await finishKitchen(plates);
+    const result = await finishKitchen(plates, tags);
     setStars(result.stars);
   }
 
@@ -58,9 +54,9 @@ export function KitchenPlay({ lang, copy }: { lang: "fr" | "en"; copy: Copy }) {
 
   return (
     <div className="grid gap-4">
-      <p className="text-center text-3xl">{orderText(order, lang)}</p>
+      <p className="text-center text-3xl">{orderText(order, lang, tags)}</p>
       <p className="text-center text-2xl">
-        {foods.map((food) => `${food.emoji} ${plate[food.id]}`).join("  ")}
+        {foods.map((food) => `${food.emoji} ${plate[food.id] ?? 0}`).join("  ")}
       </p>
       {foods.map((food) => (
         <button key={food.id} type="button" aria-label={food[lang]} onClick={() => void add(food.id)} className="flex h-14 items-center justify-center rounded-full bg-sun text-3xl">
@@ -70,3 +66,5 @@ export function KitchenPlay({ lang, copy }: { lang: "fr" | "en"; copy: Copy }) {
     </div>
   );
 }
+
+export const MochisKitchen = KitchenPlay;

@@ -7,11 +7,11 @@ import type { Copy } from "@/lib/i18n";
 import { animalById, safariAt } from "@/lib/games/safari";
 import { speak } from "@/lib/speak";
 
-export function SafariPlay({ lang, copy }: { lang: "fr" | "en"; copy: Copy }) {
+export function SafariPlay({ lang, copy, tags }: { lang: "fr" | "en"; copy: Copy; tags?: string[] }) {
   const [index, setIndex] = useState(0);
   const [picks, setPicks] = useState<string[]>([]);
   const [stars, setStars] = useState<number | null>(null);
-  const round = safariAt(index);
+  const round = safariAt(index, tags);
   const answer = animalById(round.answer);
 
   async function choose(id: string) {
@@ -24,7 +24,7 @@ export function SafariPlay({ lang, copy }: { lang: "fr" | "en"; copy: Copy }) {
       setIndex(index + 1);
       return;
     }
-    const result = await finishSafari(next);
+    const result = await finishSafari(next, tags);
     setStars(result.stars);
   }
 
@@ -56,3 +56,5 @@ export function SafariPlay({ lang, copy }: { lang: "fr" | "en"; copy: Copy }) {
     </div>
   );
 }
+
+export const WordSafari = SafariPlay;

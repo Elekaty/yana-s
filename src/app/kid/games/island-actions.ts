@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { nextLevel } from "@/lib/plan/outline";
 import { songMatches } from "@/lib/games/cove";
+import { kitchenFoods } from "@/lib/dictionary";
 import { gradeKitchen, type Plate } from "@/lib/games/kitchen";
 import { cleared, levelById, type Dir } from "@/lib/games/lagoon";
 import { gradeSafari } from "@/lib/games/safari";
@@ -19,13 +20,13 @@ export async function finishLagoon(level: number, arrows: Dir[]) {
   return { ...awarded, cleared: true };
 }
 
-export async function finishKitchen(plates: Plate[]) {
-  const graded = gradeKitchen(plates.slice(0, 5).map(asPlate));
+export async function finishKitchen(plates: Plate[], tags?: string[]) {
+  const graded = gradeKitchen(plates.slice(0, 5).map((plate) => asPlate(plate, tags)), tags);
   return awardRound("kitchen", "numbers", graded.stars, graded.correct);
 }
 
-export async function finishSafari(picks: string[]) {
-  const graded = gradeSafari(picks.map(String).slice(0, 5));
+export async function finishSafari(picks: string[], tags?: string[]) {
+  const graded = gradeSafari(picks.map(String).slice(0, 5), tags);
   return awardRound("safari", "vocabulary", graded.stars, graded.correct);
 }
 
@@ -123,8 +124,10 @@ async function bumpSkill(ctx: NonNullable<Awaited<ReturnType<typeof childContext
   );
 }
 
-function asPlate(plate: Plate): Plate {
-  return { pomme: count(plate?.pomme), biscuit: count(plate?.biscuit), jus: count(plate?.jus) };
+function asPlate(plate: Plate, tags?: string[]): Plate {
+  const next: Plate = {};
+  for (const food of kitchenFoods(tags)) next[food.id] = count(plate?.[food.id]);
+  return next;
 }
 
 function count(value: number) {

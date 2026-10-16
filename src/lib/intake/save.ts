@@ -26,7 +26,7 @@ export async function saveIncoming(input: {
     .eq("family_id", input.familyId)
     .eq("content_hash", input.hash)
     .maybeSingle();
-  if (existing) return { saved: false as const };
+  if (existing) return { saved: false as const, messageId: existing.id as string };
 
   const { data: message, error } = await admin
     .from("messages")
@@ -43,7 +43,7 @@ export async function saveIncoming(input: {
     })
     .select("id")
     .single();
-  if (error?.code === "23505" || !message) return { saved: false as const };
+  if (error?.code === "23505" || !message) return { saved: false as const, messageId: undefined };
 
   for (const file of input.files) {
     const path = `${input.familyId}/${crypto.randomUUID()}-${safeName(file.name)}`;

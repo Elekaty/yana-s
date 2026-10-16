@@ -10,6 +10,7 @@ import {
 } from "@/lib/intake/mail";
 import { parseClassifyResult } from "@/lib/intake/schema";
 import { parseTelegramNote } from "@/lib/intake/telegram";
+import { decodeUserbotPhoto, parseUserbotPayload, userbotHash } from "@/lib/intake/userbot";
 
 describe("school intake", () => {
   it("links a chat from the family code and ignores other text", () => {
@@ -33,6 +34,24 @@ describe("school intake", () => {
     expect(note?.chatId).toBe("-100");
     expect(note?.text).toBe("Sortie vendredi");
     expect(note?.files[0]?.uniqueId).toBe("u2");
+  });
+
+  it("accepts a userbot note and treats the same photo as one hash", () => {
+    const note = parseUserbotPayload({
+      chatId: -100,
+      messageId: 4,
+      senderName: "Teacher",
+      date: "2026-10-16T12:00:00.000Z",
+      text: "Sortie vendredi",
+      photoBase64: Buffer.from("photo").toString("base64"),
+      mediaMimeType: "image/jpeg",
+    });
+    expect(note?.messageId).toBe(4);
+    expect(parseUserbotPayload({ chatId: "1" })).toBeNull();
+    const photo = decodeUserbotPhoto(note?.photoBase64, note?.mediaMimeType);
+    const again = userbotHash("Sortie vendredi", photo.hashPart, "tg:-100:4");
+    expect(userbotHash("  sortie   vendredi ", photo.hashPart, "tg:-100:9")).toBe(again);
+    expect(decodeUserbotPhoto(Buffer.alloc(3_500_001).toString("base64"), "image/jpeg").skipped).toBe(true);
   });
 
   it("treats the same note as one hash and a new photo as another", () => {
