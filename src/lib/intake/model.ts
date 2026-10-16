@@ -5,6 +5,10 @@ import { CLASSIFY_RESPONSE_SCHEMA, CLASSIFY_SYSTEM_PROMPT } from "@/lib/intake/p
 const MODELS = ["gemini-3.8-flash", "gemini-2.5-flash"];
 
 export async function summarizeSchoolNote(text: string, image?: { mime: string; bytes: Buffer }) {
+  return askGemini(CLASSIFY_SYSTEM_PROMPT, CLASSIFY_RESPONSE_SCHEMA, text, image);
+}
+
+export async function askGemini(system: string, schema: unknown, text: string, image?: { mime: string; bytes: Buffer }) {
   const key = process.env.GEMINI_API_KEY;
   if (!key) throw new Error("GEMINI_API_KEY is not set");
   const parts: Record<string, unknown>[] = [{ text }];
@@ -18,11 +22,11 @@ export async function summarizeSchoolNote(text: string, image?: { mime: string; 
         method: "POST",
         headers: { "content-type": "application/json", "x-goog-api-key": key },
         body: JSON.stringify({
-          systemInstruction: { parts: [{ text: CLASSIFY_SYSTEM_PROMPT }] },
+          systemInstruction: { parts: [{ text: system }] },
           contents: [{ role: "user", parts }],
           generationConfig: {
             responseMimeType: "application/json",
-            responseSchema: CLASSIFY_RESPONSE_SCHEMA,
+            responseSchema: schema,
             temperature: 0.2,
           },
         }),

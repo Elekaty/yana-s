@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getFamily } from "@/lib/family";
 import { processNextQueued } from "@/lib/intake/run";
+import { runDueReminders } from "@/lib/calendar/due";
 import { runEscalations } from "@/lib/inbox/escalate";
 import { processNextScan } from "@/lib/scan/process";
 
@@ -17,7 +18,8 @@ export async function POST(request: Request) {
         ? await processNextScan(body.familyId, body.scanId)
         : await processNextQueued();
       const escalated = await runEscalations().catch(() => 0);
-      return NextResponse.json({ ...result, escalated });
+      const reminded = await runDueReminders().catch(() => 0);
+      return NextResponse.json({ ...result, escalated, reminded });
     } catch {
       return NextResponse.json({ processed: false }, { status: 500 });
     }

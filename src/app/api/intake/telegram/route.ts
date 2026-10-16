@@ -8,6 +8,7 @@ import {
   replyTelegram,
   saveIncoming,
 } from "@/lib/intake/save";
+import { handleTelegramCallback } from "@/lib/calendar/due";
 import { parseTelegramNote } from "@/lib/intake/telegram";
 
 export async function POST(request: Request) {
@@ -16,6 +17,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
   const update = await request.json().catch(() => null);
+  if (await handleTelegramCallback(update)) return NextResponse.json({ ok: true });
   const note = parseTelegramNote(update);
   if (!note) return NextResponse.json({ ok: true });
 

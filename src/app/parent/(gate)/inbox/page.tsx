@@ -1,3 +1,4 @@
+import { addTask, addToCalendar, remindChild, remindParent } from "@/app/parent/(gate)/calendar/actions";
 import {
   archiveMessage,
   restoreMessage,
@@ -190,6 +191,24 @@ export default async function InboxPage({ searchParams }: { searchParams: Promis
                     </Button>
                   </form>
                 ) : null}
+                <form action={addTask}>
+                  <input type="hidden" name="messageId" value={message.id} />
+                  <Button type="submit" variant="outline">To do</Button>
+                </form>
+                <form action={addToCalendar}>
+                  <input type="hidden" name="messageId" value={message.id} />
+                  <Button type="submit" variant="outline">Add to calendar</Button>
+                </form>
+                <form action={remindParent} className="flex flex-wrap items-center gap-2">
+                  <input type="hidden" name="messageId" value={message.id} />
+                  <input name="when" type="datetime-local" required className="h-10 rounded-md border border-border bg-background px-2 text-sm" />
+                  <Button type="submit" variant="outline">Remind me</Button>
+                </form>
+                <form action={remindChild} className="flex flex-wrap items-center gap-2">
+                  <input type="hidden" name="messageId" value={message.id} />
+                  <input name="when" type="datetime-local" required className="h-10 rounded-md border border-border bg-background px-2 text-sm" />
+                  <Button type="submit" variant="ghost">Remind Yana</Button>
+                </form>
               </div>
             ) : null}
           </Card>

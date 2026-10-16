@@ -13,12 +13,14 @@ export function HomeScreen({
   stars,
   today,
   copy,
+  nudge,
 }: {
   childName: string;
   lang: "fr" | "en";
   stars: number;
   today: string;
   copy: Copy;
+  nudge?: string;
 }) {
   const [balance, setBalance] = useState(stars);
 
@@ -27,6 +29,7 @@ export function HomeScreen({
       <p className="text-xl">
         {balance} {copy.stars}
       </p>
+      {nudge ? <p className="text-2xl">{nudge}</p> : null}
       <Salon
         forced={null}
         childName={childName}

@@ -1,0 +1,149 @@
+import "server-only";
+
+import { applySnooze, parseReminderAction, shouldNotifyOther } from "@/lib/calendar/plan";
+import { createAdminClient } from "@/lib/supabase/admin";
+
+export async function runDueReminders(now = new Date()) {
+  const admin = createAdminClient();
+  const { data: due, error } = await admin
+    .from("reminders")
+    .select("id, family_id, target, status, due_at, snooze_count, escalated, ref_type, ref_id")
+    .in("status", ["pending", "snoozed"])
+    .lte("due_at", now.toISOString())
+    .limit(20);
+  if (error || !due) return 0;
+
+  let sent = 0;
+  for (const reminder of due) {
+    const title = await reminderTitle(reminder.ref_type as string | null, reminder.ref_id as string | null);
+    await admin.from("reminders").update({ status: "sent" }).eq("id", reminder.id).in("status", ["pending", "snoozed"]);
+    if (reminder.target === "parent") await notifyFamily(reminder.family_id as string, reminder.id as string, title);
+    sent += 1;
+  }
+
+  const { data: waiting } = await admin
+    .from("reminders")
+    .select("id, family_id, target, status, due_at, escalated")
+    .eq("status", "sent")
+    .eq("escalated", false)
+    .eq("target", "parent")
+    .lte("due_at", new Date(now.getTime() - 20 * 60 * 1000).toISOString())
+    .limit(20);
+  for (const reminder of waiting ?? []) {
+    const ready = shouldNotifyOther(
+      {
+        status: reminder.status as string,
+        dueAt: reminder.due_at as string,
+        escalated: Boolean(reminder.escalated),
+        target: reminder.target as string,
+      },
+      now,
+    );
+    if (!ready) continue;
+    await admin.from("reminders").update({ escalated: true }).eq("id", reminder.id);
+    await notifyFamily(reminder.family_id as string, reminder.id as string, "A reminder is still waiting.");
+  }
+  return sent;
+}
+
+export async function applyReminderAction(id: string, action: "done" | "30" | "45" | "60" | number, timeZone = "Europe/Paris") {
+  const admin = createAdminClient();
+  const { data: reminder } = await admin.from("reminders").select("id, due_at, snooze_count, status").eq("id", id).maybeSingle();
+  if (!reminder || reminder.status === "done") return false;
+  if (action === "done") {
+    await admin.from("reminders").update({ status: "done", note: null }).eq("id", id);
+    return true;
+  }
+  const minutes = typeof action === "number" ? action : Number(action);
+  const next = applySnooze({
+    dueAt: new Date(reminder.due_at as string),
+    snoozeCount: Number(reminder.snooze_count ?? 0),
+    minutes,
+    timeZone,
+  });
+  await admin.from("reminders").update({
+    due_at: next.dueAt.toISOString(),
+    snooze_count: next.snoozeCount,
+    note: next.note,
+    status: next.status,
+    escalated: false,
+  }).eq("id", id);
+  return true;
+}
+
+export async function handleTelegramCallback(update: unknown) {
+  const query = (update as { callback_query?: { id?: string; data?: string; message?: { chat?: { id?: number } } } } | null)?.callback_query;
+  if (!query?.id || !query.data) return false;
+  const parsed = parseReminderAction(query.data);
+  if (!parsed) {
+    await answerCallback(query.id, "Open the app to choose a custom time.");
+    return true;
+  }
+  const admin = createAdminClient();
+  const chatId = query.message?.chat?.id;
+  const { data: reminder } = await admin.from("reminders").select("id, family_id").eq("id", parsed.id).maybeSingle();
+  if (!reminder) {
+    await answerCallback(query.id, "That reminder is already finished.");
+    return true;
+  }
+  if (chatId !== undefined) {
+    const { data: chat } = await admin.from("telegram_chats").select("family_id").eq("chat_id", String(chatId)).maybeSingle();
+    if (!chat || chat.family_id !== reminder.family_id) {
+      await answerCallback(query.id, "This chat is not linked to that reminder.");
+      return true;
+    }
+  }
+  await applyReminderAction(parsed.id, parsed.action);
+  await answerCallback(query.id, parsed.action === "done" ? "Marked done." : "Snoozed.");
+  return true;
+}
+
+async function reminderTitle(refType: string | null, refId: string | null) {
+  if (!refId) return "Reminder";
+  const admin = createAdminClient();
+  if (refType === "event") {
+    const { data } = await admin.from("events").select("title").eq("id", refId).maybeSingle();
+    return (data?.title as string) || "Reminder";
+  }
+  if (refType === "message") {
+    const { data } = await admin.from("messages").select("title").eq("id", refId).maybeSingle();
+    return (data?.title as string) || "Reminder";
+  }
+  return "Reminder";
+}
+
+async function notifyFamily(familyId: string, reminderId: string, title: string) {
+  const token = process.env.TELEGRAM_BOT_TOKEN;
+  if (!token) return;
+  const admin = createAdminClient();
+  const { data: chats } = await admin.from("telegram_chats").select("chat_id").eq("family_id", familyId);
+  for (const chat of chats ?? []) {
+    if (String(chat.chat_id).startsWith("-")) continue;
+    await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        chat_id: chat.chat_id,
+        text: title,
+        reply_markup: {
+          inline_keyboard: [[
+            { text: "Done", callback_data: `r:${reminderId}:done` },
+            { text: "30", callback_data: `r:${reminderId}:30` },
+            { text: "45", callback_data: `r:${reminderId}:45` },
+            { text: "60", callback_data: `r:${reminderId}:60` },
+          ]],
+        },
+      }),
+    });
+  }
+}
+
+async function answerCallback(callbackId: string, text: string) {
+  const token = process.env.TELEGRAM_BOT_TOKEN;
+  if (!token) return;
+  await fetch(`https://api.telegram.org/bot${token}/answerCallbackQuery`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ callback_query_id: callbackId, text }),
+  });
+}

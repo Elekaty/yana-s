@@ -10,6 +10,7 @@ export const phrases = {
   bubble: { fr: "Coucou, ami !", en: "Hello, friend!" },
   dance: { fr: "Dansons !", en: "Let's dance!" },
   breakTime: { fr: "C'est la pause !", en: "Break time!" },
+  reminder: { fr: "Mochi a quelque chose pour {name}.", en: "Mochi has something for {name}." },
 } as const;
 
 export type PhraseId = keyof typeof phrases;
