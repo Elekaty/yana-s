@@ -21,7 +21,7 @@ Sources: [Cron jobs usage](https://vercel.com/docs/cron-jobs/usage-and-pricing) 
 
 ## Gemini
 
-The scan uses Gemini Flash (`gemini-3.8-flash`, then `gemini-2.5-flash` if that model is missing) with JSON output. The daily quota for this key is shown in Google AI Studio and changes, so it is not copied here. The prompt does not include the child's name, the parents' names, or an address. The photo is sent only after a parent chooses Scan.
+The scan uses Gemini Flash (`gemini-3.8-flash`, then `gemini-2.5-flash` if that model is missing) with JSON output. The daily quota for this key is shown in Google AI Studio and changes, so it is not copied here. The prompt does not include the child's name, the parents' names, or an address. A homework photo is sent only after a parent chooses Scan. A roster photo or PDF is sent only after a parent uploads it on Setup, and only the days are stored.
 
 ## Telegram
 

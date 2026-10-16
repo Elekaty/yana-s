@@ -2,6 +2,7 @@ import "server-only";
 
 import { createAdminClient } from "@/lib/supabase/admin";
 import { processNextClassify } from "@/lib/intake/classify";
+import { processNextRoster } from "@/lib/plan/roster";
 import { processNextScan } from "@/lib/scan/process";
 
 export async function processNextQueued() {
@@ -23,6 +24,7 @@ export async function processNextQueued() {
       attempts: job.attempts as number,
     });
   }
+  if (job.kind === "roster") return processNextRoster(job.family_id as string);
   if (job.kind === "scan") {
     const scanId = (job.payload as { scan_id?: string }).scan_id;
     return processNextScan(job.family_id as string, scanId);

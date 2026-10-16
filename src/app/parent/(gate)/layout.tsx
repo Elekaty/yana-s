@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { TonightCard } from "@/components/parent/tonight-card";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { getFamily } from "@/lib/family";
@@ -27,6 +28,7 @@ export default async function ParentLayout({ children }: { children: React.React
         <div>
           <p className="text-sm text-muted-foreground">{family.family_name}</p>
           <p className="font-semibold">Parents</p>
+          <TonightCard compact />
         </div>
         <div className="flex items-center gap-2">
           <ThemeToggle />

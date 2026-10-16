@@ -1,3 +1,4 @@
+import { TonightCard } from "@/components/parent/tonight-card";
 import { ScanDesk, type Question, type ScanCard } from "@/components/scan/desk";
 import { getFamily } from "@/lib/family";
 
@@ -58,6 +59,8 @@ export default async function ParentHomePage() {
   const islandsDone = (homeworkDone ? 1 : 0) + ISLANDS.filter((island) => played.has(island)).length;
 
   return (
+    <div className="space-y-4">
+      <TonightCard />
     <ScanDesk
       familyId={family.family_id}
       stars={family.star_balance}
@@ -65,5 +68,6 @@ export default async function ParentHomePage() {
       scans={cards}
       childName={family.child_name ?? "Child"}
     />
+    </div>
   );
 }

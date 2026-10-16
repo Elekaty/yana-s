@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getFamily } from "@/lib/family";
 import { processNextQueued } from "@/lib/intake/run";
 import { runDueReminders } from "@/lib/calendar/due";
+import { ensureRosterReminder } from "@/lib/plan/roster";
 import { runEscalations } from "@/lib/inbox/escalate";
 import { processNextScan } from "@/lib/scan/process";
 
@@ -19,7 +20,8 @@ export async function POST(request: Request) {
         : await processNextQueued();
       const escalated = await runEscalations().catch(() => 0);
       const reminded = await runDueReminders().catch(() => 0);
-      return NextResponse.json({ ...result, escalated, reminded });
+      const rosterReminder = await ensureRosterReminder().catch(() => 0);
+      return NextResponse.json({ ...result, escalated, reminded, rosterReminder });
     } catch {
       return NextResponse.json({ processed: false }, { status: 500 });
     }

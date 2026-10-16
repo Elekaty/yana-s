@@ -105,6 +105,7 @@ async function reminderTitle(refType: string | null, refId: string | null) {
     const { data } = await admin.from("events").select("title").eq("id", refId).maybeSingle();
     return (data?.title as string) || "Reminder";
   }
+  if (refType === "roster") return "Time to add next month's roster.";
   if (refType === "message") {
     const { data } = await admin.from("messages").select("title").eq("id", refId).maybeSingle();
     return (data?.title as string) || "Reminder";
