@@ -4,6 +4,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { afterClassifyError } from "@/lib/intake/mail";
 import { summarizeSchoolNote } from "@/lib/intake/model";
 import { parseClassifyResult } from "@/lib/intake/schema";
+import { chooseTier, classifyByRules, type Tier } from "@/lib/inbox/sort";
 import { redactForModel } from "@/lib/scan/redact";
 
 const IMAGE = new Set(["image/jpeg", "image/png", "image/webp"]);
@@ -25,7 +26,7 @@ export async function processNextClassify(job: { id: string; family_id: string; 
   try {
     const { data: message } = await admin
       .from("messages")
-      .select("id, original_text, family_id")
+      .select("id, original_text, family_id, sender")
       .eq("id", messageId)
       .eq("family_id", job.family_id)
       .maybeSingle();
@@ -43,9 +44,23 @@ export async function processNextClassify(job: { id: string; family_id: string; 
 
     const raw = await summarizeSchoolNote(text || "Read the attached school photo.", image ?? undefined);
     const parsed = parseClassifyResult(raw);
+    const senderTier = await ruleForSender(job.family_id, message.sender as string | null);
+    const rules = classifyByRules(message.original_text ?? "", { senderTier });
+    const choice = chooseTier(rules, {
+      tier: parsed.tier,
+      confidence: typeof parsed.confidence === "number" && parsed.confidence > 1 ? parsed.confidence / 100 : parsed.confidence,
+    });
     await admin
       .from("messages")
-      .update({ read_status: "ready", title: parsed.title, summary_en: parsed.summary_en })
+      .update({
+        read_status: "ready",
+        title: parsed.title,
+        summary_en: parsed.summary_en,
+        tier: choice.tier,
+        confidence: choice.confidence,
+        please_check: choice.pleaseCheck,
+        action_required: choice.actionRequired,
+      })
       .eq("id", message.id);
     await admin.from("jobs").update({ status: "succeeded" }).eq("id", job.id);
     return { processed: true };
@@ -59,6 +74,14 @@ export async function processNextClassify(job: { id: string; family_id: string; 
     await admin.from("messages").update({ read_status: next.read }).eq("id", messageId);
     return { processed: true, failed: next.read === "failed" };
   }
+}
+
+async function ruleForSender(familyId: string, sender: string | null) {
+  if (!sender) return null;
+  const admin = createAdminClient();
+  const { data } = await admin.from("sender_rules").select("tier").eq("family_id", familyId).eq("sender", sender).maybeSingle();
+  const tier = data?.tier as Tier | undefined;
+  return tier ?? null;
 }
 
 async function familyNames(familyId: string) {

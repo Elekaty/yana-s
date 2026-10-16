@@ -1,4 +1,5 @@
--- Telegram chats, allowed school senders, and a hash so the same note is stored once.
+-- 0004 intake
+-- Links a Telegram chat and the allowed school emails. Descriptions show in the Supabase table editor.
 
 alter table messages add column if not exists content_hash text;
 alter table messages add column if not exists read_status text not null default 'saved';
@@ -36,3 +37,11 @@ create policy allowed_senders_all on allowed_senders for all to authenticated
 
 grant select on telegram_chats to authenticated;
 grant select, insert, update, delete on allowed_senders to authenticated;
+
+comment on column messages.content_hash is 'Fingerprint of the note. The same text or photo is stored once.';
+comment on column messages.read_status is 'saved, reading, ready, or failed. Failed means: could not read, open the original.';
+comment on table telegram_chats is 'Class or parent chats linked with /link and the family code.';
+comment on column telegram_chats.chat_id is 'The Telegram chat id. Group ids are negative.';
+comment on column telegram_chats.title is 'The chat name at the time it was linked.';
+comment on table allowed_senders is 'School email addresses this family accepts. Other senders are ignored.';
+comment on column allowed_senders.email is 'The sender address, stored in lower case.';

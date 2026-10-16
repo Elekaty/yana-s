@@ -51,6 +51,7 @@ export async function POST(request: Request) {
     externalId,
     text: note.text,
     hash: incomingHash(note.text, note.files.map((file) => file.uniqueId), externalId),
+    sender: `telegram:${note.chatId}`,
     raw: { chatId: note.chatId, messageId: note.messageId, files: note.files.map((file) => file.uniqueId) },
     files: stored,
   });

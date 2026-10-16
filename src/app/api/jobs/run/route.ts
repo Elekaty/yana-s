@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getFamily } from "@/lib/family";
 import { processNextQueued } from "@/lib/intake/run";
+import { runEscalations } from "@/lib/inbox/escalate";
 import { processNextScan } from "@/lib/scan/process";
 
 export const maxDuration = 60;
@@ -15,7 +16,8 @@ export async function POST(request: Request) {
       const result = body.familyId
         ? await processNextScan(body.familyId, body.scanId)
         : await processNextQueued();
-      return NextResponse.json(result);
+      const escalated = await runEscalations().catch(() => 0);
+      return NextResponse.json({ ...result, escalated });
     } catch {
       return NextResponse.json({ processed: false }, { status: 500 });
     }

@@ -17,6 +17,7 @@ export async function saveIncoming(input: {
   hash: string;
   raw: unknown;
   files: IncomingFile[];
+  sender?: string;
 }) {
   const admin = createAdminClient();
   const { data: existing } = await admin
@@ -36,6 +37,7 @@ export async function saveIncoming(input: {
       original_text: input.text,
       content_hash: input.hash,
       raw: input.raw,
+      sender: input.sender ?? null,
       read_status: "saved",
       status: "new",
     })

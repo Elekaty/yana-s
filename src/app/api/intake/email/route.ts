@@ -31,6 +31,7 @@ export async function POST(request: Request) {
     externalId,
     text,
     hash: incomingHash(text, [], externalId),
+    sender: extractEmail(body.from),
     raw: { from: extractEmail(body.from), to: extractEmail(body.to), subject: body.subject ?? "" },
     files: [],
   });
