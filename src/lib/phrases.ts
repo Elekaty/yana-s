@@ -8,6 +8,8 @@ export const phrases = {
   think: { fr: "Je réfléchis.", en: "I am thinking." },
   yarn: { fr: "Ma pelote !", en: "My yarn!" },
   bubble: { fr: "Coucou, ami !", en: "Hello, friend!" },
+  dance: { fr: "Dansons !", en: "Let's dance!" },
+  breakTime: { fr: "C'est la pause !", en: "Break time!" },
 } as const;
 
 export type PhraseId = keyof typeof phrases;

@@ -9,13 +9,16 @@ export default async function ParentHomePage() {
   const { supabase, family } = await getFamily();
   if (!family) return null;
 
-  const [{ data: scans }, { data: tasks }, { data: sessions }] = await Promise.all([
+  const [{ data: scans }, { data: tasks }, { data: sessions }, { data: runs }] = await Promise.all([
     supabase.from("homework_scans").select("id, status, image_path, created_at").order("created_at", { ascending: false }).limit(20),
     supabase
       .from("tasks")
-      .select("scan_id, subject, translated_objective, parent_action, curriculum_skill, confidence, coaching, status"),
+      .select("id, scan_id, subject, translated_objective, parent_action, curriculum_skill, confidence, coaching, status"),
     supabase.from("game_sessions").select("game, created_at"),
+    supabase.from("homework_runs").select("task_id, status"),
   ]);
+
+  const runStatus = new Map((runs ?? []).map((run) => [run.task_id as string, run.status as string]));
 
   const cards = await Promise.all(
     (scans ?? []).map(async (scan) => {
@@ -39,6 +42,7 @@ export default async function ParentHomePage() {
         unclearNote: coaching.unclear_note ?? "",
         flagged: Boolean(coaching.flagged),
         questions: coaching.questions ?? [],
+        childStatus: task ? (runStatus.get(task.id) ?? null) : null,
       };
       return card;
     }),
@@ -54,6 +58,12 @@ export default async function ParentHomePage() {
   const islandsDone = (homeworkDone ? 1 : 0) + ISLANDS.filter((island) => played.has(island)).length;
 
   return (
-    <ScanDesk familyId={family.family_id} stars={family.star_balance} islandsDone={islandsDone} scans={cards} />
+    <ScanDesk
+      familyId={family.family_id}
+      stars={family.star_balance}
+      islandsDone={islandsDone}
+      scans={cards}
+      childName={family.child_name ?? "Child"}
+    />
   );
 }

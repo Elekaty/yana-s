@@ -27,6 +27,7 @@ export type ScanCard = {
   unclearNote: string;
   flagged: boolean;
   questions: Question[];
+  childStatus: string | null;
 };
 
 export function ScanDesk({
@@ -34,11 +35,13 @@ export function ScanDesk({
   stars,
   islandsDone,
   scans,
+  childName,
 }: {
   familyId: string;
   stars: number;
   islandsDone: number;
   scans: ScanCard[];
+  childName: string;
 }) {
   const router = useRouter();
   const [busy, setBusy] = useState("");
@@ -131,6 +134,7 @@ export function ScanDesk({
               <div>
                 <CardTitle>{scan.subject ?? statusLabel(scan.status)}</CardTitle>
                 {scan.skill ? <CardDescription>{scan.skill}</CardDescription> : null}
+                {scan.childStatus ? <CardDescription>{childLabel(childName, scan.childStatus)}</CardDescription> : null}
               </div>
               {needsCheck(scan) ? (
                 <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-900">Please check</span>
@@ -177,6 +181,14 @@ export function ScanDesk({
       </Link>
     </div>
   );
+}
+
+function childLabel(name: string, status: string) {
+  if (status === "done") return `${name} is done`;
+  if (status === "stuck") return `${name} is stuck`;
+  if (status === "needs_you") return `${name} needs you`;
+  if (status === "doing") return `${name} is working on this`;
+  return "";
 }
 
 function needsCheck(scan: ScanCard) {

@@ -49,10 +49,12 @@ export function Salon({
   forced,
   childName,
   lang,
+  onMeetFriend,
 }: {
   forced: MochiState | null;
   childName: string;
   lang: "fr" | "en";
+  onMeetFriend?: (friend: BubbleFriend) => void;
 }) {
   const reduce = useReducedMotion();
   const [auto, setAuto] = useState<MochiState>("greet");
@@ -232,9 +234,12 @@ export function Salon({
           className="absolute top-16 right-8 h-16 w-16 rounded-full border-4 border-white text-xs font-bold text-plum"
           style={{ background: friendColor[bubble] }}
           onClick={() => {
+            const greeting = fillPhrase(phrases.bubble[lang], childName);
             setBeside(bubble);
             setBubble(null);
-            setNote({ state, text: fillPhrase(phrases.bubble[lang], childName) });
+            setNote({ state, text: greeting });
+            speak({ text: greeting, lang });
+            onMeetFriend?.(bubble);
             window.setTimeout(() => setBeside(null), 4000);
           }}
         >

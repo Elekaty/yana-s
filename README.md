@@ -12,6 +12,7 @@ A private app for two parents and Yana. Parents can sign in, and a homework phot
 6. Kid screens are in French (switch to English on Setup). They do not show the inbox.
 7. Open `/dev/mochi` to see Mochi's states in the salon.
 8. Open Scan, photograph a worksheet, and wait for the English card. A bad photo stays saved and offers Retry.
+9. Open Kid mode. Home shows Mochi. Homework walks through the scanned steps, with hints, and remembers the place after a refresh. The break screen stays up until a parent enters the PIN.
 
 ## Local
 
@@ -27,7 +28,7 @@ In Supabase: **Authentication → URL configuration**. Set Site URL to `http://l
 - `http://localhost:3000/auth/callback`
 - `https://YOUR-APP.vercel.app/auth/callback`
 
-Apply `supabase/migrations/0001_core.sql` in the Supabase SQL editor (or `npx supabase db push` after `supabase link`). For homework scans, also apply `supabase/migrations/0002_scan_types.sql` so speaking and writing tasks keep their own game type. Then:
+Apply `supabase/migrations/0001_core.sql` in the Supabase SQL editor (or `npx supabase db push` after `supabase link`). For homework scans, also apply `supabase/migrations/0002_scan_types.sql`. For Yana's homework and the break timer, apply `supabase/migrations/0003_homework_play.sql`. Then:
 
 ```bash
 npm run seed
