@@ -53,7 +53,7 @@ export function LoginForm() {
   }
 
   return (
-    <main className="mx-auto flex min-h-dvh max-w-md items-center px-4">
+    <main className="mx-auto flex min-h-dvh max-w-md items-center px-4 pt-16">
       <Card className="w-full">
         <CardTitle>Mochi & Friends</CardTitle>
         <CardDescription>

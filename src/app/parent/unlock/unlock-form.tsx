@@ -13,7 +13,7 @@ export function UnlockForm({ hasPin }: { hasPin: boolean }) {
   const action = hasPin ? verifyPin : setPin;
   const [state, formAction, pending] = useActionState(action, empty);
   return (
-    <main className="mx-auto flex min-h-dvh max-w-md items-center px-4">
+    <main className="mx-auto flex min-h-dvh max-w-md items-center px-4 pt-16">
       <Card className="w-full">
         <CardTitle>{hasPin ? "Parent area" : "Choose a PIN"}</CardTitle>
         <CardDescription>

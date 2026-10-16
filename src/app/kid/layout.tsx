@@ -34,8 +34,8 @@ export default async function KidLayout({ children }: { children: React.ReactNod
         copy={copy}
       >
         <div className="mx-auto flex min-h-dvh max-w-5xl flex-col min-[820px]:flex-row">
-          <main className="flex-1 p-4 min-[820px]:p-6">{children}</main>
-          <nav className="grid grid-cols-3 border-t border-white/15 min-[820px]:w-48 min-[820px]:grid-cols-1 min-[820px]:border-t-0 min-[820px]:border-l">
+          <main className="flex-1 p-4 pt-16 min-[820px]:p-6 min-[820px]:pt-16">{children}</main>
+          <nav className="grid grid-cols-3 border-t border-white/15 min-[820px]:w-48 min-[820px]:grid-cols-1 min-[820px]:border-t-0 min-[820px]:border-l min-[820px]:pt-16">
             {links.map(([label, href]) => (
               <Link key={href} href={href} className="flex h-14 items-center justify-center text-lg">
                 {label}

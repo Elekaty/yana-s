@@ -1,6 +1,5 @@
 import { CopyCode } from "@/app/parent/(gate)/setup/copy-code";
 import { savePractice } from "@/app/parent/(gate)/setup/practice-actions";
-import { setChildLanguage } from "@/app/parent/(gate)/setup/actions";
 import { addSender, registerWebhook, removeSender } from "@/app/parent/(gate)/setup/intake-actions";
 import { confirmRoster, readRoster, saveAvailability, saveEvening, updateDraft, uploadRoster } from "@/app/parent/(gate)/setup/roster-actions";
 import { Button } from "@/components/ui/button";
@@ -264,15 +263,7 @@ export default async function SetupPage({ searchParams }: { searchParams: Promis
       </Card>
       <Card>
         <CardTitle>{family.child_name ?? "Child"} sees</CardTitle>
-        <CardDescription>French is the usual language. You can switch it to English.</CardDescription>
-        <form action={setChildLanguage} className="mt-4 flex gap-2">
-          <Button type="submit" name="language" value="fr" variant={family.child_language === "fr" ? "default" : "outline"}>
-            French
-          </Button>
-          <Button type="submit" name="language" value="en" variant={family.child_language === "en" ? "default" : "outline"}>
-            English
-          </Button>
-        </form>
+        <CardDescription>French is the usual language. English or French stays at the top right of every page.</CardDescription>
       </Card>
     </div>
   );

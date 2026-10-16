@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Fredoka, Geist } from "next/font/google";
+import { LanguageBar } from "@/components/language-bar";
 import { PwaRegister } from "@/components/pwa-register";
 import { ThemeProvider } from "@/components/theme-provider";
 import "./globals.css";
@@ -26,6 +27,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" suppressHydrationWarning className={`${geist.variable} ${fredoka.variable} h-full`}>
       <body className="min-h-full antialiased">
         <ThemeProvider>
+          <div className="fixed top-3 right-3 z-50">
+            <LanguageBar />
+          </div>
           {children}
           <PwaRegister />
         </ThemeProvider>

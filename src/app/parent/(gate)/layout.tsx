@@ -1,6 +1,6 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { TonightCard } from "@/components/parent/tonight-card";
+import { ParentTabs } from "@/components/parent/parent-tabs";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { getFamily } from "@/lib/family";
@@ -8,47 +8,35 @@ import { lockAndGoToKid } from "@/app/parent/unlock/actions";
 
 export const dynamic = "force-dynamic";
 
-const links = [
-  ["Scan", "/parent"],
-  ["Inbox", "/parent/inbox"],
-  ["Calendar", "/parent/calendar"],
-  ["To do", "/parent/todo"],
-  ["Progress", "/parent/progress"],
-  ["Setup", "/parent/setup"],
-] as const;
-
 export default async function ParentLayout({ children }: { children: React.ReactNode }) {
   const { user, family } = await getFamily();
   if (!user) redirect("/login");
   if (!family) redirect("/join");
 
   return (
-    <div className="min-h-dvh">
-      <header className="flex items-center justify-between gap-3 border-b border-border px-4 py-3">
-        <div>
-          <p className="text-sm text-muted-foreground">{family.family_name}</p>
-          <p className="font-semibold">Parents</p>
-          <TonightCard compact />
+    <div className="min-h-dvh bg-[#f6f0ff] text-plum dark:bg-[#120818] dark:text-white">
+      <header className="sticky top-0 z-20 bg-plum text-white shadow-lg">
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3 pr-32">
+          <div className="min-w-0">
+            <p className="truncate font-fredoka text-2xl leading-none">{family.family_name}</p>
+            <div className="mt-1 text-white/80">
+              <TonightCard compact />
+            </div>
+          </div>
+          <div className="flex shrink-0 items-center gap-2">
+            <ThemeToggle className="border-white/25 bg-white/10 text-white hover:bg-white/20" />
+            <form action={lockAndGoToKid}>
+              <Button type="submit" className="border-0 bg-hot text-white hover:opacity-90">
+                Kid mode
+              </Button>
+            </form>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          <ThemeToggle />
-          <form action={lockAndGoToKid}>
-            <Button type="submit" variant="outline">
-              Kid mode
-            </Button>
-          </form>
+        <div className="mx-auto max-w-6xl">
+          <ParentTabs />
         </div>
       </header>
-      <div className="mx-auto grid max-w-5xl min-[820px]:grid-cols-[180px_1fr]">
-        <nav className="flex gap-1 overflow-x-auto border-b border-border px-2 py-2 min-[820px]:flex-col min-[820px]:border-b-0 min-[820px]:border-r">
-          {links.map(([label, href]) => (
-            <Link key={href} href={href} className="rounded-md px-3 py-2 text-sm hover:bg-muted">
-              {label}
-            </Link>
-          ))}
-        </nav>
-        <div className="p-4 min-[820px]:p-6">{children}</div>
-      </div>
+      <div className="mx-auto max-w-6xl p-4 min-[820px]:p-6 [&_h1]:font-fredoka [&_h1]:text-3xl [&_h1]:text-plum dark:[&_h1]:text-white">{children}</div>
     </div>
   );
 }

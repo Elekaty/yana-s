@@ -20,7 +20,7 @@ export default function JoinPage() {
   }, []);
 
   return (
-    <main className="mx-auto grid min-h-dvh max-w-4xl gap-4 px-4 py-8 min-[820px]:grid-cols-2">
+    <main className="mx-auto grid min-h-dvh max-w-4xl gap-4 px-4 py-8 pt-16 min-[820px]:grid-cols-2">
       <Card>
         <CardTitle>Start your family</CardTitle>
         <CardDescription>The first parent sets the name and the PIN.</CardDescription>
