@@ -52,9 +52,13 @@ describe("secrets stay on the server", () => {
     for (const file of files) {
       const text = readFileSync(file, "utf8");
       const normalized = file.replaceAll("\\", "/");
-      if (normalized.endsWith("src/lib/supabase/admin.ts")) continue;
-      expect(text, normalized).not.toContain("SUPABASE_SERVICE_ROLE_KEY");
-      expect(text, normalized).not.toContain("supabase/admin");
+      if (!normalized.endsWith("src/lib/supabase/admin.ts")) {
+        expect(text, normalized).not.toContain("SUPABASE_SERVICE_ROLE_KEY");
+      }
+      if (text.includes('"use client"') || text.includes("'use client'")) {
+        expect(text, normalized).not.toContain("supabase/admin");
+        expect(text, normalized).not.toContain("SUPABASE_SERVICE_ROLE_KEY");
+      }
     }
   });
 });

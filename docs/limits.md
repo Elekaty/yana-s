@@ -13,14 +13,15 @@ Source: [supabase.com/pricing](https://supabase.com/pricing) and [billing docs](
 
 ## Vercel Hobby
 
-Source: [Cron jobs usage](https://vercel.com/docs/cron-jobs/usage-and-pricing).
+Sources: [Cron jobs usage](https://vercel.com/docs/cron-jobs/usage-and-pricing) and [Functions limits](https://vercel.com/docs/functions/limitations), checked 16 October 2026.
 
 - Hobby cron jobs run at most once per day, and the time can be up to an hour off. That is why the job worker will be triggered by Supabase `pg_cron`, not by Vercel Cron. Confirm `pg_cron` and `pg_net` on this project before Step 4.
+- A function request or response can be at most 4.5 MB. Homework photos are compressed to about 300–500 KB on the phone and uploaded straight to Supabase Storage, so the scan request to Vercel is only the file path.
 - Hobby is for personal, non-commercial use.
 
 ## Gemini
 
-Quotas change and are shown in Google AI Studio for the key you create. Do not copy a number from memory. Step 2 will record the Flash limit that applies to this key, and the photo upload must stay under Vercel's request body limit (check the current Hobby limit in the Vercel docs at that step).
+The scan uses Gemini Flash (`gemini-3.8-flash`, then `gemini-2.5-flash` if that model is missing) with JSON output. The daily quota for this key is shown in Google AI Studio and changes, so it is not copied here. The prompt does not include the child's name, the parents' names, or an address. The photo is sent only after a parent chooses Scan.
 
 ## Not used yet
 

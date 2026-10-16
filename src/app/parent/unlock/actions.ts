@@ -18,7 +18,7 @@ export async function setPin(_prev: PinState, formData: FormData): Promise<PinSt
   const { error } = await supabase.rpc("set_family_pin", { p_pin: parsed.data });
   if (error) return { error: error.message };
   await writeUnlockCookie(user.id, family.family_id);
-  redirect("/parent/inbox");
+  redirect("/parent");
 }
 
 export async function verifyPin(_prev: PinState, formData: FormData): Promise<PinState> {
@@ -30,7 +30,7 @@ export async function verifyPin(_prev: PinState, formData: FormData): Promise<Pi
   const { data: ok, error } = await supabase.rpc("verify_family_pin", { p_pin: parsed.data });
   if (error || !ok) return { error: "That PIN is not right." };
   await writeUnlockCookie(user.id, family.family_id);
-  redirect("/parent/inbox");
+  redirect("/parent");
 }
 
 export async function lockAndGoToKid() {

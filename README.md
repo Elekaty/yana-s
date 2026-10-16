@@ -1,6 +1,6 @@
 # Mochi & Friends
 
-A private app for two parents and Yana. This repository is at Step 1: sign-in, one family, a parent PIN, and Mochi in the salon.
+A private app for two parents and Yana. Parents can sign in, and a homework photo becomes an English card.
 
 ## Demo
 
@@ -11,6 +11,7 @@ A private app for two parents and Yana. This repository is at Step 1: sign-in, o
 5. Open **Parents**. The PIN is required. Kid mode locks the parent area again.
 6. Kid screens are in French (switch to English on Setup). They do not show the inbox.
 7. Open `/dev/mochi` to see Mochi's states in the salon.
+8. Open Scan, photograph a worksheet, and wait for the English card. A bad photo stays saved and offers Retry.
 
 ## Local
 
@@ -26,7 +27,7 @@ In Supabase: **Authentication → URL configuration**. Set Site URL to `http://l
 - `http://localhost:3000/auth/callback`
 - `https://YOUR-APP.vercel.app/auth/callback`
 
-Apply `supabase/migrations/0001_core.sql` in the Supabase SQL editor (or `npx supabase db push` after `supabase link`). Then:
+Apply `supabase/migrations/0001_core.sql` in the Supabase SQL editor (or `npx supabase db push` after `supabase link`). For homework scans, also apply `supabase/migrations/0002_scan_types.sql` so speaking and writing tasks keep their own game type. Then:
 
 ```bash
 npm run seed

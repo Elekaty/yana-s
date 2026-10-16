@@ -8,6 +8,7 @@ import { lockAndGoToKid } from "@/app/parent/unlock/actions";
 export const dynamic = "force-dynamic";
 
 const links = [
+  ["Scan", "/parent"],
   ["Inbox", "/parent/inbox"],
   ["Calendar", "/parent/calendar"],
   ["To do", "/parent/todo"],
