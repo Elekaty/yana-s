@@ -17,6 +17,7 @@ A private app for two parents and Yana. Parents can sign in, and a homework phot
 11. In Inbox, both parents press **I've seen this**. Archive stays off until the second tick. Undo works before that second tick. An urgent message still waiting after 2 hours is marked **Still waiting for a parent.**
 12. On a message, press **Add to calendar**, check the date, and save it. On Calendar, snooze the reminder by 30, 45, or 60 minutes, or a custom number. After the third snooze it moves to the next morning. Toussaint and the other 2026–2027 holidays show on the month. **Break plan** adds short practice days during a holiday.
 13. On Setup, upload a roster photo, press **Read the roster**, edit any day, then press **Confirm**. Flying days show on the calendar only after that. Tonight, under Parents, names who is free. **Swap** changes the leader. A session never runs longer than the daily cap.
+14. In Kid mode, open Games, then the bay. Play Bulles, then Fruits on Easy. Five right answers add 2 stars. There are no lives.
 
 School mail uses `scripts/email-worker.js` on Cloudflare Email Routing. Point the family address (`invite-code@your-domain`) at that worker. Supabase `pg_cron` and `pg_net` should call the job worker every minute, because Vercel Hobby cron only runs daily:
 

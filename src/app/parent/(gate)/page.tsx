@@ -56,7 +56,8 @@ export default async function ParentHomePage() {
       .map((session) => session.game as string),
   );
   const homeworkDone = (tasks ?? []).some((task) => task.status === "completed");
-  const islandsDone = (homeworkDone ? 1 : 0) + ISLANDS.filter((island) => played.has(island)).length;
+  const bayPlayed = played.has("Game Bay") || played.has("bulles") || played.has("fruit");
+  const islandsDone = (homeworkDone ? 1 : 0) + (bayPlayed ? 1 : 0) + ISLANDS.filter((island) => island !== "Game Bay" && played.has(island)).length;
 
   return (
     <div className="space-y-4">
