@@ -81,6 +81,7 @@ export default async function InboxPage({ searchParams }: { searchParams: Promis
           <input type="hidden" name="folder" value="archive" />
           <input
             name="q"
+            aria-label="Search the archive"
             defaultValue={query.q ?? ""}
             placeholder="Search the archive"
             className="h-10 flex-1 rounded-md border border-border bg-background px-3 text-sm"
@@ -201,12 +202,12 @@ export default async function InboxPage({ searchParams }: { searchParams: Promis
                 </form>
                 <form action={remindParent} className="flex flex-wrap items-center gap-2">
                   <input type="hidden" name="messageId" value={message.id} />
-                  <input name="when" type="datetime-local" required className="h-10 rounded-md border border-border bg-background px-2 text-sm" />
+                  <input name="when" type="datetime-local" aria-label="Remind me at" required className="h-10 rounded-md border border-border bg-background px-2 text-sm" />
                   <Button type="submit" variant="outline">Remind me</Button>
                 </form>
                 <form action={remindChild} className="flex flex-wrap items-center gap-2">
                   <input type="hidden" name="messageId" value={message.id} />
-                  <input name="when" type="datetime-local" required className="h-10 rounded-md border border-border bg-background px-2 text-sm" />
+                  <input name="when" type="datetime-local" aria-label="Remind Yana at" required className="h-10 rounded-md border border-border bg-background px-2 text-sm" />
                   <Button type="submit" variant="ghost">Remind Yana</Button>
                 </form>
               </div>

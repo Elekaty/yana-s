@@ -7,10 +7,10 @@ import type { Copy } from "@/lib/i18n";
 import { emptyPlate, orderAt, orderText, plateMatches, type Food, type Plate } from "@/lib/games/kitchen";
 import { playNote } from "@/lib/games/cove";
 
-const foods: { id: Food; emoji: string }[] = [
-  { id: "pomme", emoji: "🍎" },
-  { id: "biscuit", emoji: "🍪" },
-  { id: "jus", emoji: "🧃" },
+const foods: { id: Food; emoji: string; fr: string; en: string }[] = [
+  { id: "pomme", emoji: "🍎", fr: "pomme", en: "apple" },
+  { id: "biscuit", emoji: "🍪", fr: "biscuit", en: "biscuit" },
+  { id: "jus", emoji: "🧃", fr: "jus", en: "juice" },
 ];
 
 export function KitchenPlay({ lang, copy }: { lang: "fr" | "en"; copy: Copy }) {
@@ -63,7 +63,7 @@ export function KitchenPlay({ lang, copy }: { lang: "fr" | "en"; copy: Copy }) {
         {foods.map((food) => `${food.emoji} ${plate[food.id]}`).join("  ")}
       </p>
       {foods.map((food) => (
-        <button key={food.id} type="button" onClick={() => void add(food.id)} className="flex h-14 items-center justify-center rounded-full bg-sun text-3xl">
+        <button key={food.id} type="button" aria-label={food[lang]} onClick={() => void add(food.id)} className="flex h-14 items-center justify-center rounded-full bg-sun text-3xl">
           {food.emoji}
         </button>
       ))}

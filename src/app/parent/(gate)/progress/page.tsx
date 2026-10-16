@@ -88,8 +88,8 @@ export default async function ProgressPage() {
         <CardTitle>Rewards</CardTitle>
         <CardDescription>Approving spends stars. Denying leaves them.</CardDescription>
         <form action={addReward} className="mt-3 flex flex-wrap gap-2">
-          <input name="title" placeholder="Reward" className="h-10 rounded-md border border-border bg-background px-2" />
-          <input name="cost" type="number" min={1} max={100} defaultValue={5} className="h-10 w-20 rounded-md border border-border bg-background px-2" />
+          <input name="title" aria-label="Reward" placeholder="Reward" className="h-10 rounded-md border border-border bg-background px-2" />
+          <input name="cost" type="number" aria-label="Star cost" min={1} max={100} defaultValue={5} className="h-10 w-20 rounded-md border border-border bg-background px-2" />
           <Button type="submit">Add</Button>
         </form>
         <ul className="mt-3 space-y-2">

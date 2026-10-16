@@ -93,6 +93,7 @@ export default async function SetupPage({ searchParams }: { searchParams: Promis
             name="email"
             type="email"
             required
+            aria-label="School email"
             placeholder="teacher@school.fr"
             className="h-10 flex-1 rounded-md border border-border bg-background px-3 text-sm"
           />
@@ -120,14 +121,14 @@ export default async function SetupPage({ searchParams }: { searchParams: Promis
         {drafts.error ? <p className="mt-3 text-sm">Apply supabase/migrations/0007_roster.sql in the Supabase SQL editor, then reload this page.</p> : null}
         {rosterNote ? <p className="mt-3 text-sm">{rosterNote}</p> : null}
         <form action={uploadRoster} className="mt-4 flex flex-wrap items-center gap-2">
-          <select name="memberId" className="h-10 rounded-md border border-border bg-background px-2 text-sm">
+          <select name="memberId" aria-label="Whose roster" className="h-10 rounded-md border border-border bg-background px-2 text-sm">
             {parents.map((parent) => (
               <option key={parent.id} value={parent.id}>
                 {parent.display_name}
               </option>
             ))}
           </select>
-          <input name="file" type="file" accept="image/jpeg,image/png,image/webp,application/pdf" required className="text-sm" />
+          <input name="file" type="file" aria-label="Roster file" accept="image/jpeg,image/png,image/webp,application/pdf" required className="text-sm" />
           <Button type="submit" variant="outline">
             Upload
           </Button>
@@ -143,7 +144,7 @@ export default async function SetupPage({ searchParams }: { searchParams: Promis
               <form action={updateDraft} className="flex flex-wrap items-center gap-2 text-sm">
                 <input type="hidden" name="id" value={draft.id} />
                 <span className="w-28">{draft.date}</span>
-                <select name="status" defaultValue={draft.status} className="h-10 rounded-md border border-border bg-background px-2">
+                <select name="status" aria-label={`Status on ${draft.date}`} defaultValue={draft.status} className="h-10 rounded-md border border-border bg-background px-2">
                   {["off", "flying", "standby", "layover"].map((status) => (
                     <option key={status} value={status}>
                       {status}
@@ -205,22 +206,22 @@ export default async function SetupPage({ searchParams }: { searchParams: Promis
           </Button>
         </form>
         <form action={saveAvailability} className="mt-4 flex flex-wrap items-end gap-2 text-sm">
-          <select name="memberId" className="h-10 rounded-md border border-border bg-background px-2">
+          <select name="memberId" aria-label="Parent" className="h-10 rounded-md border border-border bg-background px-2">
             {parents.map((parent) => (
               <option key={parent.id} value={parent.id}>
                 {parent.display_name}
               </option>
             ))}
           </select>
-          <select name="weekday" className="h-10 rounded-md border border-border bg-background px-2">
+          <select name="weekday" aria-label="Weekday" className="h-10 rounded-md border border-border bg-background px-2">
             {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((label, index) => (
               <option key={label} value={index}>
                 {label}
               </option>
             ))}
           </select>
-          <input name="from" type="time" required defaultValue="18:00" className="h-10 rounded-md border border-border bg-background px-2" />
-          <input name="to" type="time" required defaultValue="20:30" className="h-10 rounded-md border border-border bg-background px-2" />
+          <input name="from" type="time" aria-label="Free from" required defaultValue="18:00" className="h-10 rounded-md border border-border bg-background px-2" />
+          <input name="to" type="time" aria-label="Free until" required defaultValue="20:30" className="h-10 rounded-md border border-border bg-background px-2" />
           <Button type="submit" variant="outline">
             Save free hours
           </Button>

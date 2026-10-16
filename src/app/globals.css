@@ -56,3 +56,8 @@ body {
     scroll-behavior: auto !important;
   }
 }
+
+.kid :focus-visible {
+  outline: 3px solid #ffd23f;
+  outline-offset: 3px;
+}

@@ -76,7 +76,7 @@ export function StoryLibrary({ lang }: { lang: "fr" | "en" }) {
         })}
       </div>
       <Dialog open={open !== null} onOpenChange={(next) => { if (!next) setOpen(null); }}>
-        <DialogContent>
+        <DialogContent className="kid">
           <MochiFace />
           <DialogTitle className="mt-3 text-center">{leave}</DialogTitle>
           <div className="mt-4 grid gap-2">

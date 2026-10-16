@@ -17,7 +17,7 @@ const friendColor: Record<BubbleFriend, string> = {
 export function SalonLab() {
   const [forced, setForced] = useState<MochiState | null>(null);
   return (
-    <div className="min-h-dvh bg-plum px-4 py-6 text-white" style={{ fontFamily: "var(--font-fredoka), system-ui, sans-serif" }}>
+    <div className="kid min-h-dvh bg-plum px-4 py-6 text-white" style={{ fontFamily: "var(--font-fredoka), system-ui, sans-serif" }}>
       <div className="mx-auto flex max-w-3xl flex-col gap-4">
         <h1 className="text-3xl">Mochi in the salon</h1>
         <p className="text-white/80">Tap a state, the yarn, or the sofa. She pauses when this tab is hidden.</p>

@@ -6,7 +6,7 @@ import { finishSong } from "@/app/kid/games/island-actions";
 import type { Copy } from "@/lib/i18n";
 import { FRERE_JACQUES, PADS, playNote } from "@/lib/games/cove";
 
-export function SongBoard({ copy }: { copy: Copy }) {
+export function SongBoard({ copy, lang }: { copy: Copy; lang: "fr" | "en" }) {
   const [heard, setHeard] = useState<string[]>([]);
   const [stars, setStars] = useState<number | null>(null);
   const next = FRERE_JACQUES[heard.length];
@@ -43,6 +43,7 @@ export function SongBoard({ copy }: { copy: Copy }) {
           key={pad.id}
           type="button"
           onClick={() => void tap(pad.id, pad.freq)}
+          aria-label={pad.id === "C5" ? (lang === "en" ? "High do" : "Do aigu") : pad.label}
           className={`flex h-14 items-center justify-center rounded-2xl text-xl text-plum ${pad.id === next ? "bg-sun" : "bg-white"}`}
         >
           {pad.label}

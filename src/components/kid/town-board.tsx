@@ -72,6 +72,7 @@ export function TownBoard({
         {friends.map((friend, index) => (
           <motion.span
             key={friend}
+            aria-hidden
             className="pointer-events-none absolute h-4 w-4 rounded-full"
             style={{ background: friendColor[friend] ?? "#fff", top: 8 }}
             animate={reduced ? { left: 8 + index * 16 } : { left: [8, 180, 8] }}

@@ -55,7 +55,7 @@ export default async function TodoPage() {
           </CardDescription>
           <form action={savePlanItem} className="mt-3 grid gap-2">
             <PlanFields line={line} />
-            <input name="text" defaultValue={line.text} className="h-10 rounded-md border border-border bg-background px-2" />
+            <input name="text" aria-label={`${line.subject} text`} defaultValue={line.text} className="h-10 rounded-md border border-border bg-background px-2" />
             <Button type="submit" variant="outline">Save</Button>
           </form>
           <div className="mt-2 flex gap-2">
@@ -76,8 +76,8 @@ export default async function TodoPage() {
         <CardTitle>Add a line</CardTitle>
         <form action={addPlanItem} className="mt-3 grid gap-2">
           <input type="hidden" name="month" value={month} />
-          <input name="subject" placeholder="Subject" className="h-10 rounded-md border border-border bg-background px-2" />
-          <input name="text" placeholder="What to practice" className="h-10 rounded-md border border-border bg-background px-2" />
+          <input name="subject" aria-label="Subject" placeholder="Subject" className="h-10 rounded-md border border-border bg-background px-2" />
+          <input name="text" aria-label="What to practice" placeholder="What to practice" className="h-10 rounded-md border border-border bg-background px-2" />
           <Button type="submit">Add</Button>
         </form>
       </Card>

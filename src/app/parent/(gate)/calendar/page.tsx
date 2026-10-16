@@ -97,7 +97,7 @@ export default async function CalendarPage({ searchParams }: { searchParams: Pro
                 <form action={snoozeReminder} className="flex gap-2">
                   <input type="hidden" name="reminderId" value={reminder.id} />
                   <input type="hidden" name="action" value="custom" />
-                  <input name="minutes" type="number" min={1} max={1440} placeholder="Custom" className="h-10 w-24 rounded-md border border-border bg-background px-2 text-sm" />
+                  <input name="minutes" type="number" aria-label="Snooze minutes" min={1} max={1440} placeholder="Custom" className="h-10 w-24 rounded-md border border-border bg-background px-2 text-sm" />
                   <Button type="submit" variant="ghost">Snooze</Button>
                 </form>
               </div>
@@ -109,7 +109,7 @@ export default async function CalendarPage({ searchParams }: { searchParams: Pro
         <CardTitle>School zone</CardTitle>
         <CardDescription>The winter break follows this zone. Your own dates replace the national ones.</CardDescription>
         <form action={saveZone} className="mt-3 flex gap-2">
-          <select name="zone" defaultValue={schoolZone} className="h-10 rounded-md border border-border bg-background px-2 text-sm">
+          <select name="zone" aria-label="School zone" defaultValue={schoolZone} className="h-10 rounded-md border border-border bg-background px-2 text-sm">
             <option value="A">Zone A</option>
             <option value="B">Zone B</option>
             <option value="C">Zone C</option>
@@ -123,8 +123,8 @@ export default async function CalendarPage({ searchParams }: { searchParams: Pro
                 <input type="hidden" name="label" value={holiday.label} />
                 <input type="hidden" name="zone" value={holiday.zone ?? ""} />
                 <span className="min-w-36">{holiday.label}</span>
-                <input name="starts" type="date" defaultValue={holiday.starts_on} className="h-10 rounded-md border border-border bg-background px-2" />
-                <input name="ends" type="date" defaultValue={holiday.ends_on} className="h-10 rounded-md border border-border bg-background px-2" />
+                <input name="starts" type="date" aria-label={`Start of ${holiday.label}`} defaultValue={holiday.starts_on} className="h-10 rounded-md border border-border bg-background px-2" />
+                <input name="ends" type="date" aria-label={`End of ${holiday.label}`} defaultValue={holiday.ends_on} className="h-10 rounded-md border border-border bg-background px-2" />
                 <Button type="submit" variant="ghost">Save dates</Button>
               </form>
             </li>

@@ -5,8 +5,12 @@ import Link from "next/link";
 import type { Copy } from "@/lib/i18n";
 
 const colors = ["#FFD23F", "#FF2E93", "#7C3AED"] as const;
+const colorNames = {
+  fr: ["jaune", "rose", "violet"],
+  en: ["yellow", "pink", "purple"],
+} as const;
 
-export function DrawBoard({ copy }: { copy: Copy }) {
+export function DrawBoard({ copy, lang }: { copy: Copy; lang: "fr" | "en" }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const drawing = useRef(false);
   const [colorIndex, setColorIndex] = useState(0);
@@ -54,6 +58,7 @@ export function DrawBoard({ copy }: { copy: Copy }) {
         ref={canvasRef}
         width={640}
         height={480}
+        aria-label={copy.draw}
         className="h-64 w-full touch-none rounded-3xl bg-white"
         onPointerDown={onDown}
         onPointerMove={onMove}
@@ -64,6 +69,7 @@ export function DrawBoard({ copy }: { copy: Copy }) {
       <button
         type="button"
         onClick={() => setColorIndex((colorIndex + 1) % colors.length)}
+        aria-label={`${copy.draw}, ${colorNames[lang][colorIndex]}`}
         className="flex h-14 items-center justify-center rounded-full text-2xl text-plum"
         style={{ background: color }}
       >

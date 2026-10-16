@@ -6,5 +6,5 @@ export const dynamic = "force-dynamic";
 
 export default async function DrawPage() {
   const { family } = await getFamily();
-  return <DrawBoard copy={t(family?.child_language)} />;
+  return <DrawBoard copy={t(family?.child_language)} lang={family?.child_language === "en" ? "en" : "fr"} />;
 }

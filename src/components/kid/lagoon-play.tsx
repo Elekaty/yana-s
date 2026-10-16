@@ -6,14 +6,14 @@ import { finishLagoon } from "@/app/kid/games/island-actions";
 import type { Copy } from "@/lib/i18n";
 import { LEVELS, walk, type Dir } from "@/lib/games/lagoon";
 
-const arrows: { dir: Dir; label: string }[] = [
-  { dir: "up", label: "↑" },
-  { dir: "right", label: "→" },
-  { dir: "down", label: "↓" },
-  { dir: "left", label: "←" },
+const arrows: { dir: Dir; label: string; fr: string; en: string }[] = [
+  { dir: "up", label: "↑", fr: "Haut", en: "Up" },
+  { dir: "right", label: "→", fr: "Droite", en: "Right" },
+  { dir: "down", label: "↓", fr: "Bas", en: "Down" },
+  { dir: "left", label: "←", fr: "Gauche", en: "Left" },
 ];
 
-export function LagoonPlay({ copy }: { copy: Copy }) {
+export function LagoonPlay({ copy, lang }: { copy: Copy; lang: "fr" | "en" }) {
   const [levelIndex, setLevelIndex] = useState(0);
   const [path, setPath] = useState<Dir[]>([]);
   const [stars, setStars] = useState<number | null>(null);
@@ -72,6 +72,7 @@ export function LagoonPlay({ copy }: { copy: Copy }) {
             key={arrow.dir}
             type="button"
             disabled={path.length >= 8}
+            aria-label={arrow[lang]}
             onClick={() => setPath([...path, arrow.dir])}
             className="flex h-14 items-center justify-center rounded-full bg-sun text-2xl text-plum"
           >
