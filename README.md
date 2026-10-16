@@ -18,6 +18,7 @@ A private app for two parents and Yana. Parents can sign in, and a homework phot
 12. On a message, press **Add to calendar**, check the date, and save it. On Calendar, snooze the reminder by 30, 45, or 60 minutes, or a custom number. After the third snooze it moves to the next morning. Toussaint and the other 2026–2027 holidays show on the month. **Break plan** adds short practice days during a holiday.
 13. On Setup, upload a roster photo, press **Read the roster**, edit any day, then press **Confirm**. Flying days show on the calendar only after that. Tonight, under Parents, names who is free. **Swap** changes the leader. A session never runs longer than the daily cap.
 14. In Kid mode, open Games, then the bay. Play Bulles, then Fruits on Easy. Five right answers add 2 stars. There are no lives.
+15. In Kid mode, open Games, then Say it. Practice walks through listen, whisper, say, say to Mochi, and record. What's new asks one French question. Stories can be heard page by page. A finished phrase or story adds 2 stars, and nothing is graded. On Progress, a parent can react with a thumbs-up, a heart, or a star. Yana sees that reaction in My album.
 
 School mail uses `scripts/email-worker.js` on Cloudflare Email Routing. Point the family address (`invite-code@your-domain`) at that worker. Supabase `pg_cron` and `pg_net` should call the job worker every minute, because Vercel Hobby cron only runs daily:
 
@@ -46,7 +47,7 @@ In Supabase: **Authentication → URL configuration**. Set Site URL to `http://l
 - `http://localhost:3000/auth/callback`
 - `https://YOUR-APP.vercel.app/auth/callback`
 
-In the Supabase SQL editor, run these one at a time: `supabase/migrations/0001_core.sql`, `0002_scan_types.sql`, `0003_homework_play.sql`, `0004_intake.sql`, `0005_inbox.sql`, `0006_calendar.sql`, and `0007_roster.sql`. Each file is safe to run again. Then:
+In the Supabase SQL editor, run these one at a time: `supabase/migrations/0001_core.sql`, `0002_scan_types.sql`, `0003_homework_play.sql`, `0004_intake.sql`, `0005_inbox.sql`, `0006_calendar.sql`, `0007_roster.sql`, and `0008_stories.sql`. Each file is safe to run again. Then:
 
 ```bash
 npm run seed

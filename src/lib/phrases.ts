@@ -11,6 +11,7 @@ export const phrases = {
   dance: { fr: "Dansons !", en: "Let's dance!" },
   breakTime: { fr: "C'est la pause !", en: "Break time!" },
   reminder: { fr: "Mochi a quelque chose pour {name}.", en: "Mochi has something for {name}." },
+  voiceLiked: { fr: "Quelqu'un a aimé ta voix.", en: "Someone liked your voice." },
 } as const;
 
 export type PhraseId = keyof typeof phrases;

@@ -12,14 +12,12 @@ export default async function GamesPage() {
       <Link href="/kid/games/bay" className="flex h-28 items-center justify-center rounded-3xl bg-hot text-3xl">
         {copy.bay}
       </Link>
-      <p className="flex h-28 items-center justify-center rounded-3xl bg-white/10 text-3xl">
-        {copy.lagoon}
-        <span className="ml-3 text-lg">{copy.soon}</span>
-      </p>
-      <p className="flex h-28 items-center justify-center rounded-3xl bg-white/10 text-3xl">
-        {copy.cove}
-        <span className="ml-3 text-lg">{copy.soon}</span>
-      </p>
+      <Link href="/kid/games/voice" className="flex h-28 items-center justify-center rounded-3xl bg-grape text-3xl">
+        {copy.say}
+      </Link>
+      <Link href="/kid/games/stories" className="flex h-28 items-center justify-center rounded-3xl bg-sun text-3xl text-plum">
+        {copy.stories}
+      </Link>
     </div>
   );
 }

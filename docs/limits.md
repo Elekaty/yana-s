@@ -40,4 +40,4 @@ Web push is an environment variable only. Its free limit is recorded in the step
 
 ## Voice
 
-`speechSynthesis` quality depends on the phone. French may sound uneven until reviewed audio files replace it. The `speak()` function is the only place that needs to change.
+`speechSynthesis` quality depends on the phone. French may sound uneven until reviewed audio files replace it. The `speak()` function is the only place that needs to change. Recordings stay in the private `voice` bucket. They are not sent to Gemini.

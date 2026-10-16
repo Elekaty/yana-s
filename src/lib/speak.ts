@@ -19,3 +19,20 @@ export function speak({ text, lang }: SpeakRequest) {
   window.speechSynthesis.cancel();
   window.speechSynthesis.speak(utterance);
 }
+
+export function speakWhenDone({ text, lang }: SpeakRequest) {
+  return new Promise<void>((resolve) => {
+    if (typeof window === "undefined" || !window.speechSynthesis) {
+      resolve();
+      return;
+    }
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = lang === "fr" ? "fr-FR" : "en-US";
+    utterance.pitch = 1.35;
+    utterance.rate = 0.92;
+    utterance.onend = () => resolve();
+    utterance.onerror = () => resolve();
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(utterance);
+  });
+}
