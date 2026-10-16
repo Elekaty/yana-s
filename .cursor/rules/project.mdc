@@ -1,0 +1,30 @@
+---
+description: Phase 0 product rules for Mochi & Friends. Always on.
+alwaysApply: true
+---
+
+# Phase 0: Mochi & Friends
+
+Work from `docs/BUILD_PLAN.md`. One step at a time. Do not start the next step until its "Done when" passes.
+
+**Product.** Mobile-first PWA for two English-speaking parents and their daughter Yana (CE1, French school). Jobs: catch school messages (Telegram + email) so both parents see them; turn them into a calendar, to-dos, and a nightly helper plan; help Yana with homework and French through Mochi (a fat white cat), games, and stories. Parents see English; Yana sees French (parents can switch her to English).
+
+**Stack.** Next.js 14+ App Router, TypeScript, Tailwind, Framer Motion, shadcn/ui (parent side only), Supabase (Auth, Postgres + RLS, Storage, pg_cron), Gemini Flash server-side only, Telegram Bot API, web push, Vercel. Free tiers only. Record limits in `docs/limits.md`.
+
+**Hard rules.**
+1. Nothing is lost or hidden before both parents tick it. No DELETE on `messages`. Archive only when every parent has ticked, enforced in SQL (`archive_message`).
+2. Gemini is server-side only. Validate output with zod before storing. Compute maths answers in code. Strip names, school name, and addresses before any Gemini call.
+3. Mochi never chats freely. Lines come from a scripted FR/EN phrase library. Gemini never speaks to the child.
+4. Photos, voice, and family images stay in private storage with RLS. Never send them to an AI unless a parent chose to process that item.
+5. No ads, trackers, analytics SDKs, dark patterns, lives, or streak guilt. Parents set the daily play cap. Reward effort.
+6. Stars change only through the `award_stars` SQL function.
+7. Queue every long task in `jobs` (save the original first). Never rely on one long serverless request.
+8. Typed everywhere. Tests for the planner, classifier, validators, and SQL functions. `.env.example`, seed script, README. Lint, typecheck, and tests must pass before a step is done.
+
+**Two experiences.** Parent: magic-link email login; tabs Inbox, Calendar, To do, Progress, Setup; English; PIN to enter, lock on leave. Kid mode: same parent session; tabs Home, Homework, Games, Store; PIN to exit (`families.pin_hash`, verified server-side). Kid screens never show the inbox.
+
+**Design.** Plum `#2A0B4A`, grape `#7C3AED`, hot pink `#FF2E93`, sun `#FFD23F`, Fredoka, 56px kid targets, max 3 choices per kid screen, phone portrait and two-pane tablet at 820px+, light/dark, `prefers-reduced-motion`. Match `ui/mochi-app-prototype.html`.
+
+**Mochi.** Layered SVG cat in a salon (window, curtains, sofa, rug, plant, frames, yarn). State machine: `idle`, `wander`, `chase-yarn`, `nap`, `purr`, `cheer`, `think`, `sleepy-at-bedtime`, `greet`. Random idle every 6–7s. Pause when hidden. Eyes follow the pointer. Friend bubble (bunny, panda, fox, corgi, hamster) every ~9s: pop plays a greeting, awards 2 stars, unlocks the friend. Original designs only. Moods map to app events. Outfits live in `child_outfits`.
+
+**Voice.** `speak()` uses `speechSynthesis` (fr-FR or en-US, high pitch, slow rate) only after a user gesture. 🔊/🔇 in `children.settings`; parents can disable voice. Read homework and stories with a per-block button. Yana records with `MediaRecorder` (Safari mime fallback) into the private `voice` bucket. No auto-grading in v1. Keep `speak()` swappable for reviewed audio files later.
