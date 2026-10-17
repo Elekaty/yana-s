@@ -38,7 +38,12 @@ export default async function CalendarPage({ searchParams }: { searchParams: Pro
   const familyRow = familyQuery.data;
   const familyError = familyQuery.error;
   if (isMissingTable(holidayError) || isMissingTable(familyError)) {
-    return <ParentNote title="Calendar" body="Apply supabase/migrations/0006_calendar.sql in the Supabase SQL editor, then reload this page." />;
+    return (
+      <div className="space-y-3">
+        <ParentNote title="Calendar" body="The school calendar table is missing." />
+        <a className="text-sm underline" href="/parent/setup/status">Setup checklist</a>
+      </div>
+    );
   }
 
   const zone = (familyRow?.settings as { school_zone?: string } | null)?.school_zone;

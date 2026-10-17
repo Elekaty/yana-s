@@ -1,10 +1,5 @@
-import { ParentNote } from "@/components/parent-note";
+import { redirect } from "next/navigation";
 
 export default function RewardsPage() {
-  return (
-    <ParentNote
-      title="Reward vault"
-      body="You will add rewards here later. Stars are already counted on the scan screen."
-    />
-  );
+  redirect("/parent/progress");
 }

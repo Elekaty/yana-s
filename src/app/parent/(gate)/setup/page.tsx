@@ -2,6 +2,7 @@ import { CopyCode } from "@/app/parent/(gate)/setup/copy-code";
 import { savePractice } from "@/app/parent/(gate)/setup/practice-actions";
 import { addSender, registerWebhook, removeSender } from "@/app/parent/(gate)/setup/intake-actions";
 import { confirmRoster, readRoster, saveAvailability, saveEvening, updateDraft, uploadRoster } from "@/app/parent/(gate)/setup/roster-actions";
+import { sendTestMessage } from "@/app/parent/(gate)/setup/test-message";
 import { Button } from "@/components/ui/button";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 import { studySettings } from "@/lib/study/clock";
@@ -56,6 +57,14 @@ export default async function SetupPage({ searchParams }: { searchParams: Promis
 
   return (
     <div className="space-y-4">
+      <Card>
+        <CardTitle>Checklist</CardTitle>
+        <CardDescription>See which tables and keys are present, without showing secret values.</CardDescription>
+        <a className="mt-3 inline-block text-sm underline" href="/parent/setup/status">Open the checklist</a>
+        <form action={sendTestMessage} className="mt-3">
+          <Button type="submit" variant="outline">Send a test message</Button>
+        </form>
+      </Card>
       <Card>
         <CardTitle>Invite the other parent</CardTitle>
         <CardDescription>They sign in, choose Join with a code, and type this.</CardDescription>
@@ -117,7 +126,7 @@ export default async function SetupPage({ searchParams }: { searchParams: Promis
       <Card>
         <CardTitle>Roster</CardTitle>
         <CardDescription>Upload Mom&apos;s roster. Edit the days, then press Confirm. Flying and layover days are added to the calendar only after that.</CardDescription>
-        {drafts.error ? <p className="mt-3 text-sm">Apply supabase/migrations/0007_roster.sql in the Supabase SQL editor, then reload this page.</p> : null}
+        {drafts.error ? <p className="mt-3 text-sm">The roster table is missing. Open the setup checklist.</p> : null}
         {rosterNote ? <p className="mt-3 text-sm">{rosterNote}</p> : null}
         <form action={uploadRoster} className="mt-4 flex flex-wrap items-center gap-2">
           <select name="memberId" aria-label="Whose roster" className="h-10 rounded-md border border-border bg-background px-2 text-sm">

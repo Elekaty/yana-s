@@ -70,10 +70,13 @@ export default async function ProgressPage() {
         body={`${runs?.length ?? 0} homework, ${counts.games} games, ${counts.logic} logic, ${voiceThisWeek} voice, ${reads?.length ?? 0} stories. ${family.star_balance} stars. ${waiting} recording${waiting === 1 ? "" : "s"} waiting for a reaction.`}
       />
       {skills.length === 0 ? (
-        <ParentNote
-          title="Skills"
-          body={outlineReady && !skillsMissing ? "The outline has no lines yet." : "Paste supabase/migrations/0010_plan.sql in the Supabase SQL editor. This is a general outline."}
-        />
+        <div className="space-y-2">
+          <ParentNote
+            title="Skills"
+            body={outlineReady && !skillsMissing ? "The outline has no lines yet." : "The skills table is missing."}
+          />
+          <a className="text-sm underline" href="/parent/setup/status">Setup checklist</a>
+        </div>
       ) : (
         <Card>
           <CardTitle>General outline</CardTitle>

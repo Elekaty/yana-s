@@ -8,6 +8,7 @@ export const dynamic = "force-dynamic";
 export default async function StorePage({ searchParams }: { searchParams: Promise<{ i?: string }> }) {
   const { supabase, family } = await getFamily();
   const copy = t(family?.child_language);
+  const lang = family?.child_language === "en" ? "en" : "fr";
   const { data } = family
     ? await supabase.from("rewards").select("id, title, cost_stars").eq("family_id", family.family_id).eq("active", true).order("cost_stars")
     : { data: [] };
@@ -15,7 +16,9 @@ export default async function StorePage({ searchParams }: { searchParams: Promis
   if (rewards.length === 0) {
     return (
       <div className="grid gap-4">
-        <p className="rounded-[28px] bg-white/10 px-4 py-6 text-center text-2xl ring-2 ring-sun/70">{copy.soon}</p>
+        <p className="rounded-[28px] bg-white/10 px-4 py-6 text-center text-2xl ring-2 ring-sun/70">
+          {lang === "en" ? "Ask a parent to add a prize." : "Demande à un parent d'ajouter un prix."}
+        </p>
         <Link href="/kid/town" className="flex h-14 items-center justify-center rounded-full bg-grape text-2xl">
           {copy.town}
         </Link>

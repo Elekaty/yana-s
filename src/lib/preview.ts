@@ -1,8 +1,5 @@
 import type { FamilySummary } from "@/lib/types";
 
-/** Open the app without an account while the screens are still being built. */
-export const BUILD_PREVIEW = true;
-
 export const previewFamily: FamilySummary = {
   family_id: "preview",
   family_name: "Yana",
@@ -16,3 +13,9 @@ export const previewFamily: FamilySummary = {
   my_role: "parent",
   my_name: "Parent",
 };
+
+/** Local viewing only. Never on a Vercel production deployment. */
+export function demoMode() {
+  if (process.env.VERCEL_ENV === "production") return false;
+  return process.env.NEXT_PUBLIC_DEMO_MODE === "true";
+}

@@ -46,7 +46,12 @@ export default async function TodoPage() {
       ))}
       <h2 className="text-xl font-semibold">This month</h2>
       <p className="text-sm text-muted-foreground">General outline. A change here is saved for your family.</p>
-      {plan === null ? <ParentNote title="Monthly plan" body="Paste supabase/migrations/0010_plan.sql in the Supabase SQL editor." /> : null}
+      {plan === null ? (
+        <div className="space-y-2">
+          <ParentNote title="Monthly plan" body="The plan table is missing." />
+          <a className="text-sm underline" href="/parent/setup/status">Setup checklist</a>
+        </div>
+      ) : null}
       {lines.map((line) => (
         <Card key={line.item_key}>
           <CardTitle>{line.subject}</CardTitle>

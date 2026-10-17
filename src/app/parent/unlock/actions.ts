@@ -3,6 +3,8 @@
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { getFamily } from "@/lib/family";
+import { nextPinGuard, pinLocked } from "@/lib/pin-guard";
+import { readPinGuard, writePinGuard } from "@/lib/pin-guard-store";
 import { clearUnlockCookie, writeUnlockCookie } from "@/lib/unlock-cookie";
 
 export type PinState = { error: string };
@@ -27,8 +29,15 @@ export async function verifyPin(_prev: PinState, formData: FormData): Promise<Pi
   const { supabase, user, family } = await getFamily();
   if (!user) redirect("/login");
   if (!family) redirect("/join");
+  const now = Date.now() / 1000;
+  const guard = await readPinGuard();
+  if (pinLocked(guard, now)) return { error: "Too many tries. Wait 15 minutes, then try the PIN again." };
   const { data: ok, error } = await supabase.rpc("verify_family_pin", { p_pin: parsed.data });
-  if (error || !ok) return { error: "That PIN is not right." };
+  if (error || !ok) {
+    await writePinGuard(nextPinGuard(guard, now, false));
+    return { error: "That PIN is not right." };
+  }
+  await writePinGuard(nextPinGuard(guard, now, true));
   await writeUnlockCookie(user.id, family.family_id);
   redirect("/parent");
 }

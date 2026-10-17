@@ -30,7 +30,7 @@ export default async function InboxPage({ searchParams }: { searchParams: Promis
         <h1 className="text-2xl font-semibold tracking-tight">{archive ? "Archive" : "Inbox"}</h1>
         <ParentNote
           title="Nothing here"
-          body="The inbox tables are in place. School messages show up after a parent is signed in. Sign-in is off while the app is still being built, so this list stays empty."
+          body="School messages show up after a parent is signed in."
         />
       </div>
     );
@@ -43,10 +43,10 @@ export default async function InboxPage({ searchParams }: { searchParams: Promis
     .limit(40);
   if (isMissingTable(error)) {
     return (
-      <ParentNote
-        title={archive ? "Archive" : "Inbox"}
-        body="Apply supabase/migrations/0004_intake.sql and 0005_inbox.sql in the Supabase SQL editor, then reload this page."
-      />
+      <div className="space-y-3">
+        <ParentNote title={archive ? "Archive" : "Inbox"} body="The inbox table is missing." />
+        <a className="text-sm underline" href="/parent/setup/status">Setup checklist</a>
+      </div>
     );
   }
 

@@ -2,7 +2,6 @@ import "server-only";
 
 import { cookies } from "next/headers";
 import { PARENT_UNLOCK_COOKIE, signUnlock } from "@/lib/pin-cookie";
-import { REMEMBER_COOKIE, REMEMBER_SECONDS, wantsRemember } from "@/lib/supabase/remember";
 
 function cookieOptions(maxAge?: number) {
   return {
@@ -18,8 +17,7 @@ export async function writeUnlockCookie(userId: string, familyId: string) {
   const secret = process.env.CRON_SECRET;
   if (!secret) throw new Error("CRON_SECRET is not set");
   const store = await cookies();
-  const remember = wantsRemember(store.get(REMEMBER_COOKIE)?.value);
-  const lifetime = remember ? REMEMBER_SECONDS : undefined;
+  const lifetime = 60 * 60 * 12;
   store.set(PARENT_UNLOCK_COOKIE, await signUnlock(userId, familyId, secret, undefined, lifetime), cookieOptions(lifetime));
 }
 
