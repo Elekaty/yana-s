@@ -25,6 +25,9 @@ export async function savePractice(formData: FormData) {
   const settings = { ...((familyRow?.settings as Record<string, unknown> | null) ?? {}) };
   settings.study_minutes = study.studyMinutes;
   settings.break_minutes = study.breakMinutes;
+  settings.on_time_stars = clampSetting(formData.get("onTime"), 1, 5, 2);
+  settings.chest_minutes = clampSetting(formData.get("chestMinutes"), 5, 60, 10);
+  settings.chest_daily_cap = clampSetting(formData.get("chestCap"), 0, 5, 3);
   if (townCap === null || Number.isNaN(townCap)) delete settings.town_star_cap;
   else settings.town_star_cap = townCap;
   const childSettings = { ...((child?.settings as Record<string, unknown> | null) ?? {}) };
@@ -33,4 +36,10 @@ export async function savePractice(formData: FormData) {
   await supabase.from("children").update({ settings: childSettings }).eq("id", family.child_id);
   revalidatePath("/parent/setup");
   revalidatePath("/kid", "layout");
+}
+
+function clampSetting(value: FormDataEntryValue | null, min: number, max: number, fallback: number) {
+  const number = Number(value);
+  if (!Number.isFinite(number)) return fallback;
+  return Math.min(max, Math.max(min, Math.floor(number)));
 }

@@ -26,7 +26,7 @@ export default async function SetupPage({ searchParams }: { searchParams: Promis
     supabase.from("families").select("settings").eq("id", family.family_id).maybeSingle(),
   ]);
   const parents = (members ?? []).filter((member) => member.role === "parent");
-  const settings = (familyRow?.settings as { mom_member_id?: string; dad_member_id?: string; daily_cap_minutes?: number; evening_from?: string; evening_to?: string; town_star_cap?: number } | null) ?? {};
+  const settings = (familyRow?.settings as { mom_member_id?: string; dad_member_id?: string; daily_cap_minutes?: number; evening_from?: string; evening_to?: string; town_star_cap?: number; on_time_stars?: number; chest_minutes?: number; chest_daily_cap?: number } | null) ?? {};
   const { data: childRow } = family.child_id
     ? await supabase.from("children").select("settings").eq("id", family.child_id).maybeSingle()
     : { data: null };
@@ -257,6 +257,18 @@ export default async function SetupPage({ searchParams }: { searchParams: Promis
           <label>
             Town star cap
             <input name="townCap" type="number" min={0} max={500} defaultValue={settings.town_star_cap ?? ""} placeholder="No cap" className="mt-1 block h-10 w-24 rounded-md border border-border bg-background px-2" />
+          </label>
+          <label>
+            On-time stars
+            <input name="onTime" type="number" min={1} max={5} defaultValue={settings.on_time_stars ?? 2} className="mt-1 block h-10 w-24 rounded-md border border-border bg-background px-2" />
+          </label>
+          <label>
+            Minutes per study chest
+            <input name="chestMinutes" type="number" min={5} max={60} defaultValue={settings.chest_minutes ?? 10} className="mt-1 block h-10 w-24 rounded-md border border-border bg-background px-2" />
+          </label>
+          <label>
+            Chests per day
+            <input name="chestCap" type="number" min={0} max={5} defaultValue={settings.chest_daily_cap ?? 3} className="mt-1 block h-10 w-24 rounded-md border border-border bg-background px-2" />
           </label>
           <fieldset className="flex flex-wrap gap-3">
             <legend>Tables</legend>

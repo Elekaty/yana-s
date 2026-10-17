@@ -20,9 +20,10 @@ Reviewed from the code and a local signed-out page check on 17 October 2026. Pla
 | Games hub | working | Bay, Lagoon, Cove, Stories, My friends, Town. |
 | Store | working | Lists rewards when a parent has added one. Otherwise it asks Yana to ask a parent. |
 | Break timer, Gemini scan, push | needs env var | The screens exist. A live scan, a push on a phone, and the break timer were not exercised in this pass. |
-| Hash cache for a repeated photo | stub | The same message text is deduped. A repeated homework photo is not cached before Gemini. |
-| Study chest and on-time bonus | stub | Stars still go through `award_stars`. Automatic chest payouts are not built. |
-| Rive cat, reading log, plan tags | stub | Not in this codebase yet. |
+| Study chest and on-time bonus | working | Home has “I’m here” during the family’s evening window. Active study opens a chest. Both pay through `award_stars` (1–5; a perfect week is two calls of 5). Idle time does not count. |
+| Salon cat | working | Layered SVG in the living room. The split-part motion build is the next step. |
+| Reading log and plan tags | working | Progress lists finished stories. To do shows National, Typical, or Yours. |
+| Repeated homework photo | working | `0011_scan_cache.sql` stores a hash. The same photo returns the saved reading and does not call Gemini. Run that SQL once in the Supabase editor. |
 | Vercel production preview | broken before this change | `BUILD_PREVIEW` was always true, so `/parent` opened with no login. It is now off whenever `VERCEL_ENV` is `production`. |
 
 ## Environment names the app reads

@@ -62,6 +62,12 @@ export default async function ProgressPage() {
       return { ...row, url: signed.data?.signedUrl ?? "" };
     }),
   );
+  const { data: log } = family.child_id
+    ? await supabase.from("story_reads").select("story_id, completed_at").eq("child_id", family.child_id).order("completed_at", { ascending: false }).limit(12)
+    : { data: [] as { story_id: string; completed_at: string }[] };
+  const storyIds = (log ?? []).map((row) => row.story_id);
+  const { data: titles } = storyIds.length > 0 ? await supabase.from("stories").select("id, title_fr, title_en").in("id", storyIds) : { data: [] };
+  const titleOf = new Map((titles ?? []).map((story) => [story.id, family.child_language === "en" ? story.title_en : story.title_fr]));
 
   return (
     <div className="grid gap-4">
@@ -69,6 +75,21 @@ export default async function ProgressPage() {
         title="This week"
         body={`${runs?.length ?? 0} homework, ${counts.games} games, ${counts.logic} logic, ${voiceThisWeek} voice, ${reads?.length ?? 0} stories. ${family.star_balance} stars. ${waiting} recording${waiting === 1 ? "" : "s"} waiting for a reaction.`}
       />
+      <Card>
+        <CardTitle>Reading log</CardTitle>
+        <CardDescription>Stories Yana finished.</CardDescription>
+        {(log ?? []).length === 0 ? (
+          <p className="mt-3 text-sm text-muted-foreground">None yet.</p>
+        ) : (
+          <ul className="mt-3 space-y-1 text-sm">
+            {(log ?? []).map((row) => (
+              <li key={`${row.story_id}-${row.completed_at}`}>
+                {titleOf.get(row.story_id) || "Story"} · {String(row.completed_at).slice(0, 10)}
+              </li>
+            ))}
+          </ul>
+        )}
+      </Card>
       {skills.length === 0 ? (
         <div className="space-y-2">
           <ParentNote

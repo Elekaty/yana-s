@@ -56,7 +56,7 @@ export default async function TodoPage() {
         <Card key={line.item_key}>
           <CardTitle>{line.subject}</CardTitle>
           <CardDescription>
-            {line.source} · {line.done ? "ticked" : "open"}
+            {line.source === "national" ? "National" : line.source === "typical" ? "Typical" : "Yours"} · {line.done ? "ticked" : "open"}
           </CardDescription>
           <form action={savePlanItem} className="mt-3 grid gap-2">
             <PlanFields line={line} />

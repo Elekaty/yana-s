@@ -2,6 +2,7 @@ import "server-only";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { imageHash } from "@/lib/prizes";
 import { gameTypeFor, type GameType } from "@/lib/scan/game-type";
 import { readHomeworkPhoto } from "@/lib/scan/gemini";
 import { applyMath } from "@/lib/scan/math";
@@ -13,12 +14,21 @@ const USER_INSTRUCTION =
 
 export async function enqueueScan(familyId: string, imagePath: string) {
   const admin = createAdminClient();
-  const { data: scan, error } = await admin
-    .from("homework_scans")
-    .insert({ family_id: familyId, image_path: imagePath, status: "queued" })
-    .select("id")
-    .single();
-  if (error || !scan) throw new Error(error?.message ?? "Could not save the scan");
+  const downloaded = await admin.storage.from("scans").download(imagePath);
+  const bytes = downloaded.data ? new Uint8Array(await downloaded.data.arrayBuffer()) : null;
+  const hash = bytes ? imageHash(bytes) : "";
+  if (hash) {
+    const prior = await admin
+      .from("homework_scans")
+      .select("id")
+      .eq("family_id", familyId)
+      .eq("image_hash", hash)
+      .eq("status", "ready")
+      .limit(1)
+      .maybeSingle();
+    if (prior.data?.id) return prior.data.id as string;
+  }
+  const scan = await insertScan(admin, familyId, imagePath, hash, "queued");
   const { error: jobError } = await admin.from("jobs").insert({
     family_id: familyId,
     kind: "scan",
@@ -26,7 +36,28 @@ export async function enqueueScan(familyId: string, imagePath: string) {
     status: "queued",
   });
   if (jobError) throw new Error(jobError.message);
-  return scan.id as string;
+  return scan.id;
+}
+
+async function insertScan(
+  admin: ReturnType<typeof createAdminClient>,
+  familyId: string,
+  imagePath: string,
+  hash: string,
+  status: string,
+) {
+  const withHash = await admin
+    .from("homework_scans")
+    .insert({ family_id: familyId, image_path: imagePath, status, image_hash: hash || null })
+    .select("id")
+    .single();
+  if (!withHash.error && withHash.data) return { id: withHash.data.id as string, cached: true };
+  if (withHash.error && /image_hash/i.test(withHash.error.message)) {
+    const plain = await admin.from("homework_scans").insert({ family_id: familyId, image_path: imagePath, status: "queued" }).select("id").single();
+    if (plain.error || !plain.data) throw new Error(plain.error?.message ?? "Could not save the scan");
+    return { id: plain.data.id as string, cached: false };
+  }
+  throw new Error(withHash.error?.message ?? "Could not save the scan");
 }
 
 export async function retryScan(familyId: string, scanId: string) {

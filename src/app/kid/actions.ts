@@ -3,6 +3,7 @@
 import { z } from "zod";
 import { getFamily } from "@/lib/family";
 import { BUBBLE_FRIENDS, type BubbleFriend } from "@/lib/mochi";
+import { addStudySeconds, markCheckIn, mondayKey, prizeSettings, readPrizeState, weekDays, type StarAward } from "@/lib/prizes";
 import {
   applyClientTick,
   initialClock,
@@ -45,6 +46,8 @@ export async function saveClock(proposedRemaining: number): Promise<StudyClock |
     return fresh;
   }
   await writeClock(ctx.supabase, ctx.childId, result.clock);
+  const studied = ctx.clock.mode === "study" ? Math.max(0, ctx.clock.remainingSec - result.clock.remainingSec) : 0;
+  await grantChests(ctx.supabase, ctx.familyId, ctx.childId, studied);
   return result.clock;
 }
 
@@ -151,6 +154,66 @@ export async function meetFriend(friend: string) {
   return { fresh: true, stars: typeof data === "number" ? data : family.star_balance + 2 };
 }
 
+export async function checkInNow() {
+  const { supabase, family } = await getFamily();
+  if (!family?.child_id) return { stars: family?.star_balance ?? 0, note: "" };
+  const timeZone = family.timezone || "Europe/Paris";
+  const day = new Intl.DateTimeFormat("en-CA", { timeZone, year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
+  const [{ data: familyRow }, { data: child }] = await Promise.all([
+    supabase.from("families").select("settings").eq("id", family.family_id).maybeSingle(),
+    supabase.from("children").select("settings").eq("id", family.child_id).maybeSingle(),
+  ]);
+  const settings = (familyRow?.settings as { evening_from?: string; evening_to?: string } | null) ?? {};
+  const from = settings.evening_from || "18:00";
+  const to = settings.evening_to || "20:00";
+  const clock = new Intl.DateTimeFormat("en-GB", { timeZone, hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).format(new Date());
+  const open = clock >= from.slice(0, 5) && clock <= to.slice(0, 5);
+  const monday = mondayKey(day);
+  const marked = markCheckIn(readPrizeState(child?.settings), day, weekDays(monday), monday, open, prizeSettings(familyRow?.settings));
+  if (marked.awards.length === 0) {
+    const note = marked.status === "already" ? "already" : "closed";
+    return { stars: family.star_balance, note };
+  }
+  const stars = await payAwards(supabase, family.child_id, marked.awards, family.star_balance);
+  const childSettings = { ...((child?.settings as Record<string, unknown> | null) ?? {}), prizes: marked.state };
+  await supabase.from("children").update({ settings: childSettings }).eq("id", family.child_id);
+  return { stars, note: marked.status };
+}
+
+async function grantChests(
+  supabase: Awaited<ReturnType<typeof getFamily>>["supabase"],
+  familyId: string,
+  childId: string,
+  seconds: number,
+) {
+  if (seconds < 1) return;
+  const [{ data: familyRow }, { data: child }] = await Promise.all([
+    supabase.from("families").select("settings, timezone").eq("id", familyId).maybeSingle(),
+    supabase.from("children").select("settings").eq("id", childId).maybeSingle(),
+  ]);
+  const timeZone = familyRow?.timezone || "Europe/Paris";
+  const day = new Intl.DateTimeFormat("en-CA", { timeZone, year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
+  const added = addStudySeconds(readPrizeState(child?.settings), day, seconds, prizeSettings(familyRow?.settings));
+  if (added.awards.length === 0 && added.state.activeSec === readPrizeState(child?.settings).activeSec) return;
+  const childSettings = { ...((child?.settings as Record<string, unknown> | null) ?? {}), prizes: added.state };
+  await supabase.from("children").update({ settings: childSettings }).eq("id", childId);
+  if (added.awards.length > 0) await payAwards(supabase, childId, added.awards, 0);
+}
+
+async function payAwards(
+  supabase: Awaited<ReturnType<typeof getFamily>>["supabase"],
+  childId: string,
+  awards: StarAward[],
+  fallback: number,
+) {
+  let stars = fallback;
+  for (const award of awards) {
+    const { data } = await supabase.rpc("award_stars", { p_child: childId, p_amount: award.amount, p_reason: award.reason });
+    if (typeof data === "number") stars = data;
+  }
+  return stars;
+}
+
 async function clockContext() {
   const { supabase, family } = await getFamily();
   if (!family?.child_id) return null;
@@ -168,6 +231,7 @@ async function clockContext() {
   };
   return {
     supabase,
+    familyId: family.family_id,
     childId: family.child_id,
     hasPin: family.has_pin,
     settings,
