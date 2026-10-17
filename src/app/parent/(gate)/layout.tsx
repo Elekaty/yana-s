@@ -26,12 +26,14 @@ export default async function ParentLayout({ children }: { children: React.React
           </div>
           <div className="flex shrink-0 items-center gap-2">
             <ThemeToggle className="border-white/25 bg-white/10 text-white hover:bg-white/20" />
-            <form action={lockAndGoToKid}>
-              <Button type="submit" className="border-0 bg-hot text-white hover:opacity-90">
-                Kid mode
-              </Button>
-            </form>
           </div>
+        </div>
+        <div className="mx-auto max-w-6xl px-4 pr-32 pb-3">
+          <form action={lockAndGoToKid}>
+            <Button type="submit" className="h-14 w-full border-0 bg-hot text-lg text-white hover:opacity-90">
+              Kid mode
+            </Button>
+          </form>
         </div>
         <div className="mx-auto max-w-6xl">
           <ParentTabs />

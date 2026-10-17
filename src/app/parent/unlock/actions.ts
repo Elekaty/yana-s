@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { getFamily } from "@/lib/family";
+import { resumeFromBreak } from "@/lib/study/resume";
 import { nextPinGuard, pinLocked } from "@/lib/pin-guard";
 import { readPinGuard, writePinGuard } from "@/lib/pin-guard-store";
 import { clearUnlockCookie, writeUnlockCookie } from "@/lib/unlock-cookie";
@@ -43,6 +44,8 @@ export async function verifyPin(_prev: PinState, formData: FormData): Promise<Pi
 }
 
 export async function lockAndGoToKid() {
+  const { supabase, family } = await getFamily();
+  if (family?.child_id) await resumeFromBreak(supabase, family.family_id, family.child_id);
   await clearUnlockCookie();
   redirect("/kid/home");
 }

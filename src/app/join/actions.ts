@@ -44,7 +44,7 @@ export async function createFamily(_prev: FormState, formData: FormData): Promis
   if (pinError) return { error: pinError.message };
 
   await writeUnlockCookie(user.id, familyId);
-  redirect("/parent/inbox");
+  redirect("/kid/home");
 }
 
 export async function joinFamily(_prev: FormState, formData: FormData): Promise<FormState> {
@@ -60,5 +60,5 @@ export async function joinFamily(_prev: FormState, formData: FormData): Promise<
     p_display_name: parsed.data.displayName,
   });
   if (error) return { error: error.message };
-  redirect("/parent/unlock");
+  redirect("/kid/home");
 }

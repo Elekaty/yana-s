@@ -73,7 +73,7 @@ export function BreakGate({
     return () => window.clearInterval(id);
   }, [settings, router]);
 
-  if (!settings || !clock) return children;
+  if (!settings || !clock || (clock.mode === "break" && clock.remainingSec <= 0)) return children;
 
   const canPostpone = clock.mode === "heads_up" && clock.postponements < settings.maxPostponements;
 
