@@ -1,7 +1,6 @@
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-import { LOGIN_LOCK_SECONDS, LOGIN_MAX_TRIES, loginLocked, nextLoginGuard } from "@/lib/login-guard";
 import { REMEMBER_SECONDS, authCookieOptions } from "@/lib/supabase/remember";
 
 function filesUnder(dir: string): string[] {
@@ -15,20 +14,8 @@ function filesUnder(dir: string): string[] {
 }
 
 describe("accounts", () => {
-  it("locks sign-in for 5 minutes after 5 wrong tries", () => {
-    let guard = { fails: 0, until: 0 };
-    for (let tryNumber = 1; tryNumber < LOGIN_MAX_TRIES; tryNumber += 1) {
-      guard = nextLoginGuard(guard, 1000, false);
-      expect(loginLocked(guard, 1000)).toBe(false);
-    }
-    guard = nextLoginGuard(guard, 1000, false);
-    expect(loginLocked(guard, 1000 + LOGIN_LOCK_SECONDS - 1)).toBe(true);
-    expect(loginLocked(guard, 1000 + LOGIN_LOCK_SECONDS)).toBe(false);
-    expect(nextLoginGuard(guard, 1000, true)).toEqual({ fails: 0, until: 0 });
-  });
-
-  it("ends a remembered sign-in after 30 days", () => {
-    expect(REMEMBER_SECONDS).toBe(60 * 60 * 24 * 30);
+  it("keeps a phone session for 400 days", () => {
+    expect(REMEMBER_SECONDS).toBe(60 * 60 * 24 * 400);
     const remembered = authCookieOptions(true);
     const session = authCookieOptions(false);
     expect("maxAge" in remembered ? remembered.maxAge : 0).toBe(REMEMBER_SECONDS);
@@ -46,9 +33,9 @@ describe("accounts", () => {
     expect(sql).toContain("code := lower(substr(replace(gen_random_uuid()::text, '-', ''), 1, 8))");
     expect(sql).toContain("if parents >= 2 then raise exception 'family already has two parents'");
     expect(sql.toLowerCase()).not.toContain("preview");
-    const login = readFileSync(path.join(process.cwd(), "src", "app", "login", "form.tsx"), "utf8");
+    const login = readFileSync(path.join(process.cwd(), "src", "app", "login", "page.tsx"), "utf8");
     const join = readFileSync(path.join(process.cwd(), "src", "app", "join", "page.tsx"), "utf8");
-    expect(login).toContain("Join with a code");
+    expect(login).not.toMatch(/type="password"|Your name|email/i);
     expect(join).toContain("Join with a code");
   });
 });

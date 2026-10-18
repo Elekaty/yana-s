@@ -23,11 +23,10 @@ export default function JoinPage() {
     <main className="mx-auto grid min-h-dvh max-w-4xl gap-4 px-4 py-8 pt-16 min-[820px]:grid-cols-2">
       <Card>
         <CardTitle>Start your family</CardTitle>
-        <CardDescription>The first parent sets the name and the PIN.</CardDescription>
+        <CardDescription>This phone sets the family and the parent PIN.</CardDescription>
         <form action={createAction} className="mt-4 space-y-3">
           <input ref={timezoneRef} type="hidden" name="timezone" defaultValue="Europe/Paris" />
           <Field id="familyName" label="Family name" />
-          <Field id="createDisplayName" name="displayName" label="Your name" />
           <Field id="childName" label="Child's name" defaultValue="Yana" />
           <div className="space-y-2">
             <Label htmlFor="pin">Parent PIN</Label>
@@ -43,7 +42,6 @@ export default function JoinPage() {
         <CardTitle>Join with a code</CardTitle>
         <CardDescription>The second parent uses the code from Setup.</CardDescription>
         <form action={joinAction} className="mt-4 space-y-3">
-          <Field id="joinDisplayName" name="displayName" label="Your name" />
           <Field id="code" label="Invite code" />
           {joined.error ? <p className="text-sm text-red-600">{joined.error}</p> : null}
           <Button type="submit" disabled={joining}>

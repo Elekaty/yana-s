@@ -1,5 +1,5 @@
 export const REMEMBER_COOKIE = "mf_remember";
-export const REMEMBER_SECONDS = 60 * 60 * 24 * 30;
+export const REMEMBER_SECONDS = 60 * 60 * 24 * 400;
 
 export function wantsRemember(value: string | undefined) {
   return value !== "0";

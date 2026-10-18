@@ -1,6 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { PARENT_UNLOCK_COOKIE, readUnlock } from "@/lib/pin-cookie";
+import { needsDevice, openDeviceSession } from "@/lib/device-session";
 import { decideGate } from "@/lib/parent-gate";
 import { REMEMBER_COOKIE, authCookieOptions, wantsRemember } from "@/lib/supabase/remember";
 
@@ -30,8 +31,9 @@ export async function proxy(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
   const path = request.nextUrl.pathname;
+  const sessionUser = user ?? (needsDevice(path) ? await openDeviceSession(supabase) : null);
   const unlock = await readUnlock(request.cookies.get(PARENT_UNLOCK_COOKIE)?.value, process.env.CRON_SECRET ?? "");
-  const decision = decideGate(path, Boolean(user), Boolean(unlock && user && unlock.sub === user.id));
+  const decision = decideGate(path, Boolean(sessionUser), Boolean(unlock && sessionUser && unlock.sub === sessionUser.id));
 
   const redirectTo = (pathname: string, clearUnlock: boolean) => {
     const url = request.nextUrl.clone();
