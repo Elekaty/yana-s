@@ -32,7 +32,7 @@ export async function verifyPin(_prev: PinState, formData: FormData): Promise<Pi
   if (!family) redirect("/join");
   const now = Date.now() / 1000;
   const guard = await readPinGuard();
-  if (pinLocked(guard, now)) return { error: "Too many tries. Wait 15 minutes, then try the PIN again." };
+  if (pinLocked(guard, now)) return { error: "Too many tries. Wait 5 minutes, then try the PIN again." };
   const { data: ok, error } = await supabase.rpc("verify_family_pin", { p_pin: parsed.data });
   if (error || !ok) {
     await writePinGuard(nextPinGuard(guard, now, false));

@@ -1,6 +1,6 @@
 # Audit
 
-Reviewed from the code and a local signed-out page check on 17 October 2026. Playwright is not installed, so there are no screenshot files. Rows say what the deployed site was doing while preview mode was forced on, and what the code does after preview is limited to `NEXT_PUBLIC_DEMO_MODE=true` outside Vercel production.
+Reviewed from the code. Parent pages require a signed-in parent and a valid PIN cookie. There is no preview family.
 
 | Route or feature | Status | Reason |
 | --- | --- | --- |
@@ -24,11 +24,11 @@ Reviewed from the code and a local signed-out page check on 17 October 2026. Pla
 | Salon cat | working | Layered SVG in the living room. The split-part motion build is the next step. |
 | Reading log and plan tags | working | Progress lists finished stories. To do shows National, Typical, or Yours. |
 | Repeated homework photo | working | `0011_scan_cache.sql` stores a hash. The same photo returns the saved reading and does not call Gemini. Run that SQL once in the Supabase editor. |
-| Vercel production preview | broken before this change | `BUILD_PREVIEW` was always true, so `/parent` opened with no login. It is now off whenever `VERCEL_ENV` is `production`. |
+| Parent PIN | working | `/parent` without the unlock cookie goes to `/parent/unlock`. Five wrong tries lock for 5 minutes. Kid mode clears the cookie. |
 
 ## Environment names the app reads
 
-`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `NEXT_PUBLIC_DEMO_MODE`, `SUPABASE_SERVICE_ROLE_KEY`, `GEMINI_API_KEY`, `TELEGRAM_BOT_TOKEN`, `TELEGRAM_WEBHOOK_SECRET`, `USERBOT_WEBHOOK_SECRET`, `INBOUND_EMAIL_SECRET`, `INBOUND_EMAIL_DOMAIN`, `CRON_SECRET`, `APP_URL`, `INTAKE_URL`, `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `TELEGRAM_API_ID`, `TELEGRAM_API_HASH`, `TELEGRAM_SESSION_STRING`, `TARGET_CHAT_ID`, `VERCEL_RECEIVER_URL`, `FAMILY_INVITE_CODE`.
+`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `GEMINI_API_KEY`, `TELEGRAM_BOT_TOKEN`, `TELEGRAM_WEBHOOK_SECRET`, `USERBOT_WEBHOOK_SECRET`, `INBOUND_EMAIL_SECRET`, `INBOUND_EMAIL_DOMAIN`, `CRON_SECRET`, `APP_URL`, `INTAKE_URL`, `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `TELEGRAM_API_ID`, `TELEGRAM_API_HASH`, `TELEGRAM_SESSION_STRING`, `TARGET_CHAT_ID`, `VERCEL_RECEIVER_URL`, `FAMILY_INVITE_CODE`.
 
 This audit cannot see the Vercel project’s saved values. The checklist page shows which of the server names are non-empty after deploy.
 

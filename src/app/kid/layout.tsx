@@ -3,14 +3,13 @@ import { BreakGate } from "@/components/kid/break-gate";
 import { KidNav } from "@/components/kid/kid-nav";
 import { getFamily } from "@/lib/family";
 import { t } from "@/lib/i18n";
-import { demoMode } from "@/lib/preview";
 import { ensureStudyClock } from "@/lib/study/load";
 
 export const dynamic = "force-dynamic";
 
 export default async function KidLayout({ children }: { children: React.ReactNode }) {
   const { supabase, user, family } = await getFamily();
-  if (!demoMode() && !user) redirect("/login");
+  if (!user) redirect("/login");
   if (!family) redirect("/join");
   const copy = t(family.child_language);
   const links = [

@@ -4,14 +4,13 @@ import { ParentTabs } from "@/components/parent/parent-tabs";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { getFamily } from "@/lib/family";
-import { demoMode } from "@/lib/preview";
 import { lockAndGoToKid } from "@/app/parent/unlock/actions";
 
 export const dynamic = "force-dynamic";
 
 export default async function ParentLayout({ children }: { children: React.ReactNode }) {
   const { user, family } = await getFamily();
-  if (!demoMode() && !user) redirect("/login");
+  if (!user) redirect("/login");
   if (!family) redirect("/join");
 
   return (
