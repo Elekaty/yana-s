@@ -28,6 +28,21 @@ Single list for the finish-the-app pass. One task at a time.
 | E2 | French review prep | TODO | | |
 | E3 | Final audit | TODO | | |
 
+## Parent views
+
+| ID | Title | Status | Proof | Notes |
+|---|---|---|---|---|
+| P1 | Shell, navigation and data layer | DONE | `src/components/parent/parent-nav.tsx`, `src/lib/parent/queries.ts` | Today, Inbox, Calendar, Progress, and More. Scan lives at `/parent/scan`. Curriculum, Voice, Study, and Rewards render. |
+| P2 | Today summary | TODO | | |
+| P3 | Inbox | TODO | | |
+| P4 | Calendar | TODO | | |
+| P5 | To do | TODO | | |
+| P6 | Progress and Curriculum | TODO | | |
+| P7 | Rewards and Voice | TODO | | |
+| P8 | Study and Setup | TODO | | |
+| P9 | Notifications | TODO | | |
+| P10 | Quality | TODO | | |
+
 ## A1 route check
 
 Migrations on disk: `0001_core` through `0011_scan_cache`.
