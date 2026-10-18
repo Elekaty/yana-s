@@ -118,7 +118,7 @@ Asked with the server key, one column, no row contents kept. HTTP 200 means the 
 | `jobs` | `id` | 200 |
 | `telegram_chats` | `chat_id` | 200 |
 
-Migrations `0001` through `0011` are in the repo. This pass did not run `supabase db push`. It did not check whether `pg_cron` is scheduled.
+Migrations `0001` through `0011` are in the repo. The shared school dates, skills, and monthly plan are already stored: 11 national dates, 23 skills, and 20 plan lines. Opening Calendar or Progress fills any of those that are missing. `supabase db push` was not run in this pass. `pg_cron` was not checked.
 
 ## Environment names on this machine
 
