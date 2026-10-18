@@ -43,7 +43,7 @@ None of these is reachable without a session. Each returned **307** to `/login` 
 | Route | Status | Signed out | What this pass found |
 | --- | --- | --- | --- |
 | `/` | working | 307 `/login` | Signed-in code sends a parent with a family to `/kid/home`, and a parent with no family to `/join`. |
-| `/login` | working | 200 | Name and password, no email field, on local and on `yana-s.vercel.app`. The page says parents sign in with a name and a password. |
+| `/login` | working | 200 | Name and password, no email field. Five wrong tries lock for 5 minutes. Remember this device lasts 30 days. The second parent is sent to join with a code. |
 | `/join` | working | 307 `/login` | Create-or-join form after sign-in. Not opened in this pass. |
 | `/parent` | working | 307 `/login` | Today shows three sections from one data load: messages waiting, tonight’s line, homework status and a link to Scan. Coming up, the break banner, the week, rewards, recordings, and setup health are loaded and not drawn. |
 | `/parent/unlock` | working | 307 `/login` | PIN card. Five wrong tries lock for 5 minutes. The unlock cookie lasts 12 hours. Not submitted in this pass. |

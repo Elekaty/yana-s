@@ -4,6 +4,8 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { parentLoginEmail } from "@/lib/auth-name";
+import { loginLocked, nextLoginGuard } from "@/lib/login-guard";
+import { readLoginGuard, writeLoginGuard } from "@/lib/login-guard-store";
 import { resumeFromBreak } from "@/lib/study/resume";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -24,6 +26,10 @@ export async function submitLogin(_prev: LoginState, formData: FormData): Promis
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Check the form" };
   const email = parentLoginEmail(parsed.data.name);
   if (!email) return { error: "Use a name with at least 2 letters." };
+
+  const now = Date.now() / 1000;
+  const guard = await readLoginGuard();
+  if (loginLocked(guard, now)) return { error: "Too many tries. Wait 5 minutes, then try again." };
 
   const remember = formData.get("remember") === "on";
   const jar = await cookies();
@@ -48,8 +54,10 @@ export async function submitLogin(_prev: LoginState, formData: FormData): Promis
   const supabase = await createClient(remember);
   const { error } = await supabase.auth.signInWithPassword({ email, password: parsed.data.password });
   if (error) {
+    await writeLoginGuard(nextLoginGuard(guard, now, false));
     return { error: /invalid|credentials/i.test(error.message) ? "That name or password is wrong." : "Could not sign in." };
   }
+  await writeLoginGuard(nextLoginGuard(guard, now, true));
   const { data: family } = await supabase.rpc("my_family");
   const home = family as { family_id?: string; child_id?: string } | null;
   if (home?.family_id && home.child_id) await resumeFromBreak(supabase, home.family_id, home.child_id);

@@ -34,6 +34,7 @@ Single list for the finish-the-app pass. One task at a time.
 |---|---|---|---|---|
 | R0 | Verify and audit | DONE | `docs/AUDIT.md` | Unsigned `/parent/**` returns 307 to `/login` locally and on production. Four parent pages are stubs. |
 | R1 | Route protection | DONE | `src/lib/parent-gate.ts`, `src/lib/parent/guard.ts`, `tests/parent-gate.test.ts` | Every parent page redirects to `/login` when signed out, and each page calls `requireParent()`. Unsigned scan APIs are denied. Webhook and calendar-feed routes keep their own secrets. |
+| R2 | Accounts | DONE | `src/lib/login-guard.ts`, `src/app/join/page.tsx`, `src/app/parent/(gate)/setup/password-actions.ts`, `tests/accounts.test.ts` | Names stay unique. Five wrong sign-ins lock for 5 minutes. A remembered session lasts 30 days. The second parent creates an account, then joins with the family code. Setup lists parents and can set the other parent's password with the PIN. |
 
 ## Parent views
 

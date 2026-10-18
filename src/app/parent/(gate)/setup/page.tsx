@@ -2,6 +2,7 @@ import { CopyCode } from "@/app/parent/(gate)/setup/copy-code";
 import { savePractice } from "@/app/parent/(gate)/setup/practice-actions";
 import { addSender, registerWebhook, removeSender } from "@/app/parent/(gate)/setup/intake-actions";
 import { confirmRoster, readRoster, saveAvailability, saveEvening, updateDraft, uploadRoster } from "@/app/parent/(gate)/setup/roster-actions";
+import { changeOwnPassword, setOtherPassword } from "@/app/parent/(gate)/setup/password-actions";
 import { sendTestMessage } from "@/app/parent/(gate)/setup/test-message";
 import { Button } from "@/components/ui/button";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
@@ -13,11 +14,11 @@ export const dynamic = "force-dynamic";
 
 export const maxDuration = 60;
 
-export default async function SetupPage({ searchParams }: { searchParams: Promise<{ telegram?: string; roster?: string }> }) {
-  const { supabase, family } = await requireParent();
+export default async function SetupPage({ searchParams }: { searchParams: Promise<{ telegram?: string; roster?: string; password?: string }> }) {
+  const { supabase, user, family } = await requireParent();
   const query = await searchParams;
   const [{ data: members }, { data: senders }, { data: chats }, drafts, { data: hours }, { data: familyRow }] = await Promise.all([
-    supabase.from("members").select("id, display_name, role").order("display_name"),
+    supabase.from("members").select("id, user_id, display_name, role").order("display_name"),
     supabase.from("allowed_senders").select("id, email").order("email"),
     supabase.from("telegram_chats").select("chat_id, title").eq("family_id", family.family_id),
     supabase.from("roster_drafts").select("id, member_id, date, status").order("date"),
@@ -43,8 +44,25 @@ export default async function SetupPage({ searchParams }: { searchParams: Promis
             : query.roster === "type"
               ? "Use a JPEG, PNG, WebP, or PDF."
               : "";
-  const domain = process.env.INBOUND_EMAIL_DOMAIN || "your-domain";
-  const inbound = `${family.invite_code}@${domain}`;
+  const domain = process.env.INBOUND_EMAIL_DOMAIN ?? "";
+  const inbound = domain ? `${family.invite_code}@${domain}` : "";
+  const otherParent = parents.find((member) => member.user_id && member.user_id !== user.id) ?? null;
+  const passwordNote =
+    query.password === "saved"
+      ? "Password saved."
+      : query.password === "other"
+        ? "The other parent's password is saved."
+        : query.password === "wrong"
+          ? "That password is not right."
+          : query.password === "pin"
+            ? "That PIN is not right."
+            : query.password === "locked"
+              ? "Too many tries. Wait 5 minutes, then try the PIN again."
+              : query.password === "check"
+                ? "Check the password and the PIN."
+                : query.password === "failed"
+                  ? "Could not save the password."
+                  : "";
   const telegramNote =
     query.telegram === "connected"
       ? "The webhook is registered."
@@ -72,12 +90,50 @@ export default async function SetupPage({ searchParams }: { searchParams: Promis
       <Card>
         <CardTitle>Parents</CardTitle>
         <ul className="mt-3 space-y-2 text-sm">
-          {(members ?? []).map((member) => (
+          {parents.length === 0 ? <li>No parents are listed yet.</li> : null}
+          {parents.map((member) => (
             <li key={member.id}>
               {member.display_name} · {member.role}
             </li>
           ))}
         </ul>
+      </Card>
+      <Card>
+        <CardTitle>Password</CardTitle>
+        <CardDescription>A remembered sign-in lasts 30 days. The other parent can set a new password with the family PIN.</CardDescription>
+        <form action={changeOwnPassword} className="mt-4 grid gap-3">
+          <label className="grid gap-1 text-sm">
+            Current password
+            <input name="current" type="password" autoComplete="current-password" minLength={8} required className="h-12 rounded-md border border-border bg-background px-3" />
+          </label>
+          <label className="grid gap-1 text-sm">
+            New password
+            <input name="next" type="password" autoComplete="new-password" minLength={8} required className="h-12 rounded-md border border-border bg-background px-3" />
+          </label>
+          <Button type="submit" variant="outline" className="h-12">
+            Save password
+          </Button>
+        </form>
+        {otherParent ? (
+          <form action={setOtherPassword} className="mt-4 grid gap-3 border-t border-border pt-4">
+            <input type="hidden" name="memberId" value={otherParent.id} />
+            <p className="text-sm">New password for {otherParent.display_name}</p>
+            <label className="grid gap-1 text-sm">
+              Family PIN
+              <input name="pin" inputMode="numeric" autoComplete="off" minLength={4} maxLength={6} required className="h-12 rounded-md border border-border bg-background px-3" />
+            </label>
+            <label className="grid gap-1 text-sm">
+              Their new password
+              <input name="password" type="password" autoComplete="new-password" minLength={8} required className="h-12 rounded-md border border-border bg-background px-3" />
+            </label>
+            <Button type="submit" variant="outline" className="h-12">
+              Save their password
+            </Button>
+          </form>
+        ) : (
+          <p className="mt-4 text-sm">When the second parent joins with the code, you can set a new password for them here.</p>
+        )}
+        {passwordNote ? <p className="mt-2 text-sm">{passwordNote}</p> : null}
       </Card>
       <Card>
         <CardTitle>Telegram</CardTitle>
@@ -94,7 +150,9 @@ export default async function SetupPage({ searchParams }: { searchParams: Promis
       </Card>
       <Card>
         <CardTitle>School email</CardTitle>
-        <CardDescription>Forward school mail to {inbound}. Only the addresses below are saved.</CardDescription>
+        <CardDescription>
+          {inbound ? `Forward school mail to ${inbound}. Only the addresses below are saved.` : "School email is not set up yet. The forwarding address appears here once the inbound domain is set."}
+        </CardDescription>
         <form action={addSender} className="mt-4 flex gap-2">
           <input
             name="email"
