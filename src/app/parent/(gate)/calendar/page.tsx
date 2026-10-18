@@ -2,6 +2,7 @@ import { createBreakPlan, saveHoliday, saveZone, snoozeReminder } from "@/app/pa
 import { ParentNote } from "@/components/parent-note";
 import { Button } from "@/components/ui/button";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
+import { ensureHolidays } from "@/lib/calendar/seed";
 import { dayKey, holidayOn, monthCells, visibleHolidays, type Holiday } from "@/lib/calendar/plan";
 import { requireParent } from "@/lib/parent/guard";
 import { isMissingTable } from "@/lib/supabase/db-error";
@@ -10,6 +11,11 @@ export const dynamic = "force-dynamic";
 
 export default async function CalendarPage({ searchParams }: { searchParams: Promise<{ month?: string }> }) {
   const { supabase, family } = await requireParent();
+  try {
+    await ensureHolidays();
+  } catch {
+    // A missing school_calendar table is reported below.
+  }
   const timeZone = family.timezone || "Europe/Paris";
   const today = dayKey(new Date(), timeZone);
   const requested = (await searchParams).month ?? today.slice(0, 7);
@@ -29,7 +35,7 @@ export default async function CalendarPage({ searchParams }: { searchParams: Pro
   if (isMissingTable(holidayError) || isMissingTable(familyError)) {
     return (
       <div className="space-y-3">
-        <ParentNote title="Calendar" body="The school calendar table is missing." />
+        <ParentNote title="Calendar" body="School dates could not be loaded." />
         <a className="text-sm underline" href="/parent/setup/status">Setup checklist</a>
       </div>
     );

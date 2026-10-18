@@ -1,9 +1,12 @@
+import { readFileSync } from "node:fs";
+import path from "node:path";
 import { describe, expect, it } from "vitest";
 import {
   applySnooze,
   defaultOffsets,
   holidayOn,
   icsCalendar,
+  NATIONAL_HOLIDAYS,
   parseLocalDateTime,
   parseReminderAction,
   shouldNotifyOther,
@@ -21,6 +24,30 @@ const toussaint: Holiday = {
   zone: null,
   kind: "holiday",
 };
+
+describe("school year dates", () => {
+  it("includes the 2026-2027 national dates, with a winter break for each zone", () => {
+    expect(NATIONAL_HOLIDAYS).toHaveLength(11);
+    expect(NATIONAL_HOLIDAYS.find((row) => row.label === "Toussaint break")).toMatchObject({ starts_on: "2026-10-17", ends_on: "2026-11-01" });
+    expect(NATIONAL_HOLIDAYS.filter((row) => row.label === "Winter break").map((row) => row.zone)).toEqual(["A", "B", "C"]);
+    expect(NATIONAL_HOLIDAYS.find((row) => row.label === "School year ends")?.starts_on).toBe("2027-07-03");
+  });
+
+  it("loads calendar and skills without asking for a SQL paste", () => {
+    const root = process.cwd();
+    const calendar = readFileSync(path.join(root, "src/app/parent/(gate)/calendar/page.tsx"), "utf8");
+    const progress = readFileSync(path.join(root, "src/app/parent/(gate)/progress/page.tsx"), "utf8");
+    const status = readFileSync(path.join(root, "src/app/parent/(gate)/setup/status/page.tsx"), "utf8");
+    expect(calendar).toContain("ensureHolidays");
+    expect(progress).toContain("ensureOutline");
+    for (const source of [calendar, progress, status]) {
+      expect(source).not.toMatch(/SQL editor/);
+      expect(source).not.toMatch(/Paste supabase/);
+    }
+    expect(status).toContain("0001 through 0011");
+    expect(status).toContain("The tables this screen checks are present.");
+  });
+});
 
 describe("calendar reminders", () => {
   it("uses the day before when the date is more than a week away, and the morning when it is sooner", () => {

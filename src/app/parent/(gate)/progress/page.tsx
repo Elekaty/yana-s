@@ -16,7 +16,7 @@ export default async function ProgressPage() {
   try {
     await ensureStories();
   } catch {
-    // Pasting 0008_stories.sql still fills the stories.
+    // Stories stay empty until the stories table accepts the library.
   }
   const { data: recordings } = await supabase
     .from("voice_recordings")
@@ -93,7 +93,7 @@ export default async function ProgressPage() {
         <div className="space-y-2">
           <ParentNote
             title="Skills"
-            body={outlineReady && !skillsMissing ? "The outline has no lines yet." : "The skills table is missing."}
+            body={outlineReady && !skillsMissing ? "No skills are listed yet." : "Skills could not be loaded."}
           />
           <a className="text-sm underline" href="/parent/setup/status">Setup checklist</a>
         </div>

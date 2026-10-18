@@ -80,7 +80,7 @@ export default async function SetupStatusPage() {
         <CardDescription>The minute job still has to be scheduled in Supabase. A set secret does not prove it is running.</CardDescription>
       </Card>
       {tableRows.some((row) => !row.ok) ? (
-        <ParentNote title="Migrations" body="A missing table means that migration has not been applied in Supabase yet. Run supabase/migrations in order, from 0001 through 0010." />
+        <ParentNote title="Migrations" body="A checked table is missing. Apply supabase/migrations in order, from 0001 through 0011." />
       ) : (
         <ParentNote title="Migrations" body="The tables this screen checks are present." />
       )}

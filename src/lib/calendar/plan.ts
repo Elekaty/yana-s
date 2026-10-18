@@ -10,6 +10,20 @@ export const BREAK_PRACTICE = [
 
 const DAY = 24 * 60;
 
+export const NATIONAL_HOLIDAYS = [
+  { kind: "holiday", starts_on: "2026-10-17", ends_on: "2026-11-01", label: "Toussaint break", source: "national", zone: null },
+  { kind: "event", starts_on: "2026-11-02", ends_on: "2026-11-02", label: "Back to school", source: "national", zone: null },
+  { kind: "holiday", starts_on: "2026-11-11", ends_on: "2026-11-11", label: "Armistice", source: "national", zone: null },
+  { kind: "holiday", starts_on: "2026-12-19", ends_on: "2027-01-03", label: "Christmas break", source: "national", zone: null },
+  { kind: "event", starts_on: "2027-01-04", ends_on: "2027-01-04", label: "Back to school", source: "national", zone: null },
+  { kind: "holiday", starts_on: "2027-02-13", ends_on: "2027-03-01", label: "Winter break", source: "national", zone: "A" },
+  { kind: "holiday", starts_on: "2027-02-20", ends_on: "2027-03-08", label: "Winter break", source: "national", zone: "B" },
+  { kind: "holiday", starts_on: "2027-02-06", ends_on: "2027-02-22", label: "Winter break", source: "national", zone: "C" },
+  { kind: "holiday", starts_on: "2027-03-29", ends_on: "2027-03-29", label: "Easter Monday", source: "national", zone: null },
+  { kind: "holiday", starts_on: "2027-05-17", ends_on: "2027-05-17", label: "Pentecost Monday", source: "national", zone: null },
+  { kind: "event", starts_on: "2027-07-03", ends_on: "2027-07-03", label: "School year ends", source: "national", zone: null },
+] as const;
+
 export type Holiday = {
   family_id: string | null;
   label: string;
