@@ -77,6 +77,7 @@ export async function raiseSkill(formData: FormData) {
     { onConflict: "child_id,skill" },
   );
   revalidatePath("/parent/progress");
+  revalidatePath("/parent/curriculum");
 }
 
 async function parentContext() {

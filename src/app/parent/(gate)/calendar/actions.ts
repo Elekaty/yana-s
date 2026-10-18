@@ -199,6 +199,7 @@ export async function createBreakPlan() {
     );
   }
   revalidatePath("/parent/calendar");
+  revalidatePath("/parent/curriculum");
 }
 
 async function remind(formData: FormData, target: "parent" | "child") {

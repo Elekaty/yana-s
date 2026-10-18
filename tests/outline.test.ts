@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { PLAN, SKILLS, monthPlan, nextLevel, nextMonthKey, skillStatus, weekCounts, type PlanItem } from "@/lib/plan/outline";
+import { PLAN, SCHOOL_MONTHS, SKILLS, monthPlan, nextLevel, nextMonthKey, skillStatus, tablesSkillLevel, weekCounts, type PlanItem } from "@/lib/plan/outline";
 
 const shared = (key: string): PlanItem => {
   const item = PLAN.find((row) => row.item_key === key);
@@ -18,6 +18,14 @@ describe("monthly plan and skills", () => {
     expect(visible.filter((row) => row.item_key === "toussaint")).toHaveLength(1);
     const hidden: PlanItem = { ...edited, hidden: true };
     expect(monthPlan([...base, hidden], "2026-10").map((row) => row.item_key)).toEqual(["numbers-oct"]);
+  });
+
+  it("shows the November plan and lets a tables round raise the skill", () => {
+    const rows = PLAN.map((item) => ({ ...item, family_id: null, done: false, hidden: false }));
+    expect(SCHOOL_MONTHS).toContain("2026-11");
+    expect(monthPlan(rows, "2026-11").map((row) => row.item_key).sort()).toEqual(["sentence-nov", "times-2"]);
+    expect(skillStatus(nextLevel(0, tablesSkillLevel(5)))).toBe("practicing");
+    expect(skillStatus(nextLevel(3, tablesSkillLevel(5)))).toBe("strong");
   });
 
   it("keeps a parent strong status above a later game", () => {

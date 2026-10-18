@@ -1,6 +1,6 @@
 "use server";
 
-import { nextLevel } from "@/lib/plan/outline";
+import { nextLevel, tablesSkillLevel } from "@/lib/plan/outline";
 import { getFamily } from "@/lib/family";
 import { gradeRound, tablesFrom } from "@/lib/games/questions";
 
@@ -43,7 +43,7 @@ export async function finishRound(input: { game: "bulles" | "fruit"; level: "eas
       skill: "tables",
       correct,
       attempts,
-      level: nextLevel(Number(skill?.level ?? 0), correct >= 15 ? 3 : correct >= 5 ? 1 : 0),
+      level: nextLevel(Number(skill?.level ?? 0), tablesSkillLevel(correct)),
     },
     { onConflict: "child_id,skill" },
   );

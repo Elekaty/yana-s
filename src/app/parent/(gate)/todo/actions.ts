@@ -66,6 +66,7 @@ export async function addPlanItem(formData: FormData) {
     hidden: false,
   });
   revalidatePath("/parent/todo");
+  revalidatePath("/parent/curriculum");
   revalidatePath("/parent");
 }
 
@@ -83,6 +84,7 @@ async function upsertFamilyItem(
   if (existing) await ctx.supabase.from("plan_items").update(row).eq("id", existing.id).eq("family_id", ctx.familyId);
   else await ctx.supabase.from("plan_items").insert(row);
   revalidatePath("/parent/todo");
+  revalidatePath("/parent/curriculum");
   revalidatePath("/parent");
 }
 

@@ -89,6 +89,14 @@ export function monthPlan(rows: PlanItem[], month: string) {
     .sort((a, b) => a.subject.localeCompare(b.subject) || a.item_key.localeCompare(b.item_key));
 }
 
+export const SCHOOL_MONTHS = ["2026-09", "2026-10", "2026-11", "2026-12", "2027-01", "2027-02", "2027-03", "2027-04", "2027-05", "2027-06", "2027-07"] as const;
+
+export function tablesSkillLevel(correct: number) {
+  if (correct >= 15) return 3;
+  if (correct >= 5) return 1;
+  return 0;
+}
+
 export function skillStatus(level: number) {
   if (level >= 3) return "strong" as const;
   if (level >= 1) return "practicing" as const;
