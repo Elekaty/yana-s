@@ -3,15 +3,14 @@ import { addPlanItem, hidePlanItem, savePlanItem, tickPlanItem } from "@/app/par
 import { ParentNote } from "@/components/parent-note";
 import { Button } from "@/components/ui/button";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
-import { getFamily } from "@/lib/family";
+import { requireParent } from "@/lib/parent/guard";
 import { monthKey, monthPlan, type PlanItem } from "@/lib/plan/outline";
 import { ensureOutline } from "@/lib/plan/seed";
 
 export const dynamic = "force-dynamic";
 
 export default async function TodoPage() {
-  const { supabase, family } = await getFamily();
-  if (!family) return null;
+  const { supabase, family } = await requireParent();
   const { data: tasks } = await supabase
     .from("tasks")
     .select("id, title, parent_action, status, due_at")

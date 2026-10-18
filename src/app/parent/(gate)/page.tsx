@@ -1,12 +1,11 @@
 import Link from "next/link";
-import { getFamily } from "@/lib/family";
+import { requireParent } from "@/lib/parent/guard";
 import { loadToday } from "@/lib/parent/queries";
 
 export const dynamic = "force-dynamic";
 
 export default async function TodayPage() {
-  const { supabase, user, family } = await getFamily();
-  if (!family || !user) return null;
+  const { supabase, user, family } = await requireParent();
   const today = await loadToday(supabase, family, user.id);
   return (
     <div className="space-y-3">

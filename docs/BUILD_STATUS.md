@@ -28,6 +28,13 @@ Single list for the finish-the-app pass. One task at a time.
 | E2 | French review prep | TODO | | |
 | E3 | Final audit | TODO | | |
 
+## Review
+
+| ID | Title | Status | Proof | Notes |
+|---|---|---|---|---|
+| R0 | Verify and audit | DONE | `docs/AUDIT.md` | Unsigned `/parent/**` returns 307 to `/login` locally and on production. Four parent pages are stubs. |
+| R1 | Route protection | DONE | `src/lib/parent-gate.ts`, `src/lib/parent/guard.ts`, `tests/parent-gate.test.ts` | Every parent page redirects to `/login` when signed out, and each page calls `requireParent()`. Unsigned scan APIs are denied. Webhook and calendar-feed routes keep their own secrets. |
+
 ## Parent views
 
 | ID | Title | Status | Proof | Notes |

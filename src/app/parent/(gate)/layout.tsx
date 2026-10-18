@@ -1,17 +1,14 @@
-import { redirect } from "next/navigation";
 import { ParentNav } from "@/components/parent/parent-nav";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
-import { getFamily } from "@/lib/family";
+import { requireParent } from "@/lib/parent/guard";
 import { loadToday } from "@/lib/parent/queries";
 import { lockAndGoToKid } from "@/app/parent/unlock/actions";
 
 export const dynamic = "force-dynamic";
 
 export default async function ParentLayout({ children }: { children: React.ReactNode }) {
-  const { supabase, user, family } = await getFamily();
-  if (!user) redirect("/login");
-  if (!family) redirect("/join");
+  const { supabase, user, family } = await requireParent();
   const today = await loadToday(supabase, family, user.id).catch(() => null);
 
   return (

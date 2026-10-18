@@ -2,7 +2,7 @@ import { ParentNote } from "@/components/parent-note";
 import { Button } from "@/components/ui/button";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 import { addReward, approveReward, denyReward, hideReward, raiseSkill, reactToVoice } from "@/app/parent/(gate)/progress/actions";
-import { getFamily } from "@/lib/family";
+import { requireParent } from "@/lib/parent/guard";
 import { skillStatus, weekCounts } from "@/lib/plan/outline";
 import { ensureOutline } from "@/lib/plan/seed";
 import { ensureStories } from "@/lib/stories/seed";
@@ -12,8 +12,7 @@ import { isMissingTable } from "@/lib/supabase/db-error";
 export const dynamic = "force-dynamic";
 
 export default async function ProgressPage() {
-  const { supabase, user, family } = await getFamily();
-  if (!family) return null;
+  const { supabase, user, family } = await requireParent();
   try {
     await ensureStories();
   } catch {

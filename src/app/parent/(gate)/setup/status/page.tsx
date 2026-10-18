@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ParentNote } from "@/components/parent-note";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
-import { getFamily } from "@/lib/family";
+import { requireParent } from "@/lib/parent/guard";
 import { isMissingTable } from "@/lib/supabase/db-error";
 
 export const dynamic = "force-dynamic";
@@ -32,8 +32,7 @@ const tables = [
 ] as const;
 
 export default async function SetupStatusPage() {
-  const { supabase, user, family } = await getFamily();
-  if (!user || !family) return null;
+  const { supabase, family } = await requireParent();
   const [{ data: chats }, tableRows] = await Promise.all([
     supabase.from("telegram_chats").select("chat_id").eq("family_id", family.family_id),
     Promise.all(

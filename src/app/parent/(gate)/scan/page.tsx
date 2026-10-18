@@ -1,7 +1,7 @@
 import { TonightCard } from "@/components/parent/tonight-card";
 import { ParentNote } from "@/components/parent-note";
 import { ScanDesk, type Question, type ScanCard } from "@/components/scan/desk";
-import { getFamily } from "@/lib/family";
+import { requireParent } from "@/lib/parent/guard";
 import { monthKey, monthPlan, nextMonthKey, type PlanItem } from "@/lib/plan/outline";
 import { ensureOutline } from "@/lib/plan/seed";
 
@@ -10,8 +10,7 @@ export const dynamic = "force-dynamic";
 const ISLANDS = ["Game Bay", "Logic Lagoon", "Creative Cove"] as const;
 
 export default async function ScanPage() {
-  const { supabase, family } = await getFamily();
-  if (!family) return null;
+  const { supabase, family } = await requireParent();
 
   const [{ data: scans }, { data: tasks }, { data: sessions }, { data: runs }] = await Promise.all([
     supabase.from("homework_scans").select("id, status, image_path, created_at").order("created_at", { ascending: false }).limit(20),
@@ -66,7 +65,7 @@ export default async function ScanPage() {
   );
 }
 
-async function nextMonthLine(supabase: Awaited<ReturnType<typeof getFamily>>["supabase"], timeZone: string) {
+async function nextMonthLine(supabase: Awaited<ReturnType<typeof requireParent>>["supabase"], timeZone: string) {
   try {
     await ensureOutline();
   } catch {

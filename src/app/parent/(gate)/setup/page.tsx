@@ -7,15 +7,14 @@ import { Button } from "@/components/ui/button";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 import { studySettings } from "@/lib/study/clock";
 import { tablesFrom } from "@/lib/games/questions";
-import { getFamily } from "@/lib/family";
+import { requireParent } from "@/lib/parent/guard";
 
 export const dynamic = "force-dynamic";
 
 export const maxDuration = 60;
 
 export default async function SetupPage({ searchParams }: { searchParams: Promise<{ telegram?: string; roster?: string }> }) {
-  const { supabase, family } = await getFamily();
-  if (!family) return null;
+  const { supabase, family } = await requireParent();
   const query = await searchParams;
   const [{ data: members }, { data: senders }, { data: chats }, drafts, { data: hours }, { data: familyRow }] = await Promise.all([
     supabase.from("members").select("id, display_name, role").order("display_name"),

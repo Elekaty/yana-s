@@ -1,37 +1,154 @@
 # Audit
 
-Reviewed from the code. Parent pages require a signed-in parent and a valid PIN cookie. There is no preview family.
+18 Oct 2026. R0 recorded the routes. R1 then added `requireParent()` on every parent page and a 401 from the gate for unsigned `POST /api/scans` and `POST /api/scans/:id/retry`. Webhook and calendar-feed routes are unchanged. The signed-out page results below still hold.
 
-| Route or feature | Status | Reason |
+`docs/BUILD_PLAN_V2.md`, `docs/MOCHI_BLUEPRINT.md`, and `docs/REVIEW_2.md` are not in the repo. This pass follows the R0 line from the review prompt: run the app, mark every route, and record whether each `/parent/**` URL is reachable with no session.
+
+## How this was checked
+
+Unsigned requests, no cookies, redirects not followed.
+
+- Local: the Next.js dev server already running for this project at `http://127.0.0.1:3000`.
+- Production: `https://yana-s.vercel.app`.
+
+Playwright is not installed, and this pass did not add it. There was no signed-in browser session, so a parent or kid page was not opened after the PIN. For routes that redirect, the status below is the page that would render after sign-in, read from the route module. The signed-out column is the HTTP result from both hosts, which matched on every route.
+
+An unknown path, `/parent/missing`, also returned 307 to `/login` on both hosts. The gate runs before a missing parent URL can show a 404.
+
+## Signed out: every `/parent/**` route
+
+None of these is reachable without a session. Each returned **307** to `/login` locally and on Vercel. The Vercel redirect is `cache-control: public, max-age=0, must-revalidate`, so this pass did not receive a cached copy of a parent page.
+
+| Route | Reachable signed out |
+| --- | --- |
+| `/parent` | No. 307 `/login` |
+| `/parent/unlock` | No. 307 `/login` |
+| `/parent/inbox` | No. 307 `/login` |
+| `/parent/calendar` | No. 307 `/login` |
+| `/parent/calendar/confirm` | No. 307 `/login` |
+| `/parent/todo` | No. 307 `/login` |
+| `/parent/progress` | No. 307 `/login` |
+| `/parent/setup` | No. 307 `/login` |
+| `/parent/setup/status` | No. 307 `/login` |
+| `/parent/scan` | No. 307 `/login` |
+| `/parent/curriculum` | No. 307 `/login` |
+| `/parent/voice` | No. 307 `/login` |
+| `/parent/study` | No. 307 `/login` |
+| `/parent/rewards` | No. 307 `/login` |
+
+`/kid` and every `/kid/**` route below also returned 307 to `/login`. `/join` did too.
+
+## Routes
+
+| Route | Status | Signed out | What this pass found |
+| --- | --- | --- | --- |
+| `/` | working | 307 `/login` | Signed-in code sends a parent with a family to `/kid/home`, and a parent with no family to `/join`. |
+| `/login` | working | 200 | Name and password, no email field, on local and on `yana-s.vercel.app`. The page says parents sign in with a name and a password. |
+| `/join` | working | 307 `/login` | Create-or-join form after sign-in. Not opened in this pass. |
+| `/parent` | working | 307 `/login` | Today shows three sections from one data load: messages waiting, tonight’s line, homework status and a link to Scan. Coming up, the break banner, the week, rewards, recordings, and setup health are loaded and not drawn. |
+| `/parent/unlock` | working | 307 `/login` | PIN card. Five wrong tries lock for 5 minutes. The unlock cookie lasts 12 hours. Not submitted in this pass. |
+| `/parent/inbox` | working | 307 `/login` | List, archive folder, ticks, tier, remind, add to calendar, and archive actions are in the page. No live Telegram or email message was sent. |
+| `/parent/calendar` | working | 307 `/login` | Month grid. `school_calendar` answers. Not opened after sign-in. |
+| `/parent/calendar/confirm` | working | 307 `/login` | Confirm-an-event page. Not opened after sign-in. |
+| `/parent/todo` | working | 307 `/login` | Plan lines and add-a-line. `plan_items` answers. Not opened after sign-in. |
+| `/parent/progress` | working | 307 `/login` | Week counts, skills, rewards, voice reactions, reading log. `skills` answers. Not opened after sign-in. |
+| `/parent/setup` | working | 307 `/login` | Invite, Telegram, senders, roster, practice, language. Not opened after sign-in. |
+| `/parent/setup/status` | working | 307 `/login` | Checklist of env names and tables. It does not show secret values. Not opened after sign-in. |
+| `/parent/scan` | working | 307 `/login` | Scan desk and tonight card. A photo was not uploaded, so Gemini was not called. |
+| `/parent/curriculum` | stub | 307 `/login` | Empty state: “Nothing is listed for this month yet,” with a link to Setup. The skills and plan tables exist; this page does not list them. |
+| `/parent/voice` | stub | 307 `/login` | Empty state: “No recordings yet.” It does not load the recordings Progress can show. |
+| `/parent/study` | stub | 307 `/login` | Empty state. Study and prize fields stay on Setup. |
+| `/parent/rewards` | stub | 307 `/login` | Empty state with a link to Progress. Requests and the balance are not on this page. |
+| `/kid/home` | working | 307 `/login` | Salon home, stars, check-in. Not opened after sign-in. |
+| `/kid/homework` | working | 307 `/login` | Player when a ready scan has a task. Otherwise the empty homework card. Not opened after sign-in. |
+| `/kid/games` | working | 307 `/login` | Hub: Bay, Lagoon, Cove, Stories, My friends, Town. |
+| `/kid/games/bay` | working | 307 `/login` | Bubbles, fruit, and more. |
+| `/kid/games/bay/bulles` | working | 307 `/login` | Bubble game page. Not played. |
+| `/kid/games/bay/fruit` | working | 307 `/login` | Fruit game page. Not played. |
+| `/kid/games/bay/more` | working | 307 `/login` | Kitchen, safari, say-it links. |
+| `/kid/games/bay/kitchen` | working | 307 `/login` | Kitchen game page. Not played. |
+| `/kid/games/bay/safari` | working | 307 `/login` | Safari game page. Not played. |
+| `/kid/games/lagoon` | working | 307 `/login` | Arrow-path game page. Not played. |
+| `/kid/games/cove` | working | 307 `/login` | Draw and music links. |
+| `/kid/games/cove/draw` | working | 307 `/login` | Draw page. Not used. |
+| `/kid/games/cove/music` | working | 307 `/login` | Music page. Not used. |
+| `/kid/games/stories` | working | 307 `/login` | Story list. Shows a short “soon” line only if the stories query errors. `stories` answers. |
+| `/kid/games/stories/chat-lune` | working | 307 `/login` | One story route. Not opened after sign-in. |
+| `/kid/games/friends` | working | 307 `/login` | Friend collection. `friends_unlocked` answers. |
+| `/kid/games/voice` | working | 307 `/login` | Say-it hub. |
+| `/kid/games/voice/practice` | working | 307 `/login` | Practice page. Not recorded. |
+| `/kid/games/voice/new` | working | 307 `/login` | What’s-new page. Not recorded. |
+| `/kid/games/voice/album` | working | 307 `/login` | Album page. Shows “soon” only if its query errors. `voice_recordings` answers. |
+| `/kid/town` | working | 307 `/login` | Town board. Shows “soon” only if the plots query errors. `town_plots` answers. |
+| `/kid/store` | working | 307 `/login` | Lists active rewards, or asks Yana to ask a parent. `rewards` answers. |
+| `/dev/mochi` | working | **200, reachable** | Salon state lab. It is outside the parent and kid gate, on local and on production. |
+| `/manifest.webmanifest` | working | 200 | PWA manifest. |
+| `/sw.js` | working | 200 | Service worker script. |
+| `/icon.svg` | working | 200 | Icon. |
+| `POST /api/intake/telegram` | working | 401 | Rejects a body with no webhook secret. A real Telegram update was not sent. |
+| `POST /api/intake/email` | working | 401 | Rejects a body with no inbound secret. A real forwarded email was not sent. |
+| `POST /api/intake/userbot` | working | 401 | Rejects a body with no userbot secret. |
+| `POST /api/jobs/run` | working | 401 | Rejects a parent-less call. Cron firing was not watched. |
+| `POST /api/scans` | working | 401 | Rejects a parent-less call. No photo was posted. |
+| `POST /api/scans/00000000-0000-0000-0000-000000000000/retry` | working | 401 | Rejects a parent-less call. |
+| `GET /api/calendar/not-a-uuid` | working | 404 | Bad token shape. |
+| `GET /api/calendar/00000000-0000-0000-0000-000000000000` | working | 404 | Well-formed token that matches no family. A real family feed was not requested. |
+| `GET` on the POST-only API routes | working | 405 | Those six routes do not answer GET. |
+
+No route returned 500. No route is marked broken. No route is marked needs migration: the tables this pass asked for are present (below).
+
+## Tables
+
+Asked with the server key, one column, no row contents kept. HTTP 200 means the column is there.
+
+| Table | Column | Result |
 | --- | --- | --- |
-| `/` | working | Signed-out visitors go to login, unless demo mode is explicitly on outside production. |
-| `/login` | working | Email and password. Remember this device. |
-| `/join` | working | Create or join a family after sign-in. The invite code comes from the database, not the word preview. |
-| `/parent/unlock` | working | PIN screen. Five wrong tries lock it for 15 minutes. The unlock cookie lasts 12 hours. |
-| `/parent` Scan | working | Needs a signed-in parent and the PIN. |
-| `/parent/inbox` | working | Empty until a message arrives. Setup can send a test note. Two-tick archive is in SQL. A real Telegram or email delivery was not sent from here. |
-| `/parent/calendar` | working | Month grid and national holidays when `0006` is applied. The old “paste 0006” line is now a checklist link. |
-| `/parent/todo` | working | Monthly plan when `0010` is applied. |
-| `/parent/progress` | working | Skill outline, rewards, voice reactions. |
-| `/parent/rewards` | working | Opens Progress, where rewards are added and approved. The stub sentence is gone. |
-| `/parent/setup` | working | Invite code, Telegram webhook button, senders, roster, practice. |
-| `/parent/setup/status` | working | Checklist of env names and tables. It does not print secret values, and it cannot see whether Supabase cron is actually firing. |
-| Kid home, salon, games | working | Same parent session, no PIN. Mochi’s moves are on Home. |
-| Games hub | working | Bay, Lagoon, Cove, Stories, My friends, Town. |
-| Store | working | Lists rewards when a parent has added one. Otherwise it asks Yana to ask a parent. |
-| Break timer, Gemini scan, push | needs env var | The screens exist. A live scan, a push on a phone, and the break timer were not exercised in this pass. |
-| Study chest and on-time bonus | working | Home has “I’m here” during the family’s evening window. Active study opens a chest. Both pay through `award_stars` (1–5; a perfect week is two calls of 5). Idle time does not count. |
-| Salon cat | working | Layered SVG in the living room. The split-part motion build is the next step. |
-| Reading log and plan tags | working | Progress lists finished stories. To do shows National, Typical, or Yours. |
-| Repeated homework photo | working | `0011_scan_cache.sql` stores a hash. The same photo returns the saved reading and does not call Gemini. Run that SQL once in the Supabase editor. |
-| Parent PIN | working | `/parent` without the unlock cookie goes to `/parent/unlock`. Five wrong tries lock for 5 minutes. Kid mode clears the cookie. |
+| `messages` | `id` | 200 |
+| `message_acks` | primary key `(message_id, member_id)` | Table is present. It has no `id` column. |
+| `school_calendar` | `id` | 200 |
+| `skills` | `skill_key` | 200 |
+| `plan_items` | `item_key` | 200 |
+| `rewards` | `id` | 200 |
+| `roster_drafts` | `id` | 200 |
+| `homework_scans` | `image_hash` | 200 |
+| `stories` | `slug` | 200 |
+| `town_plots` | `slot` | 200 |
+| `friends_unlocked` | `friend` | 200 |
+| `voice_recordings` | `id` | 200 |
+| `jobs` | `id` | 200 |
+| `telegram_chats` | `chat_id` | 200 |
 
-## Environment names the app reads
+Migrations `0001` through `0011` are in the repo. This pass did not run `supabase db push`. It did not check whether `pg_cron` is scheduled.
 
-`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `GEMINI_API_KEY`, `TELEGRAM_BOT_TOKEN`, `TELEGRAM_WEBHOOK_SECRET`, `USERBOT_WEBHOOK_SECRET`, `INBOUND_EMAIL_SECRET`, `INBOUND_EMAIL_DOMAIN`, `CRON_SECRET`, `APP_URL`, `INTAKE_URL`, `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `TELEGRAM_API_ID`, `TELEGRAM_API_HASH`, `TELEGRAM_SESSION_STRING`, `TARGET_CHAT_ID`, `VERCEL_RECEIVER_URL`, `FAMILY_INVITE_CODE`.
+## Environment names on this machine
 
-This audit cannot see the Vercel project’s saved values. The checklist page shows which of the server names are non-empty after deploy.
+Present or empty in the local env files only. Vercel’s saved values were not visible. No values are written here.
 
-## Migrations
+| Name | Local file |
+| --- | --- |
+| `NEXT_PUBLIC_SUPABASE_URL` | present |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | present |
+| `SUPABASE_SERVICE_ROLE_KEY` | present |
+| `GEMINI_API_KEY` | present |
+| `TELEGRAM_WEBHOOK_SECRET` | present |
+| `INBOUND_EMAIL_SECRET` | present |
+| `CRON_SECRET` | present |
+| `APP_URL` | present, host `yana-s-ele18.vercel.app` |
+| `INTAKE_URL` | present |
+| `VAPID_PUBLIC_KEY` | present |
+| `VAPID_PRIVATE_KEY` | present |
+| `VERCEL_RECEIVER_URL` | present |
+| `TELEGRAM_BOT_TOKEN` | empty |
+| `USERBOT_WEBHOOK_SECRET` | empty |
+| `INBOUND_EMAIL_DOMAIN` | empty |
+| `TELEGRAM_API_ID` | empty |
+| `TELEGRAM_API_HASH` | empty |
+| `TELEGRAM_SESSION_STRING` | empty |
+| `TARGET_CHAT_ID` | empty |
+| `FAMILY_INVITE_CODE` | empty |
 
-`supabase/migrations/0001_core.sql` through `0010_plan.sql`. They are written to be re-run. Whether each one is applied is visible on Setup checklist as Present or Missing for messages, school calendar, skills, plan items, rewards, and roster drafts. This pass did not run `supabase db push`.
+`https://yana-s-ele18.vercel.app/login` returned **404**. The live login page is `https://yana-s.vercel.app/login`.
+
+## Not verified
+
+Signed-in layout at 390px and 1024px, light and dark. A real Telegram message, a real forwarded email, push on a phone, a Gemini scan, cron firing, and a signed-in look at Today, Inbox, Calendar, To do, Progress, and the kid games.

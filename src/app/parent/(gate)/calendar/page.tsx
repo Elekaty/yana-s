@@ -3,14 +3,13 @@ import { ParentNote } from "@/components/parent-note";
 import { Button } from "@/components/ui/button";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 import { dayKey, holidayOn, monthCells, visibleHolidays, type Holiday } from "@/lib/calendar/plan";
-import { getFamily } from "@/lib/family";
+import { requireParent } from "@/lib/parent/guard";
 import { isMissingTable } from "@/lib/supabase/db-error";
 
 export const dynamic = "force-dynamic";
 
 export default async function CalendarPage({ searchParams }: { searchParams: Promise<{ month?: string }> }) {
-  const { supabase, family } = await getFamily();
-  if (!family) return null;
+  const { supabase, family } = await requireParent();
   const timeZone = family.timezone || "Europe/Paris";
   const today = dayKey(new Date(), timeZone);
   const requested = (await searchParams).month ?? today.slice(0, 7);

@@ -1,13 +1,12 @@
 import { saveEvent } from "@/app/parent/(gate)/calendar/actions";
 import { Button } from "@/components/ui/button";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
-import { getFamily } from "@/lib/family";
+import { requireParent } from "@/lib/parent/guard";
 
 export const dynamic = "force-dynamic";
 
 export default async function ConfirmEventPage({ searchParams }: { searchParams: Promise<{ message?: string; title?: string; starts?: string }> }) {
-  const { family } = await getFamily();
-  if (!family) return null;
+  const { family } = await requireParent();
   const query = await searchParams;
   const timeZone = family.timezone || "Europe/Paris";
   return (

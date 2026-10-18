@@ -11,7 +11,7 @@ import {
 import { ParentNote } from "@/components/parent-note";
 import { Button } from "@/components/ui/button";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
-import { getFamily } from "@/lib/family";
+import { requireParent } from "@/lib/parent/guard";
 import { canArchive, canUndo, type Tier } from "@/lib/inbox/sort";
 import { isMissingTable } from "@/lib/supabase/db-error";
 
@@ -20,8 +20,7 @@ export const dynamic = "force-dynamic";
 const TIER_ORDER: Record<string, number> = { urgent: 0, important: 1, fyi: 2 };
 
 export default async function InboxPage({ searchParams }: { searchParams: Promise<{ folder?: string; q?: string }> }) {
-  const { supabase, user, family } = await getFamily();
-  if (!family || !user) return null;
+  const { supabase, user } = await requireParent();
   const query = await searchParams;
   const archive = query.folder === "archive";
   const { data: messages, error } = await supabase

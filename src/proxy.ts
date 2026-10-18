@@ -44,6 +44,13 @@ export async function proxy(request: NextRequest) {
     return redirect;
   };
 
+  if (decision.deny) {
+    const denied = NextResponse.json({ error: "Parents only" }, { status: 401 });
+    for (const cookie of response.headers.getSetCookie()) {
+      denied.headers.append("set-cookie", cookie);
+    }
+    return denied;
+  }
   if (decision.redirectTo) return redirectTo(decision.redirectTo, decision.clearUnlock);
   if (decision.clearUnlock) expireUnlock(response);
   return response;
