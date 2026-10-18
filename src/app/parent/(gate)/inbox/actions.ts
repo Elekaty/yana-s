@@ -23,6 +23,7 @@ export async function tickMessage(formData: FormData) {
   const messageId = String(formData.get("messageId") ?? "");
   if (!messageId) return;
   await ctx.supabase.from("message_acks").insert({ message_id: messageId, member_id: ctx.memberId, family_id: ctx.familyId });
+  revalidatePath("/parent");
   revalidatePath("/parent/inbox");
 }
 

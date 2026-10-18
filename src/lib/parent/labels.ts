@@ -1,7 +1,13 @@
-export function homeworkLabel(scanStatus: string | null, taskStatus: string | null, flagged: boolean) {
+export function homeworkLabel(
+  scanStatus: string | null,
+  taskStatus: string | null,
+  flagged: boolean,
+  step?: { current: number; total: number } | null,
+) {
   if (!scanStatus) return "Not scanned";
-  if (flagged) return "Stuck, needs you";
+  if (flagged || taskStatus === "stuck" || taskStatus === "needs_you") return "Stuck, needs you";
   if (taskStatus === "completed" || taskStatus === "done") return "Done";
+  if (step && step.total > 0 && (taskStatus || step.current > 0)) return `In progress (step ${step.current} of ${step.total})`;
   if (taskStatus) return "In progress";
   return "Scanned, not started";
 }

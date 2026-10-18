@@ -13,6 +13,7 @@ export async function reactToVoice(formData: FormData) {
   const { supabase, family } = await getFamily();
   if (!family) return;
   await supabase.from("voice_recordings").update({ parent_reaction: reaction }).eq("id", id).eq("family_id", family.family_id);
+  revalidatePath("/parent");
   revalidatePath("/parent/progress");
   revalidatePath("/kid/games/voice/album");
 }
@@ -41,6 +42,7 @@ export async function approveReward(formData: FormData) {
   const ctx = await parentContext();
   if (!ctx) return;
   await ctx.supabase.rpc("approve_purchase", { p_purchase: String(formData.get("id") ?? "") });
+  revalidatePath("/parent");
   revalidatePath("/parent/progress");
   revalidatePath("/kid/store");
 }
@@ -54,6 +56,7 @@ export async function denyReward(formData: FormData) {
     .eq("id", String(formData.get("id") ?? ""))
     .eq("family_id", ctx.familyId)
     .eq("status", "requested");
+  revalidatePath("/parent");
   revalidatePath("/parent/progress");
   revalidatePath("/kid/store");
 }

@@ -6,12 +6,12 @@ import {
   BREAK_PRACTICE,
   atLocalTime,
   defaultOffsets,
-  holidayOn,
   parseLocalDateTime,
   reminderInstants,
   type Holiday,
   weekdayDates,
 } from "@/lib/calendar/plan";
+import { noticeHoliday } from "@/lib/parent/today";
 import { extractEventDate } from "@/lib/calendar/extract";
 import { applyReminderAction } from "@/lib/calendar/due";
 import { getFamily } from "@/lib/family";
@@ -94,6 +94,7 @@ export async function addTask(formData: FormData) {
     parent_action: message.summary_en,
     status: "pending",
   });
+  revalidatePath("/parent");
   revalidatePath("/parent/todo");
   revalidatePath("/parent/inbox");
 }
@@ -169,7 +170,7 @@ export async function createBreakPlan() {
   if (!ctx) return;
   const today = new Intl.DateTimeFormat("en-CA", { timeZone: ctx.timeZone, year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
   const { data: rows } = await ctx.supabase.from("school_calendar").select("family_id, label, starts_on, ends_on, zone, kind");
-  const holiday = holidayOn(today, (rows ?? []) as Holiday[], ctx.zone);
+  const holiday = noticeHoliday(today, (rows ?? []) as Holiday[], ctx.zone);
   if (!holiday) return;
   const days = weekdayDates(today > holiday.starts_on ? today : holiday.starts_on, holiday.ends_on);
   for (let index = 0; index < days.length; index += 1) {
@@ -198,6 +199,7 @@ export async function createBreakPlan() {
       })),
     );
   }
+  revalidatePath("/parent");
   revalidatePath("/parent/calendar");
   revalidatePath("/parent/curriculum");
 }
