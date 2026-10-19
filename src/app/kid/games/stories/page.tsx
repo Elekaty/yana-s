@@ -1,7 +1,8 @@
 import Link from "next/link";
-import { StoryLibrary } from "@/components/kid/StoryLibrary";
+import { KidBack } from "@/components/kid/kid-back";
 import { getFamily } from "@/lib/family";
 import { t } from "@/lib/i18n";
+import { kidPlaces } from "@/lib/kid/places";
 import { ensureStories } from "@/lib/stories/seed";
 
 export const dynamic = "force-dynamic";
@@ -20,11 +21,8 @@ export default async function StoriesPage({ searchParams }: { searchParams: Prom
   if (rows.length === 0) {
     return (
       <div className="grid gap-4">
+        <KidBack href={kidPlaces.words} label={copy.back} />
         <p className="text-center text-2xl">{lang === "en" ? "No stories yet." : "Pas encore d'histoire."}</p>
-        <Link href="/kid/games" className="flex h-14 items-center justify-center rounded-full bg-white/15 text-2xl">
-          {copy.back}
-        </Link>
-        <StoryLibrary lang={lang} />
       </div>
     );
   }
@@ -34,6 +32,7 @@ export default async function StoriesPage({ searchParams }: { searchParams: Prom
   const title = family?.child_language === "en" ? row.title_en : row.title_fr;
   return (
     <div className="grid gap-4">
+      <KidBack href={kidPlaces.words} label={copy.back} />
       <p className="text-center text-3xl">{title}</p>
       <Link href={`/kid/games/stories/${row.slug}`} className="flex h-14 items-center justify-center rounded-full bg-sun text-2xl text-plum">
         {copy.listen}
@@ -41,10 +40,6 @@ export default async function StoriesPage({ searchParams }: { searchParams: Prom
       <Link href={`/kid/games/stories?i=${next}`} className="flex h-14 items-center justify-center rounded-full bg-grape text-2xl">
         {copy.next}
       </Link>
-      <Link href="/kid/games" className="flex h-14 items-center justify-center rounded-full bg-white/15 text-2xl">
-        {copy.back}
-      </Link>
-      <StoryLibrary lang={lang} />
     </div>
   );
 }

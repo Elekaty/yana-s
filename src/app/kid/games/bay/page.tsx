@@ -1,6 +1,8 @@
+import { KidBack } from "@/components/kid/kid-back";
 import { PlayChoice } from "@/components/kid/play-choice";
 import { getFamily } from "@/lib/family";
 import { t } from "@/lib/i18n";
+import { kidPlaces } from "@/lib/kid/places";
 
 export const dynamic = "force-dynamic";
 
@@ -10,9 +12,10 @@ export default async function BayPage() {
   const en = family?.child_language === "en";
   return (
     <div className="grid gap-4">
+      <KidBack href={kidPlaces.games} label={copy.back} />
       <PlayChoice href="/kid/games/bay/bulles" title={copy.bulles} hint={en ? "Pop the right bubble" : "Éclate la bonne bulle"} emoji="🫧" tone="sun" />
       <PlayChoice href="/kid/games/bay/fruit" title={copy.fruits} hint={en ? "Slice the fruit" : "Coupe le fruit"} emoji="🍓" tone="hot" />
-      <PlayChoice href="/kid/games/bay/more" title={copy.plus} hint={en ? "Kitchen, safari, say it" : "Cuisine, safari, dire"} emoji="✨" tone="grape" />
+      <PlayChoice href="/kid/games/bay/kitchen" title={copy.kitchen} hint={en ? "Fill the plate" : "Remplis l'assiette"} emoji="🍎" tone="grape" />
     </div>
   );
 }

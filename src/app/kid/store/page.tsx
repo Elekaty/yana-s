@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { requestRewardForm } from "@/app/kid/games/island-actions";
+import { KidBack } from "@/components/kid/kid-back";
 import { getFamily } from "@/lib/family";
 import { t } from "@/lib/i18n";
+import { kidPlaces } from "@/lib/kid/places";
 import { readPrizeState } from "@/lib/prizes";
 
 export const dynamic = "force-dynamic";
@@ -38,12 +40,7 @@ export default async function StorePage({ searchParams }: { searchParams: Promis
         <p className="rounded-[28px] bg-white/10 px-4 py-6 text-center text-2xl ring-2 ring-sun/70">
           {lang === "en" ? "Ask a parent to add a prize." : "Demande à un parent d'ajouter un prix."}
         </p>
-        <Link href="/kid/town" className="flex h-14 items-center justify-center rounded-full bg-grape text-2xl">
-          {copy.town}
-        </Link>
-        <Link href="/kid/home" className="flex h-14 items-center justify-center rounded-full bg-white/15 text-2xl">
-          {copy.back}
-        </Link>
+        <KidBack href={kidPlaces.corner} label={copy.back} />
       </div>
     );
   }
@@ -74,9 +71,7 @@ export default async function StorePage({ searchParams }: { searchParams: Promis
       <Link href={`/kid/store?i=${next}`} className="flex h-14 items-center justify-center rounded-full bg-hot text-2xl">
         {copy.next}
       </Link>
-      <Link href="/kid/town" className="flex h-14 items-center justify-center rounded-full bg-grape text-2xl">
-        {copy.town}
-      </Link>
+      <KidBack href={kidPlaces.corner} label={copy.back} />
     </div>
   );
 }

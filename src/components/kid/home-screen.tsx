@@ -6,6 +6,7 @@ import { Salon } from "@/components/mochi/salon";
 import { checkInNow, meetFriend } from "@/app/kid/actions";
 import type { BubbleFriend } from "@/lib/mochi";
 import type { Copy } from "@/lib/i18n";
+import { kidPlaces } from "@/lib/kid/places";
 
 export function HomeScreen({
   childName,
@@ -69,12 +70,12 @@ export function HomeScreen({
         <span aria-hidden>🎮</span>
         {copy.play}
       </Link>
-      <Link data-primary="true" href="/kid/games/voice" className="flex h-16 items-center justify-center gap-2 rounded-full bg-sun text-2xl text-plum shadow-[0_6px_0_#e0b520]">
+      <Link data-primary="true" href={kidPlaces.words} className="flex h-16 items-center justify-center gap-2 rounded-full bg-sun text-2xl text-plum shadow-[0_6px_0_#e0b520]">
         <span aria-hidden>🗣️</span>
         {copy.words}
       </Link>
       <div className="flex items-center gap-2">
-        <Link href="/kid/games/friends" className="flex h-12 flex-1 items-center justify-center rounded-full bg-white/15 text-sm">
+        <Link href={kidPlaces.corner} className="flex h-12 flex-1 items-center justify-center rounded-full bg-white/15 text-sm">
           🎒 {copy.corner}
         </Link>
         <p className="flex h-12 flex-1 items-center justify-center rounded-full bg-white/10 text-sm" aria-label={lang === "en" ? "Tonight" : "Ce soir"}>

@@ -1,7 +1,8 @@
-import Link from "next/link";
 import { FriendMark } from "@/components/mochi/friend-mark";
+import { KidBack } from "@/components/kid/kid-back";
 import { getFamily } from "@/lib/family";
 import { t } from "@/lib/i18n";
+import { kidPlaces } from "@/lib/kid/places";
 import { BUBBLE_FRIENDS } from "@/lib/mochi";
 import { crewWithStarter } from "@/lib/mochi/crew";
 import { FRIEND_CAST } from "@/lib/mochi/friends";
@@ -33,9 +34,7 @@ export default async function FriendsPage() {
           </p>
         );
       })}
-      <Link href="/kid/home" className="flex h-14 items-center justify-center rounded-full bg-white/15 text-2xl">
-        {copy.back}
-      </Link>
+      <KidBack href={kidPlaces.corner} label={copy.back} />
     </div>
   );
 }

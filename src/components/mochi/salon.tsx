@@ -8,6 +8,7 @@ import { BUBBLE_FRIENDS, MOCHI_STATES, type BubbleFriend, type MochiState } from
 import { FRIEND_CAST } from "@/lib/mochi/friends";
 import { actionMs, initialMochi, nextMochi, type MochiAction } from "@/lib/mochi/machine";
 import { FriendMark } from "@/components/mochi/friend-mark";
+import { kidPlaces } from "@/lib/kid/places";
 import { clockTime, greetingKey, phraseAt, pickPhrase, type PhraseKey } from "@/lib/mochi/phrases";
 
 const friendColor: Record<BubbleFriend, string> = {
@@ -241,10 +242,10 @@ export function Salon({
           aria-label={lang === "en" ? "Bookshelf" : "Livres"}
           onClick={() => {
             say(pickPhrase("story", lang, childName).text);
-            router.push("/kid/games/stories");
+            router.push(kidPlaces.words);
           }}
           onKeyDown={(event) => {
-            if (event.key === "Enter" || event.key === " ") router.push("/kid/games/stories");
+            if (event.key === "Enter" || event.key === " ") router.push(kidPlaces.words);
           }}
         >
           <rect x="70" y="150" width="90" height="70" rx="6" fill="#5b2a86" />

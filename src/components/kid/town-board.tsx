@@ -103,7 +103,7 @@ export function TownBoard({
       <button type="button" onClick={() => setItemIndex((itemIndex + 1) % TOWN_ITEMS.length)} className="flex h-14 items-center justify-center rounded-full bg-grape text-2xl">
         {copy.next}
       </button>
-      <Link href="/kid/store" className="flex h-14 items-center justify-center rounded-full bg-white/15 text-2xl">
+      <Link href="/kid/corner" className="flex h-14 items-center justify-center rounded-full bg-white/15 text-2xl">
         {copy.back}
       </Link>
     </div>

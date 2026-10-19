@@ -1,6 +1,8 @@
+import { KidBack } from "@/components/kid/kid-back";
 import { PlayChoice } from "@/components/kid/play-choice";
 import { getFamily } from "@/lib/family";
 import { t } from "@/lib/i18n";
+import { kidPlaces } from "@/lib/kid/places";
 
 export const dynamic = "force-dynamic";
 
@@ -10,9 +12,9 @@ export default async function CovePage() {
   const en = family?.child_language === "en";
   return (
     <div className="grid gap-4">
+      <KidBack href={kidPlaces.games} label={copy.back} />
       <PlayChoice href="/kid/games/cove/draw" title={copy.draw} hint={en ? "Draw, paint, and stickers" : "Dessin, peinture et collages"} emoji="✏️" tone="sun" />
       <PlayChoice href="/kid/games/cove/music" title={copy.music} hint={en ? "Play the song" : "Joue la chanson"} emoji="🎵" tone="hot" />
-      <PlayChoice href="/kid/games/stories" title={copy.stories} hint={en ? "Listen to a story" : "Écoute une histoire"} emoji="📖" tone="grape" />
     </div>
   );
 }

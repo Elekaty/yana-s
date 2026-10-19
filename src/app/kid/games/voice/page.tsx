@@ -1,6 +1,8 @@
 import Link from "next/link";
+import { KidBack } from "@/components/kid/kid-back";
 import { getFamily } from "@/lib/family";
 import { t } from "@/lib/i18n";
+import { kidPlaces } from "@/lib/kid/places";
 
 export const dynamic = "force-dynamic";
 
@@ -9,6 +11,7 @@ export default async function VoicePage() {
   const copy = t(family?.child_language);
   return (
     <div className="grid gap-4">
+      <KidBack href={kidPlaces.words} label={copy.back} />
       <Link href="/kid/games/voice/practice" className="flex h-14 items-center justify-center rounded-full bg-sun text-2xl text-plum">
         {copy.practice}
       </Link>
