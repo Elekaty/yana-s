@@ -8,6 +8,8 @@ import type { Copy } from "@/lib/i18n";
 import { phrases } from "@/lib/phrases";
 import { speak } from "@/lib/speak";
 import { TOWN_ITEMS, townItem } from "@/lib/games/town";
+import { FRIEND_CAST } from "@/lib/mochi/friends";
+import type { BubbleFriend } from "@/lib/mochi";
 
 const friendColor: Record<string, string> = {
   bunny: "#f7c6d8",
@@ -36,6 +38,7 @@ export function TownBoard({
   const [slot, setSlot] = useState<number | null>(firstEmpty(plots));
   const [itemIndex, setItemIndex] = useState(0);
   const [busy, setBusy] = useState(false);
+  const [note, setNote] = useState("");
   const item = TOWN_ITEMS[itemIndex];
   const full = placed.length >= 12;
 
@@ -44,7 +47,11 @@ export function TownBoard({
     setBusy(true);
     const result = await buyPlot(slot, item.id);
     setBusy(false);
-    if (!result.ok) return;
+    if (!result.ok) {
+      setNote(result.reason === "cap" ? copy.townCap : result.reason === "stars" ? copy.townNeed : "");
+      return;
+    }
+    setNote("");
     const next = [...placed, { slot, item: item.id }];
     setPlaced(next);
     setStars(result.balance);
@@ -59,7 +66,7 @@ export function TownBoard({
       return;
     }
     const named = townItem(found.item);
-    if (named) speak({ text: named[lang], lang });
+    if (named) speak({ text: named.fr, lang: "fr" });
   }
 
   return (
@@ -72,7 +79,8 @@ export function TownBoard({
         {friends.map((friend, index) => (
           <motion.span
             key={friend}
-            aria-hidden
+            role="img"
+            aria-label={friend in FRIEND_CAST ? FRIEND_CAST[friend as BubbleFriend].name : friend}
             className="pointer-events-none absolute h-4 w-4 rounded-full"
             style={{ background: friendColor[friend] ?? "#fff", top: 8 }}
             animate={reduced ? { left: 8 + index * 16 } : { left: [8, 180, 8] }}
@@ -97,13 +105,14 @@ export function TownBoard({
       <p className="text-center text-2xl">
         {item[lang]} · {item.cost}
       </p>
+      {note ? <p className="text-center text-xl">{note}</p> : null}
       <button type="button" onClick={() => void buy()} disabled={busy || full || slot === null} className="flex h-16 items-center justify-center rounded-full bg-hot text-2xl">
         {copy.buy}
       </button>
       <button type="button" onClick={() => setItemIndex((itemIndex + 1) % TOWN_ITEMS.length)} className="flex h-16 items-center justify-center rounded-full bg-grape text-2xl">
         {copy.next}
       </button>
-      <Link href="/kid/corner" className="flex h-16 items-center justify-center rounded-full bg-white/15 text-2xl">
+      <Link href="/kid/garden" className="flex h-16 items-center justify-center rounded-full bg-white/15 text-2xl">
         {copy.back}
       </Link>
     </div>

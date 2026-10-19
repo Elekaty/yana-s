@@ -48,6 +48,7 @@ export function BreakGate({
   const lastTouch = useRef(0);
   const clockRef = useRef<StudyClock | null>(initial);
   const finishing = useRef(false);
+  const saving = useRef(false);
 
   useEffect(() => {
     if (!settings) return;
@@ -80,13 +81,17 @@ export function BreakGate({
     if (paused) return;
     const id = window.setInterval(() => {
       const current = clockRef.current;
-      if (!current || finishing.current || (current.mode === "break" && current.remainingSec <= 0)) return;
+      if (!current || saving.current || finishing.current || (current.mode === "break" && current.remainingSec <= 0)) return;
+      saving.current = true;
       void saveClock(current.remainingSec).then((saved) => {
+        saving.current = false;
         if (!saved || finishing.current) return;
         if (clockRef.current?.mode === "study" && saved.mode === "break") return;
         clockRef.current = saved;
         setClock(saved);
         if (saved.mode === "study" && current.mode === "break") router.refresh();
+      }, () => {
+        saving.current = false;
       });
     }, 5000);
     return () => window.clearInterval(id);

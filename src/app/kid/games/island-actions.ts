@@ -9,7 +9,7 @@ import { cleared, levelById, type Dir } from "@/lib/games/lagoon";
 import { gradeSafari } from "@/lib/games/safari";
 import { growGarden } from "@/lib/garden/grow";
 import { buildingShopOn } from "@/lib/garden/kinds";
-import { townItem } from "@/lib/games/town";
+import { townItem, townRefusal } from "@/lib/games/town";
 import { getFamily } from "@/lib/family";
 
 const dirs = new Set<Dir>(["up", "right", "down", "left"]);
@@ -39,12 +39,12 @@ export async function finishSong(notes: string[]) {
 
 export async function buyPlot(slot: number, item: string) {
   const ctx = await childContext();
-  if (!ctx || !townItem(item) || !Number.isInteger(slot)) return { ok: false, balance: 0 };
+  if (!ctx || !townItem(item) || !Number.isInteger(slot)) return { ok: false as const, balance: 0, reason: "bad" as const };
   const { data: familyRow } = await ctx.supabase.from("families").select("settings").eq("id", ctx.familyId).maybeSingle();
-  if (!buildingShopOn(familyRow?.settings)) return { ok: false, balance: ctx.stars };
+  if (!buildingShopOn(familyRow?.settings)) return { ok: false as const, balance: ctx.stars, reason: "closed" as const };
   const { data, error } = await ctx.supabase.rpc("buy_town_item", { p_child: ctx.childId, p_slot: slot, p_item: item });
-  if (error || typeof data !== "number") return { ok: false, balance: ctx.stars };
-  return { ok: true, balance: data };
+  if (error || typeof data !== "number") return { ok: false as const, balance: ctx.stars, reason: townRefusal(error?.message ?? "") };
+  return { ok: true as const, balance: data };
 }
 
 export async function requestReward(rewardId: string) {

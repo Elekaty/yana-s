@@ -30,5 +30,6 @@ describe("kid back targets", () => {
     expect(backTarget(kidPlaces.friends)).toBe(kidPlaces.corner);
     expect(backTarget(kidPlaces.garden)).toBe(kidPlaces.corner);
     expect(backTarget(kidPlaces.store)).toBe(kidPlaces.corner);
+    expect(backTarget(kidPlaces.town)).toBe(kidPlaces.garden);
   });
 });

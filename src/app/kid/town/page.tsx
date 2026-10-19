@@ -5,6 +5,8 @@ import { getFamily } from "@/lib/family";
 import { buildingShopOn } from "@/lib/garden/kinds";
 import { t } from "@/lib/i18n";
 import { kidPlaces } from "@/lib/kid/places";
+import { crewWithStarter } from "@/lib/mochi/crew";
+import { ensureStarterFriend } from "@/lib/mochi/starter";
 
 export const dynamic = "force-dynamic";
 
@@ -13,6 +15,7 @@ export default async function TownPage() {
   if (!family?.child_id) return null;
   const { data: familyRow } = await supabase.from("families").select("settings").eq("id", family.family_id).maybeSingle();
   if (!buildingShopOn(familyRow?.settings)) redirect(kidPlaces.garden);
+  await ensureStarterFriend(supabase, family.family_id, family.child_id);
   const copy = t(family.child_language);
   const lang = family.child_language === "en" ? "en" : "fr";
   const [{ data: plots, error }, { data: friends }] = await Promise.all([
@@ -23,7 +26,7 @@ export default async function TownPage() {
     return (
       <div className="grid gap-4">
         <p className="text-center text-2xl">{lang === "en" ? "The town is not ready yet." : "La ville n'est pas prête."}</p>
-        <Link href="/kid/corner" className="flex h-16 items-center justify-center rounded-full bg-white/15 text-2xl">
+        <Link href="/kid/garden" className="flex h-16 items-center justify-center rounded-full bg-white/15 text-2xl">
           {copy.back}
         </Link>
       </div>
@@ -35,7 +38,7 @@ export default async function TownPage() {
       copy={copy}
       balance={family.star_balance}
       plots={plots ?? []}
-      friends={(friends ?? []).map((row) => row.friend)}
+      friends={crewWithStarter((friends ?? []).map((row) => row.friend))}
     />
   );
 }

@@ -4,7 +4,7 @@ import { FRERE_JACQUES, songMatches } from "@/lib/games/cove";
 import { gradeKitchen, orderAt, orderText, plateMatches, emptyPlate } from "@/lib/games/kitchen";
 import { LEVELS, cleared } from "@/lib/games/lagoon";
 import { gradeSafari, safariAt } from "@/lib/games/safari";
-import { TOWN_ITEMS } from "@/lib/games/town";
+import { TOWN_ITEMS, townFull, townPurchase, townRefusal, townSpent } from "@/lib/games/town";
 
 describe("islands", () => {
   it("clears each lagoon level only with a path that reaches the strawberry", () => {
@@ -44,5 +44,13 @@ describe("islands", () => {
     expect(sql.startsWith("-- 0009 town")).toBe(true);
     expect(sql).toContain("buy_town_item");
     expect(sql).toContain("when 'castle' then 20");
+    expect(townPurchase({ balance: 3, spent: 0, cap: null, slotTaken: false, itemId: "flowers", shopOpen: true })).toEqual({ ok: true, balance: 2 });
+    expect(townPurchase({ balance: 3, spent: 0, cap: null, slotTaken: false, itemId: "castle", shopOpen: true })).toEqual({ ok: false, reason: "stars" });
+    expect(townPurchase({ balance: 20, spent: 9, cap: 10, slotTaken: false, itemId: "tree", shopOpen: true })).toEqual({ ok: false, reason: "cap" });
+    expect(townPurchase({ balance: 20, spent: 0, cap: null, slotTaken: true, itemId: "tree", shopOpen: true })).toEqual({ ok: false, reason: "filled" });
+    expect(townPurchase({ balance: 20, spent: 0, cap: null, slotTaken: false, itemId: "tree", shopOpen: false })).toEqual({ ok: false, reason: "closed" });
+    expect(townSpent(["flowers", "castle"])).toBe(21);
+    expect(townFull(12)).toBe(true);
+    expect(townRefusal("town cap reached")).toBe("cap");
   });
 });

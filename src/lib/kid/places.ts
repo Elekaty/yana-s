@@ -7,6 +7,7 @@ export const kidPlaces = {
   corner: "/kid/corner",
   friends: "/kid/games/friends",
   garden: "/kid/garden",
+  town: "/kid/town",
   store: "/kid/store",
   games: "/kid/games",
   bay: "/kid/games/bay",
@@ -28,6 +29,7 @@ export function backTarget(path: string) {
   if (path === kidPlaces.animals || path.startsWith(`${kidPlaces.animals}/`)) return kidPlaces.words;
   if (path === kidPlaces.stories) return kidPlaces.words;
   if (path.startsWith(`${kidPlaces.stories}/`)) return kidPlaces.stories;
+  if (path === kidPlaces.town) return kidPlaces.garden;
   if (path === kidPlaces.friends || path === kidPlaces.garden || path === kidPlaces.store) return kidPlaces.corner;
   if (path === kidPlaces.bay) return kidPlaces.games;
   if (path.startsWith("/kid/games/bay/")) return kidPlaces.bay;
