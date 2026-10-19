@@ -3,6 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { postponeStudy, saveClock, skipBreak } from "@/app/kid/actions";
+import { Mochi } from "@/components/mochi/Mochi";
+import { StudyClockContext } from "@/components/kid/study-clock";
 import { phrases } from "@/lib/phrases";
 import { speak } from "@/lib/speak";
 import { formatClock, IDLE_MS, tickClock, type StudyClock, type StudySettings } from "@/lib/study/clock";
@@ -45,6 +47,7 @@ export function BreakGate({
   const [idle, setIdle] = useState(false);
   const lastTouch = useRef(0);
   const clockRef = useRef<StudyClock | null>(initial);
+  const finishing = useRef(false);
 
   useEffect(() => {
     if (!settings) return;
@@ -53,21 +56,34 @@ export function BreakGate({
       const active = !document.hidden && Date.now() - lastTouch.current < IDLE_MS;
       setIdle(!active);
       const current = clockRef.current;
-      const next = current ? tickClock(current, settings, active, paused).clock : current;
+      const result = current ? tickClock(current, settings, active, paused) : null;
+      const next = result?.clock ?? current;
       clockRef.current = next;
       setClock(next);
+      if (result?.finishedBreak && !finishing.current) {
+        finishing.current = true;
+        void saveClock(0).then((saved) => {
+          finishing.current = false;
+          if (!saved || saved.mode === "break") return;
+          clockRef.current = saved;
+          setClock(saved);
+          stopTune();
+          router.refresh();
+        });
+      }
     }, 1000);
     return () => window.clearInterval(id);
-  }, [settings, paused]);
+  }, [settings, paused, router]);
 
   useEffect(() => {
     if (!settings) return;
     if (paused) return;
     const id = window.setInterval(() => {
       const current = clockRef.current;
-      if (!current) return;
+      if (!current || finishing.current || (current.mode === "break" && current.remainingSec <= 0)) return;
       void saveClock(current.remainingSec).then((saved) => {
-        if (!saved) return;
+        if (!saved || finishing.current) return;
+        if (clockRef.current?.mode === "study" && saved.mode === "break") return;
         clockRef.current = saved;
         setClock(saved);
         if (saved.mode === "study" && current.mode === "break") router.refresh();
@@ -84,7 +100,7 @@ export function BreakGate({
     };
   }, [clock, paused]);
 
-  if (paused || !settings || !clock || (clock.mode === "break" && clock.remainingSec <= 0)) return children;
+  if (paused || !settings || !clock) return <StudyClockContext.Provider value={clock}>{children}</StudyClockContext.Provider>;
 
   const canPostpone = clock.mode === "heads_up" && clock.postponements < settings.maxPostponements;
 
@@ -95,7 +111,10 @@ export function BreakGate({
     setClock(saved);
   }
 
+  const ended = clock.mode === "break" && clock.remainingSec <= 0;
+
   return (
+    <StudyClockContext.Provider value={clock}>
     <div className="contents" onPointerDownCapture={() => (lastTouch.current = Date.now())}>
       {clock.mode === "heads_up" ? (
         <div className="border-b border-white/20 bg-sun px-4 py-3 text-plum">
@@ -120,7 +139,8 @@ export function BreakGate({
         <div className="fixed inset-0 z-40 flex flex-col bg-plum px-4 py-6 text-white">
           <p className="text-center text-3xl">{copy.breakTitle}</p>
           <p className="mt-1 text-center text-xl text-sun">{formatClock(clock.remainingSec)}</p>
-          {activity === "menu" ? (
+          {ended ? <p className="mt-8 text-center text-3xl text-sun">{copy.breakStar}</p> : null}
+          {!ended && activity === "menu" ? (
             <div className="mx-auto mt-8 flex w-full max-w-sm flex-1 flex-col gap-3">
               <button type="button" className={choice} onClick={() => setActivity("song")}>
                 {copy.song}
@@ -133,7 +153,7 @@ export function BreakGate({
               </button>
             </div>
           ) : null}
-          {activity === "song" ? (
+          {!ended && activity === "song" ? (
             <SongActivity
               copy={copy}
               lang={lang}
@@ -144,8 +164,8 @@ export function BreakGate({
               }}
             />
           ) : null}
-          {activity === "bubbles" ? <BubbleActivity copy={copy} onBack={() => setActivity("menu")} /> : null}
-          {activity === "family" ? (
+          {!ended && activity === "bubbles" ? <BubbleActivity copy={copy} onBack={() => setActivity("menu")} /> : null}
+          {!ended && activity === "family" ? (
             <div className="mx-auto mt-6 flex w-full max-w-sm flex-1 flex-col gap-3">
               <p className="text-2xl">{FAMILY_GAMES[game]?.fr}</p>
               <p className="text-base text-white/75">{FAMILY_GAMES[game]?.en}</p>
@@ -167,7 +187,7 @@ export function BreakGate({
               </button>
             </div>
           ) : null}
-          {activity === "menu" ? (
+          {ended || activity === "menu" ? (
           <form
             className="mx-auto mt-4 w-full max-w-sm"
             onSubmit={async (event) => {
@@ -222,30 +242,38 @@ export function BreakGate({
         </div>
       ) : null}
     </div>
+    </StudyClockContext.Provider>
   );
 }
 
 function SongActivity({ copy, lang, voice, onBack }: { copy: Copy; lang: "fr" | "en"; voice: boolean; onBack: () => void }) {
+  const [dancing, setDancing] = useState(false);
+  const reduced = typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  function play(id: "frere" | "lune") {
+    playTune(id);
+    setDancing(true);
+    if (voice) speak({ text: phrases.dance[lang], lang });
+  }
   return (
     <div className="mx-auto mt-6 flex w-full max-w-sm flex-1 flex-col gap-3">
-      <p className="text-center text-2xl">{voice ? phrases.dance[lang] : copy.song}</p>
+      {dancing ? (
+        <div className="mx-auto h-36 w-36">
+          <Mochi action="happy" mood="alert" look={{ x: 0, y: 0 }} paused={false} reduced={reduced} waving label="Mochi" />
+        </div>
+      ) : (
+        <p className="text-center text-2xl">{voice ? phrases.dance[lang] : copy.song}</p>
+      )}
       <button
         type="button"
         className={choice}
-        onClick={() => {
-          playTune("frere");
-          if (voice) speak({ text: phrases.dance[lang], lang });
-        }}
+        onClick={() => play("frere")}
       >
         Frère Jacques
       </button>
       <button
         type="button"
         className={choice}
-        onClick={() => {
-          playTune("lune");
-          if (voice) speak({ text: phrases.dance[lang], lang });
-        }}
+        onClick={() => play("lune")}
       >
         Au clair de la lune
       </button>

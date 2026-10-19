@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   applyClientTick,
   DEFAULT_STUDY,
+  focusMeter,
   formatClock,
   initialClock,
   postponeClock,
@@ -75,6 +76,8 @@ describe("study clock", () => {
   });
 
   it("formats the focus bar", () => {
+    expect(focusMeter({ mode: "study", remainingSec: 600, postponements: 0, breakAwarded: false }, 20)).toEqual({ remaining: 600, ratio: 0.5 });
+    expect(focusMeter({ mode: "break", remainingSec: 30, postponements: 0, breakAwarded: false }, 20)).toBeNull();
     expect(formatClock(125)).toBe("2:05");
     expect(rewardAmount(9)).toBe(5);
     expect(rewardAmount(0)).toBe(1);

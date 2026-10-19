@@ -105,6 +105,13 @@ export function skipBreakClock(clock: StudyClock, settings: StudySettings): Stud
   return initialClock(settings);
 }
 
+export function focusMeter(clock: StudyClock, studyMinutes: number) {
+  if (clock.mode === "break") return null;
+  const total = Math.max(1, studyMinutes * 60);
+  const remaining = Math.max(0, clock.remainingSec);
+  return { remaining, ratio: Math.min(1, remaining / total) };
+}
+
 export function formatClock(seconds: number) {
   const safe = Math.max(0, Math.floor(seconds));
   const minutes = Math.floor(safe / 60);

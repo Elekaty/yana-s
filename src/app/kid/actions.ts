@@ -42,7 +42,7 @@ export async function saveClock(proposedRemaining: number): Promise<StudyClock |
       .lte("remaining_sec", 0)
       .select("child_id")
       .maybeSingle();
-    if (!claimed) return { ...result.clock, remainingSec: 0, mode: "break" };
+    if (!claimed) return readClock(ctx.supabase, ctx.childId);
     await ctx.supabase.rpc("award_stars", { p_child: ctx.childId, p_amount: 1, p_reason: "break" });
     const fresh = initialClock(ctx.settings);
     await writeClock(ctx.supabase, ctx.childId, fresh);
@@ -262,6 +262,24 @@ async function clockContext() {
     clock,
     updatedAt: Date.parse(row.updated_at),
     onBreak: await familyOnBreak(supabase, family),
+  };
+}
+
+async function readClock(
+  supabase: Awaited<ReturnType<typeof getFamily>>["supabase"],
+  childId: string,
+): Promise<StudyClock | null> {
+  const { data: row } = await supabase
+    .from("study_clocks")
+    .select("mode, remaining_sec, postponements, break_awarded")
+    .eq("child_id", childId)
+    .maybeSingle();
+  if (!row) return null;
+  return {
+    mode: row.mode,
+    remainingSec: row.remaining_sec,
+    postponements: row.postponements,
+    breakAwarded: row.break_awarded,
   };
 }
 

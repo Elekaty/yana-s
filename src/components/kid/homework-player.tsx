@@ -8,7 +8,8 @@ import { createClient } from "@/lib/supabase/client";
 import { fillPhrase, phrases } from "@/lib/phrases";
 import { speak } from "@/lib/speak";
 import { hintText, type HomeworkStep, type RunStatus } from "@/lib/study/homework";
-import { formatClock, type StudyClock } from "@/lib/study/clock";
+import { useStudyClock } from "@/components/kid/study-clock";
+import { focusMeter, formatClock, type StudyClock } from "@/lib/study/clock";
 import type { Copy } from "@/lib/i18n";
 
 export function HomeworkPlayer({
@@ -97,6 +98,7 @@ export function HomeworkPlayer({
   if (reading || busy) {
     return (
       <div className="flex flex-col items-center gap-4 py-10">
+        <FocusBar clock={clock} studyMinutes={studyMinutes} copy={copy} />
         <div className="h-24 w-24 animate-pulse rounded-full bg-white" aria-hidden />
         <p className="text-2xl">{copy.reading}</p>
       </div>
@@ -106,6 +108,7 @@ export function HomeworkPlayer({
   if (!step || done) {
     return (
       <div className="flex flex-col gap-4">
+        <FocusBar clock={clock} studyMinutes={studyMinutes} copy={copy} />
         <h1 className="text-4xl">{done ? copy.doneTitle : copy.noHomework}</h1>
         {done ? <p className="text-xl">{fillPhrase(phrases.cheer[lang], childName)}</p> : null}
         <label className={choice}>
@@ -127,22 +130,12 @@ export function HomeworkPlayer({
   }
 
   const hint = hintText(step, hintLevel);
-  const focus = clock && clock.mode !== "break" ? formatClock(clock.remainingSec) : "";
-  const totalSec = Math.max(1, studyMinutes * 60);
-  const focusRatio = clock && clock.mode !== "break" ? Math.max(0, Math.min(1, clock.remainingSec / totalSec)) : 0;
 
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-end justify-between gap-3">
         <h1 className="text-3xl">{title}</h1>
-        {focus ? (
-          <div className="w-28">
-            <p className="text-right text-lg text-sun">{focus}</p>
-            <div className="mt-1 h-3 overflow-hidden rounded-full bg-white/20" role="meter" aria-label={focus} aria-valuenow={Math.round(focusRatio * 100)} aria-valuemin={0} aria-valuemax={100}>
-              <div className="h-full bg-sun" style={{ width: `${focusRatio * 100}%` }} />
-            </div>
-          </div>
-        ) : null}
+        <FocusBar clock={clock} studyMinutes={studyMinutes} copy={copy} />
       </div>
       <div className="flex items-center gap-3">
         <p className="flex-1 text-2xl">{step.instruction}</p>
@@ -210,6 +203,23 @@ export function HomeworkPlayer({
         </button>
       </div>
       {error ? <p className="text-sun">{error}</p> : null}
+    </div>
+  );
+}
+
+function FocusBar({ clock, studyMinutes, copy }: { clock: StudyClock | null; studyMinutes: number; copy: Copy }) {
+  const live = useStudyClock(clock);
+  const meter = live ? focusMeter(live, studyMinutes) : null;
+  if (!meter) return null;
+  const time = formatClock(meter.remaining);
+  const label = `${studyMinutes} min. ${copy.pauseIn} ${time}`;
+  return (
+    <div className="w-28">
+      <p className="text-right text-lg text-sun">{time}</p>
+      <p className="text-right text-xs text-white/70">{copy.pauseIn}</p>
+      <div className="mt-1 h-3 overflow-hidden rounded-full bg-white/20" role="meter" aria-label={label} aria-valuenow={Math.round(meter.ratio * 100)} aria-valuemin={0} aria-valuemax={100}>
+        <div className="h-full bg-sun" style={{ width: `${meter.ratio * 100}%` }} />
+      </div>
     </div>
   );
 }
