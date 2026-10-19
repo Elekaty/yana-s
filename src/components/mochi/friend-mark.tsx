@@ -1,6 +1,7 @@
 import type { BubbleFriend } from "@/lib/mochi";
 
-const fill: Record<BubbleFriend, string> = {
+const fill: Record<BubbleFriend | "mochi", string> = {
+  mochi: "#fff",
   bunny: "#f7c6d8",
   panda: "#f4f4f5",
   fox: "#fb923c",
@@ -8,10 +9,17 @@ const fill: Record<BubbleFriend, string> = {
   hamster: "#e7c39a",
 };
 
-export function FriendMark({ friend, locked = false }: { friend: BubbleFriend; locked?: boolean }) {
-  const color = locked ? "#241433" : fill[friend];
+export function FriendMark({ friend, locked = false }: { friend: BubbleFriend | "mochi"; locked?: boolean }) {
+  const color = locked ? "#8b6cb0" : fill[friend];
   return (
     <svg viewBox="0 0 64 64" className="h-14 w-14" aria-hidden>
+      {friend === "mochi" ? (
+        <>
+          <circle cx="22" cy="20" r="8" fill={color} />
+          <circle cx="42" cy="20" r="8" fill={color} />
+          <circle cx="32" cy="38" r="16" fill={color} />
+        </>
+      ) : null}
       {friend === "bunny" ? (
         <>
           <ellipse cx="24" cy="16" rx="6" ry="14" fill={color} />

@@ -3,9 +3,7 @@ import { KidBack } from "@/components/kid/kid-back";
 import { getFamily } from "@/lib/family";
 import { t } from "@/lib/i18n";
 import { kidPlaces } from "@/lib/kid/places";
-import { BUBBLE_FRIENDS } from "@/lib/mochi";
-import { crewWithStarter } from "@/lib/mochi/crew";
-import { FRIEND_CAST } from "@/lib/mochi/friends";
+import { friendCards } from "@/lib/mochi/friends";
 import { ensureStarterFriend } from "@/lib/mochi/starter";
 
 export const dynamic = "force-dynamic";
@@ -18,22 +16,25 @@ export default async function FriendsPage() {
   const { data } = family?.child_id
     ? await supabase.from("friends_unlocked").select("friend").eq("child_id", family.child_id)
     : { data: [] };
-  const unlocked = new Set(crewWithStarter((data ?? []).map((row) => String(row.friend))));
+  const cards = friendCards((data ?? []).map((row) => String(row.friend)), lang);
   return (
     <div className="grid gap-4">
       <h1 className="text-4xl">{lang === "en" ? "My friends" : "Mes amis"}</h1>
-      {BUBBLE_FRIENDS.map((friend) => {
-        const met = unlocked.has(friend);
-        return (
-          <p
-            key={friend}
-            className={met ? "flex h-20 items-center justify-center gap-3 rounded-full bg-sun text-2xl text-plum" : "flex h-20 items-center justify-center gap-3 rounded-full bg-[#14081f] text-2xl text-white"}
-          >
-            <FriendMark friend={friend} locked={!met} />
-            {met ? FRIEND_CAST[friend].name : "?"}
-          </p>
-        );
-      })}
+      {cards.map((card) => (
+        <p
+          key={card.id}
+          aria-label={card.locked ? copy.notYet : card.name}
+          className={card.locked ? "flex min-h-20 items-center justify-center gap-3 rounded-full bg-[#14081f] px-4 text-2xl text-white" : "flex min-h-20 items-center justify-center gap-3 rounded-full bg-sun px-4 text-plum"}
+        >
+          <FriendMark friend={card.id} locked={card.locked} />
+          {card.locked ? null : (
+            <span className="text-center">
+              <span className="block text-2xl">{card.name}</span>
+              <span className="block text-base">{card.line}</span>
+            </span>
+          )}
+        </p>
+      ))}
       <KidBack href={kidPlaces.corner} label={copy.back} />
     </div>
   );
