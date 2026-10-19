@@ -29,13 +29,13 @@ export function AlbumCard({
   return (
     <div className="grid gap-4">
       {reaction ? <p className="text-center text-4xl">{reaction}</p> : null}
-      <button type="button" onClick={play} className="flex h-14 items-center justify-center rounded-full bg-sun text-2xl text-plum">
+      <button type="button" onClick={play} className="flex h-16 items-center justify-center rounded-full bg-sun text-2xl text-plum">
         {copy.listen}
       </button>
-      <Link href={nextHref} className="flex h-14 items-center justify-center rounded-full bg-grape text-2xl">
+      <Link href={nextHref} className="flex h-16 items-center justify-center rounded-full bg-grape text-2xl">
         {copy.next}
       </Link>
-      <Link href={backHref} className="flex h-14 items-center justify-center rounded-full bg-white/15 text-2xl">
+      <Link href={backHref} className="flex h-16 items-center justify-center rounded-full bg-white/15 text-2xl">
         {copy.back}
       </Link>
     </div>

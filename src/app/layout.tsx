@@ -28,7 +28,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" suppressHydrationWarning className={`${geist.variable} ${fredoka.variable} h-full`}>
       <body className="min-h-full antialiased">
         <ThemeProvider>
-          <div className="fixed top-3 right-3 z-50 flex items-center gap-2">
+          <div className="fixed top-0 right-2 z-50 flex items-center gap-3">
             <ModeSwitch />
             <LanguageBar />
           </div>

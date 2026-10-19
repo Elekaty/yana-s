@@ -48,7 +48,7 @@ export function KitchenPlay({ lang, copy, tags }: { lang: "fr" | "en"; copy: Cop
         <p className="text-center text-2xl">
           {stars} {copy.stars}
         </p>
-        <Link href="/kid/games/bay" className="flex h-14 items-center justify-center rounded-full bg-white/15 text-2xl">
+        <Link href="/kid/games/bay" className="flex h-16 items-center justify-center rounded-full bg-white/15 text-2xl">
           {copy.back}
         </Link>
       </div>
@@ -62,7 +62,7 @@ export function KitchenPlay({ lang, copy, tags }: { lang: "fr" | "en"; copy: Cop
         {foods.map((food) => `${food.emoji} ${plate[food.id] ?? 0}`).join("  ")}
       </p>
       {foods.map((food) => (
-        <button key={food.id} type="button" aria-label={food[lang]} onClick={() => void add(food.id)} className="flex h-14 items-center justify-center rounded-full bg-sun text-3xl">
+        <button key={food.id} type="button" aria-label={food[lang]} onClick={() => void add(food.id)} className="flex h-16 items-center justify-center rounded-full bg-sun text-3xl">
           {food.emoji}
         </button>
       ))}

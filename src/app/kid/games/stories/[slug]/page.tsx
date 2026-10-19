@@ -19,7 +19,7 @@ export default async function StoryPage({ params }: { params: Promise<{ slug: st
     : [];
   if (!data || pages.length === 0) {
     return (
-      <Link href="/kid/games/stories" className="flex h-14 items-center justify-center rounded-full bg-white/15 text-2xl">
+      <Link href="/kid/games/stories" className="flex h-16 items-center justify-center rounded-full bg-white/15 text-2xl">
         {copy.back}
       </Link>
     );

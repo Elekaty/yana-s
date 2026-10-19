@@ -367,7 +367,7 @@ export function Salon({
           say(pickPhrase("purr", lang, childName).text);
         })}
       />
-      <div className="absolute bottom-16 right-3 flex gap-1">
+      <div className="absolute bottom-16 right-3 flex gap-3">
         {crew.map((friend) => (
           <button
             key={friend}
@@ -388,7 +388,8 @@ export function Salon({
       {voice ? (
         <button
           type="button"
-          className="absolute top-3 right-3 h-10 rounded-full bg-white/20 px-3 text-sm"
+          className="absolute top-2 right-2 flex h-16 w-16 items-center justify-center rounded-full bg-white/20 text-2xl"
+          aria-label={muted ? (lang === "en" ? "Sound off" : "Son coupé") : (lang === "en" ? "Sound on" : "Son")}
           aria-pressed={muted}
           onClick={() => setMuted((value) => !value)}
         >

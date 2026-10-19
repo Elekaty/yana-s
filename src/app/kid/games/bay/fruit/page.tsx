@@ -14,13 +14,13 @@ export default async function FruitPage({ searchParams }: { searchParams: Promis
   if (level !== "easy" && level !== "medium") {
     return (
       <div className="grid gap-4">
-        <Link href="/kid/games/bay/fruit?level=easy" className="flex h-14 items-center justify-center rounded-full bg-sun text-2xl text-plum">
+        <Link href="/kid/games/bay/fruit?level=easy" className="flex h-16 items-center justify-center rounded-full bg-sun text-2xl text-plum">
           {copy.easy}
         </Link>
-        <Link href="/kid/games/bay/fruit?level=medium" className="flex h-14 items-center justify-center rounded-full bg-hot text-2xl">
+        <Link href="/kid/games/bay/fruit?level=medium" className="flex h-16 items-center justify-center rounded-full bg-hot text-2xl">
           {copy.medium}
         </Link>
-        <Link href="/kid/games/bay" className="flex h-14 items-center justify-center rounded-full bg-white/15 text-2xl">
+        <Link href="/kid/games/bay" className="flex h-16 items-center justify-center rounded-full bg-white/15 text-2xl">
           {copy.back}
         </Link>
       </div>

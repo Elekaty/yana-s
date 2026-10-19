@@ -12,13 +12,13 @@ export default async function VoicePage() {
   return (
     <div className="grid gap-4">
       <KidBack href={kidPlaces.words} label={copy.back} />
-      <Link href="/kid/games/voice/practice" className="flex h-14 items-center justify-center rounded-full bg-sun text-2xl text-plum">
+      <Link href="/kid/games/voice/practice" className="flex h-16 items-center justify-center rounded-full bg-sun text-2xl text-plum">
         {copy.practice}
       </Link>
-      <Link href="/kid/games/voice/new" className="flex h-14 items-center justify-center rounded-full bg-hot text-2xl">
+      <Link href="/kid/games/voice/new" className="flex h-16 items-center justify-center rounded-full bg-hot text-2xl">
         {copy.whatsNew}
       </Link>
-      <Link href="/kid/games/voice/album" className="flex h-14 items-center justify-center rounded-full bg-grape text-2xl">
+      <Link href="/kid/games/voice/album" className="flex h-16 items-center justify-center rounded-full bg-grape text-2xl">
         {copy.album}
       </Link>
     </div>

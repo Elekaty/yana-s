@@ -44,7 +44,7 @@ export function StoryReader({
         <p className="text-center text-2xl">
           {stars ? `${stars} ${copy.stars}` : lang === "en" ? "A parent can mark that you read it." : "Un parent peut dire que tu l'as lue."}
         </p>
-        <Link href={backHref} className="flex h-14 items-center justify-center rounded-full bg-white/15 text-2xl">
+        <Link href={backHref} className="flex h-16 items-center justify-center rounded-full bg-white/15 text-2xl">
           {copy.back}
         </Link>
       </div>
@@ -58,14 +58,14 @@ export function StoryReader({
         type="button"
         disabled={!voiceOn}
         onClick={() => speak({ text: current[lang], lang })}
-        className="flex h-14 items-center justify-center rounded-full bg-sun text-2xl text-plum"
+        className="flex h-16 items-center justify-center rounded-full bg-sun text-2xl text-plum"
       >
         {copy.listen}
       </button>
-      <button type="button" onClick={() => void onNext()} disabled={busy} className="flex h-14 items-center justify-center rounded-full bg-grape text-2xl">
+      <button type="button" onClick={() => void onNext()} disabled={busy} className="flex h-16 items-center justify-center rounded-full bg-grape text-2xl">
         {copy.next}
       </button>
-      <Link href={backHref} className="flex h-14 items-center justify-center rounded-full bg-white/15 text-2xl">
+      <Link href={backHref} className="flex h-16 items-center justify-center rounded-full bg-white/15 text-2xl">
         {copy.back}
       </Link>
     </div>

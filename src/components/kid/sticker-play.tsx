@@ -47,14 +47,14 @@ export function StickerPlay({ copy, lang }: { copy: Copy; lang: "fr" | "en" }) {
 
   return (
     <div className="grid gap-3">
-      <div className="grid grid-cols-3 gap-2" role="group" aria-label={copy.stickers}>
+      <div className="grid grid-cols-3 gap-3" role="group" aria-label={copy.stickers}>
         {animals.map((id) => (
           <button
             key={id}
             type="button"
             aria-pressed={animal === id}
             onClick={() => choose(id)}
-            className={animal === id ? "h-14 rounded-full bg-sun text-lg text-plum ring-4 ring-white" : "h-14 rounded-full bg-white/15 text-lg"}
+            className={animal === id ? "h-16 rounded-full bg-sun text-lg text-plum ring-4 ring-white" : "h-16 rounded-full bg-white/15 text-lg"}
           >
             {copy[id]}
           </button>
@@ -88,7 +88,7 @@ export function StickerPlay({ copy, lang }: { copy: Copy; lang: "fr" | "en" }) {
         )}
         {done ? <p className="absolute right-3 bottom-3 rounded-full bg-sun px-3 py-1 text-sm font-semibold text-plum">{copy.doneTitle}</p> : null}
       </motion.div>
-      <div className="flex flex-wrap justify-center gap-2">
+      <div className="flex flex-wrap justify-center gap-3">
         {pieces
           .filter((part) => !stuck.includes(part))
           .map((part) => (
@@ -99,14 +99,14 @@ export function StickerPlay({ copy, lang }: { copy: Copy; lang: "fr" | "en" }) {
               onClick={() => stick(part)}
               className="flex h-16 w-16 items-center justify-center rounded-2xl border-2 border-dashed border-white/70 bg-white"
             >
-              <span className="h-12 w-12">
+              <span className="h-16 w-16">
                 <Piece animal={animal} part={part} />
               </span>
             </button>
           ))}
       </div>
       {done ? (
-        <button type="button" onClick={() => setStuck([])} className="flex h-14 items-center justify-center rounded-full bg-hot text-2xl">
+        <button type="button" onClick={() => setStuck([])} className="flex h-16 items-center justify-center rounded-full bg-hot text-2xl">
           {copy.again}
         </button>
       ) : null}

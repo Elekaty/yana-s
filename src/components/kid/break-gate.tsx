@@ -100,7 +100,7 @@ export function BreakGate({
             {copy.pauseIn} {formatClock(clock.remainingSec)}
           </p>
           {canPostpone ? (
-            <div className="mt-2 flex gap-2">
+            <div className="mt-2 flex gap-3">
               <button type="button" className={choice} onClick={() => void addMinutes(5)}>
                 {copy.later5}
               </button>
@@ -185,7 +185,7 @@ export function BreakGate({
             }}
           >
             {asking ? (
-              <div className="flex flex-col gap-2">
+              <div className="flex flex-col gap-3">
                 <label className="text-sm text-white/70" htmlFor="break-pin">
                   {copy.pinLabel}
                 </label>
@@ -195,7 +195,7 @@ export function BreakGate({
                   onChange={(event) => setPin(event.target.value)}
                   inputMode="numeric"
                   autoComplete="off"
-                  className="h-14 rounded-full bg-white px-4 text-lg text-plum"
+                  className="h-16 rounded-full bg-white px-4 text-lg text-plum"
                 />
                 {pinError ? <p className="text-sm text-sun">{pinError}</p> : null}
                 <button type="submit" className={quiet}>
@@ -286,5 +286,5 @@ function BubbleActivity({ copy, onBack }: { copy: Copy; onBack: () => void }) {
   );
 }
 
-const choice = "flex h-14 items-center justify-center rounded-full bg-hot px-4 text-lg";
-const quiet = "flex h-14 items-center justify-center rounded-full bg-white/15 px-4 text-lg";
+const choice = "flex h-16 items-center justify-center rounded-full bg-hot px-4 text-lg";
+const quiet = "flex h-16 items-center justify-center rounded-full bg-white/15 px-4 text-lg";

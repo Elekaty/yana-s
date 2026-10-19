@@ -97,7 +97,7 @@ export function TimesRound({
         <p className="text-2xl">
           {done.balance} {copy.stars}
         </p>
-        <Link href="/kid/games/bay" className="flex h-14 w-full max-w-xs items-center justify-center rounded-full bg-sun text-xl text-plum">
+        <Link href="/kid/games/bay" className="flex h-16 w-full max-w-xs items-center justify-center rounded-full bg-sun text-xl text-plum">
           {copy.again}
         </Link>
       </div>
@@ -112,7 +112,7 @@ export function TimesRound({
       }}
       type="button"
       onClick={() => choose(choice)}
-      className={`flex items-center justify-center rounded-full bg-sun text-2xl text-plum ${count === 4 ? "h-14 w-14" : "h-20 w-20"}`}
+      className={`flex items-center justify-center rounded-full bg-sun text-2xl text-plum ${count === 4 ? "h-16 w-16" : "h-20 w-20"}`}
       style={game === "fruit" && !reduced ? { position: "absolute", left: `${12 + slot * (76 / count)}%`, top: 300 } : undefined}
     >
       {choice}

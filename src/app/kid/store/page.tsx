@@ -57,18 +57,18 @@ export default async function StorePage({ searchParams }: { searchParams: Promis
       <p className="text-center text-3xl">{reward.title}</p>
       <p className="text-center text-2xl">{reward.cost_stars}</p>
       {waiting ? (
-        <p className="flex h-14 items-center justify-center rounded-full bg-white/15 text-2xl">
+        <p className="flex h-16 items-center justify-center rounded-full bg-white/15 text-2xl">
           {lang === "en" ? "Asked" : "Demandé"}
         </p>
       ) : (
         <form action={requestRewardForm}>
           <input type="hidden" name="id" value={reward.id} />
-          <button type="submit" className="flex h-14 w-full items-center justify-center rounded-full bg-sun text-2xl text-plum">
+          <button type="submit" className="flex h-16 w-full items-center justify-center rounded-full bg-sun text-2xl text-plum">
             {copy.ask}
           </button>
         </form>
       )}
-      <Link href={`/kid/store?i=${next}`} className="flex h-14 items-center justify-center rounded-full bg-hot text-2xl">
+      <Link href={`/kid/store?i=${next}`} className="flex h-16 items-center justify-center rounded-full bg-hot text-2xl">
         {copy.next}
       </Link>
       <KidBack href={kidPlaces.corner} label={copy.back} />

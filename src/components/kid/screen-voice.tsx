@@ -54,12 +54,12 @@ export function ScreenVoice({ lang, name, voice }: { lang: "fr" | "en"; name: st
   }, [voice, lang]);
 
   return (
-    <div className="fixed top-3 left-3 z-30 flex h-12 max-w-[calc(100%-11.5rem)] items-center gap-2">
+    <div className="fixed top-0 left-2 z-30 flex h-16 max-w-[calc(100%-20rem)] items-center gap-3">
       <button
         type="button"
         data-repeat="true"
         aria-label={lang === "en" ? "Listen" : "Écouter"}
-        className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-white/20 text-2xl"
+        className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-white/20 text-2xl"
         onClick={() => {
           if (voice) speak({ text: line, lang });
         }}

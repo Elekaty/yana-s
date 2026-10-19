@@ -74,6 +74,10 @@ export function DrawBoard({ copy, lang }: { copy: Copy; lang: "fr" | "en" }) {
     pair.ctx.lineWidth = tool === "eraser" ? 28 : mode === "paint" ? [22, 36, 52][brush] ?? 22 : 8;
     pair.ctx.lineCap = "round";
     pair.ctx.lineJoin = "round";
+    pair.ctx.fillStyle = tool === "eraser" ? "#ffffff" : color.hex;
+    pair.ctx.beginPath();
+    pair.ctx.arc(at.x, at.y, pair.ctx.lineWidth / 2, 0, Math.PI * 2);
+    pair.ctx.fill();
     pair.ctx.beginPath();
     pair.ctx.moveTo(at.x, at.y);
   }
@@ -146,7 +150,7 @@ export function DrawBoard({ copy, lang }: { copy: Copy; lang: "fr" | "en" }) {
 
   return (
     <div className="grid gap-3">
-      <div className="grid grid-cols-3 gap-2" role="group" aria-label={lang === "en" ? "Drawing, painting, or stickers" : "Dessin, peinture ou collage"}>
+      <div className="grid grid-cols-3 gap-3" role="group" aria-label={lang === "en" ? "Drawing, painting, or stickers" : "Dessin, peinture ou collage"}>
         <ModeButton active={mode === "draw"} onClick={() => { setMode("draw"); setTool("pen"); }}>
           {copy.draw}
         </ModeButton>
@@ -175,7 +179,7 @@ export function DrawBoard({ copy, lang }: { copy: Copy; lang: "fr" | "en" }) {
           onPointerLeave={onUp}
         />
       </div>
-      <div className="flex flex-wrap justify-center gap-2" role="group" aria-label={lang === "en" ? "Colors" : "Couleurs"}>
+      <div className="flex flex-wrap justify-center gap-3" role="group" aria-label={lang === "en" ? "Colors" : "Couleurs"}>
         {colors.map((swatch, index) => (
           <button
             key={swatch.hex}
@@ -183,13 +187,13 @@ export function DrawBoard({ copy, lang }: { copy: Copy; lang: "fr" | "en" }) {
             aria-label={swatch[lang]}
             aria-pressed={colorIndex === index}
             onClick={() => setColorIndex(index)}
-            className={colorIndex === index ? "h-12 w-12 rounded-full ring-4 ring-sun" : "h-12 w-12 rounded-full ring-2 ring-white/40"}
+            className={colorIndex === index ? "h-16 w-16 rounded-full ring-4 ring-sun" : "h-16 w-16 rounded-full ring-2 ring-white/40"}
             style={{ background: swatch.hex }}
           />
         ))}
       </div>
       {mode === "draw" ? (
-        <div className="flex flex-wrap justify-center gap-2" role="group" aria-label={copy.stamps}>
+        <div className="flex flex-wrap justify-center gap-3" role="group" aria-label={copy.stamps}>
           <ToolButton active={tool === "pen"} onClick={() => setTool("pen")} label={copy.draw}>
             ✏️
           </ToolButton>
@@ -203,7 +207,7 @@ export function DrawBoard({ copy, lang }: { copy: Copy; lang: "fr" | "en" }) {
           ))}
         </div>
       ) : (
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-3 gap-3">
           {brushLabels.map((label, index) => (
             <button
               key={label}
@@ -213,25 +217,25 @@ export function DrawBoard({ copy, lang }: { copy: Copy; lang: "fr" | "en" }) {
                 setBrush(index);
                 setTool("pen");
               }}
-              className={brush === index && tool === "pen" ? "h-14 rounded-full bg-sun text-lg text-plum ring-4 ring-white" : "h-14 rounded-full bg-white/15 text-lg"}
+              className={brush === index && tool === "pen" ? "h-16 rounded-full bg-sun text-lg text-plum ring-4 ring-white" : "h-16 rounded-full bg-white/15 text-lg"}
             >
               {label}
             </button>
           ))}
-          <button type="button" onClick={fillPaper} className="col-span-2 h-14 rounded-full bg-white/15 text-lg">
+          <button type="button" onClick={fillPaper} className="col-span-2 h-16 rounded-full bg-white/15 text-lg">
             {copy.paper}
           </button>
-          <button type="button" onClick={drawOutline} className="h-14 rounded-full bg-hot text-lg">
+          <button type="button" onClick={drawOutline} className="h-16 rounded-full bg-hot text-lg">
             {copy.outline}
           </button>
         </div>
       )}
-      <button type="button" onClick={clear} className="flex h-14 items-center justify-center rounded-full bg-hot text-2xl">
+      <button type="button" onClick={clear} className="flex h-16 items-center justify-center rounded-full bg-hot text-2xl">
         {copy.clear}
       </button>
         </>
       )}
-      <Link href="/kid/games/cove" className="flex h-14 items-center justify-center rounded-full bg-white/15 text-2xl">
+      <Link href="/kid/games/cove" className="flex h-16 items-center justify-center rounded-full bg-white/15 text-2xl">
         {copy.back}
       </Link>
     </div>
@@ -244,7 +248,7 @@ function ModeButton({ active, onClick, children }: { active: boolean; onClick: (
       type="button"
       aria-pressed={active}
       onClick={onClick}
-      className={active ? "h-14 rounded-full bg-sun text-lg text-plum ring-4 ring-white" : "h-14 rounded-full bg-white/15 text-lg"}
+      className={active ? "h-16 rounded-full bg-sun text-lg text-plum ring-4 ring-white" : "h-16 rounded-full bg-white/15 text-lg"}
     >
       {children}
     </button>
@@ -268,7 +272,7 @@ function ToolButton({
       aria-label={label}
       aria-pressed={active}
       onClick={onClick}
-      className={active ? "flex h-14 min-w-14 items-center justify-center rounded-full bg-sun px-3 text-2xl text-plum ring-4 ring-white" : "flex h-14 min-w-14 items-center justify-center rounded-full bg-white/15 px-3 text-2xl"}
+      className={active ? "flex h-16 min-w-16 items-center justify-center rounded-full bg-sun px-3 text-2xl text-plum ring-4 ring-white" : "flex h-16 min-w-16 items-center justify-center rounded-full bg-white/15 px-3 text-2xl"}
     >
       {children}
     </button>

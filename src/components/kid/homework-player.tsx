@@ -150,7 +150,7 @@ export function HomeworkPlayer({
           <button
             type="button"
             aria-label={copy.listen}
-            className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-white/15 text-2xl"
+            className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-white/15 text-2xl"
             onClick={() => speak({ text: step.instruction, lang })}
           >
             🔊
@@ -214,8 +214,8 @@ export function HomeworkPlayer({
   );
 }
 
-const choice = "flex h-14 items-center justify-center rounded-full bg-hot px-4 text-lg";
-const quiet = "flex h-14 items-center justify-center rounded-full bg-white/15 px-4 text-lg";
+const choice = "flex h-16 items-center justify-center rounded-full bg-hot px-4 text-lg";
+const quiet = "flex h-16 items-center justify-center rounded-full bg-white/15 px-4 text-lg";
 
 async function postJson(url: string, body: unknown) {
   const response = await fetch(url, {

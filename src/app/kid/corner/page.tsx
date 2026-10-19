@@ -12,7 +12,7 @@ export default async function CornerPage() {
   const copy = t(family?.child_language);
   return (
     <div className="grid gap-3">
-      <div className="flex items-center justify-between gap-2">
+      <div className="flex items-center justify-between gap-3">
         <KidBack href={kidPlaces.home} label={copy.back} />
         <p className="text-4xl font-semibold text-sun">{family?.star_balance ?? 0} ★</p>
       </div>

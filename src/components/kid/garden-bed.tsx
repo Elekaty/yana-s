@@ -34,7 +34,7 @@ export function GardenBed({
   }, []);
   return (
     <div className={`rounded-[28px] p-3 ${hidden ? styles.paused : ""} ${theme === "night" ? "bg-[#14243f]" : "bg-[#1f6b3a]"}`}>
-      <div className="grid grid-cols-4 justify-items-center gap-2">
+      <div className="grid grid-cols-4 justify-items-center gap-3">
         {GARDEN.map((item, slot) => {
           const kind = grown.get(slot);
           const plant = kind ? gardenKind(kind) : null;

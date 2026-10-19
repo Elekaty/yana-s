@@ -10,7 +10,7 @@ export function ModeSwitch() {
   const kid = path.startsWith("/kid");
 
   return (
-    <div className="flex h-12 items-center rounded-full border border-grape/20 bg-white p-1 shadow-md" role="group" aria-label="Parent or kid mode">
+    <div className="flex h-16 items-center gap-3 rounded-full border border-grape/20 bg-white px-1 shadow-md" role="group" aria-label="Parent or kid mode">
       {parent ? (
         <span aria-current="page" className={on}>Parent</span>
       ) : (
@@ -27,5 +27,5 @@ export function ModeSwitch() {
   );
 }
 
-const on = "flex h-10 items-center rounded-full bg-sun px-3 text-sm font-semibold text-plum";
-const off = "flex h-10 items-center rounded-full px-3 text-sm font-semibold text-plum/70";
+const on = "flex h-16 min-w-16 items-center justify-center rounded-full bg-sun px-3 text-sm font-semibold text-plum";
+const off = "flex h-16 min-w-16 items-center justify-center rounded-full px-3 text-sm font-semibold text-plum/70";

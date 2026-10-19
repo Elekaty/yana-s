@@ -34,10 +34,10 @@ export default async function StoriesPage({ searchParams }: { searchParams: Prom
     <div className="grid gap-4">
       <KidBack href={kidPlaces.words} label={copy.back} />
       <p className="text-center text-3xl">{title}</p>
-      <Link href={`/kid/games/stories/${row.slug}`} className="flex h-14 items-center justify-center rounded-full bg-sun text-2xl text-plum">
+      <Link href={`/kid/games/stories/${row.slug}`} className="flex h-16 items-center justify-center rounded-full bg-sun text-2xl text-plum">
         {copy.listen}
       </Link>
-      <Link href={`/kid/games/stories?i=${next}`} className="flex h-14 items-center justify-center rounded-full bg-grape text-2xl">
+      <Link href={`/kid/games/stories?i=${next}`} className="flex h-16 items-center justify-center rounded-full bg-grape text-2xl">
         {copy.next}
       </Link>
     </div>

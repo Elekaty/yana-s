@@ -39,9 +39,9 @@ export function HomeScreen({
   }
 
   return (
-    <div className="flex flex-col gap-2">
-      <div className="flex items-center justify-between gap-2">
-        <Link href="/parent/unlock" aria-label={copy.parents} className="flex h-12 w-12 items-center justify-center rounded-full bg-white/15 text-2xl">
+    <div className="flex flex-col gap-3">
+      <div className="flex items-center justify-between gap-3">
+        <Link href="/parent/unlock" aria-label={copy.parents} className="flex h-16 w-16 items-center justify-center rounded-full bg-white/15 text-2xl">
           🔒
         </Link>
         <p className="rounded-full bg-sun px-4 py-2 text-lg font-semibold text-plum shadow-[0_6px_0_#e0b520]">{balance} ★</p>
@@ -74,15 +74,15 @@ export function HomeScreen({
         <span aria-hidden>🗣️</span>
         {copy.words}
       </Link>
-      <div className="flex items-center gap-2">
-        <Link href={kidPlaces.corner} className="flex h-12 flex-1 items-center justify-center rounded-full bg-white/15 text-sm">
+      <div className="flex items-center gap-3">
+        <Link href={kidPlaces.corner} className="flex h-16 flex-1 items-center justify-center rounded-full bg-white/15 text-sm">
           🎒 {copy.corner}
         </Link>
-        <p className="flex h-12 flex-1 items-center justify-center rounded-full bg-white/10 text-sm" aria-label={lang === "en" ? "Tonight" : "Ce soir"}>
+        <p className="flex h-16 flex-1 items-center justify-center rounded-full bg-white/10 text-sm" aria-label={lang === "en" ? "Tonight" : "Ce soir"}>
           {helper.icon} {helper.text}
         </p>
         {here ? null : (
-          <button type="button" onClick={() => void checkIn()} className="flex h-12 flex-1 items-center justify-center rounded-full bg-white/15 text-sm">
+          <button type="button" onClick={() => void checkIn()} className="flex h-16 flex-1 items-center justify-center rounded-full bg-white/15 text-sm">
             {note || `✋ ${copy.checkIn}`}
           </button>
         )}

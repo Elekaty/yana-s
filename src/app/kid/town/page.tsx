@@ -23,7 +23,7 @@ export default async function TownPage() {
     return (
       <div className="grid gap-4">
         <p className="text-center text-2xl">{lang === "en" ? "The town is not ready yet." : "La ville n'est pas prête."}</p>
-        <Link href="/kid/corner" className="flex h-14 items-center justify-center rounded-full bg-white/15 text-2xl">
+        <Link href="/kid/corner" className="flex h-16 items-center justify-center rounded-full bg-white/15 text-2xl">
           {copy.back}
         </Link>
       </div>

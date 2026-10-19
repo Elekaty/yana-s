@@ -82,19 +82,19 @@ export function StoryLibrary({ lang }: { lang: "fr" | "en" }) {
         <DialogContent className="kid">
           <MochiFace />
           <DialogTitle className="mt-3 text-center">{leave}</DialogTitle>
-          <div className="mt-4 grid gap-2">
+          <div className="mt-4 grid gap-3">
             {allowed && open ? (
               <a
                 href={open.href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex h-14 items-center justify-center rounded-full bg-grape text-lg text-white"
+                className="flex h-16 items-center justify-center rounded-full bg-grape text-lg text-white"
               >
                 {go}
               </a>
             ) : (
               <form
-                className="grid gap-2"
+                className="grid gap-3"
                 action={async (formData) => {
                   const result = await allowStoryLink(String(formData.get("pin") ?? ""));
                   if (result.ok) {
@@ -115,15 +115,15 @@ export function StoryLibrary({ lang }: { lang: "fr" | "en" }) {
               >
                 <label className="text-sm">
                   {lang === "en" ? "Parent PIN" : "Code des parents"}
-                  <input name="pin" inputMode="numeric" autoComplete="off" className="mt-1 block h-14 w-full rounded-full bg-white px-4 text-center text-2xl text-plum" />
+                  <input name="pin" inputMode="numeric" autoComplete="off" className="mt-1 block h-16 w-full rounded-full bg-white px-4 text-center text-2xl text-plum" />
                 </label>
                 {pinError ? <p className="text-center text-sm">{pinError}</p> : null}
-                <button type="submit" className="flex h-14 items-center justify-center rounded-full bg-grape text-lg text-white">
+                <button type="submit" className="flex h-16 items-center justify-center rounded-full bg-grape text-lg text-white">
                   {lang === "en" ? "Unlock" : "Ouvrir"}
                 </button>
               </form>
             )}
-            <DialogClose className="flex h-14 items-center justify-center rounded-full bg-muted text-lg">{cancel}</DialogClose>
+            <DialogClose className="flex h-16 items-center justify-center rounded-full bg-muted text-lg">{cancel}</DialogClose>
           </div>
         </DialogContent>
       </Dialog>

@@ -18,7 +18,7 @@ export default async function HomeworkPage() {
           📚
         </p>
         <h1 className="text-4xl">{copy.noHomework}</h1>
-        <Link href="/kid/games" className="flex h-14 w-full max-w-xs items-center justify-center rounded-full bg-sun text-2xl text-plum shadow-[0_6px_0_#e0b520]">
+        <Link href="/kid/games" className="flex h-16 w-full max-w-xs items-center justify-center rounded-full bg-sun text-2xl text-plum shadow-[0_6px_0_#e0b520]">
           {copy.games}
         </Link>
       </div>

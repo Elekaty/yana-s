@@ -19,7 +19,7 @@ export function LanguageSwitch({ language }: { language: "fr" | "en" }) {
   }
 
   return (
-    <div className="flex rounded-full border border-grape/20 bg-white p-1 shadow-md" role="group" aria-label="Language">
+    <div className="flex gap-3 rounded-full border border-grape/20 bg-white px-1 shadow-md" role="group" aria-label="Language">
       <LangButton label="EN" name="English" active={language === "en"} disabled={pending} onClick={() => choose("en")} />
       <LangButton label="FR" name="French" active={language === "fr"} disabled={pending} onClick={() => choose("fr")} />
     </div>
@@ -48,8 +48,8 @@ function LangButton({
       onClick={onClick}
       className={
         active
-          ? "rounded-full bg-sun px-3 py-1.5 text-sm font-semibold text-plum"
-          : "rounded-full px-3 py-1.5 text-sm font-semibold text-plum/60"
+          ? "flex h-16 min-w-16 items-center justify-center rounded-full bg-sun px-3 text-sm font-semibold text-plum"
+          : "flex h-16 min-w-16 items-center justify-center rounded-full px-3 text-sm font-semibold text-plum/60"
       }
     >
       {label}

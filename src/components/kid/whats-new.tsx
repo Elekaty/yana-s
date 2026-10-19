@@ -83,7 +83,7 @@ export function WhatsNew({
         <p className="text-center text-2xl">
           {stars} {copy.stars}
         </p>
-        <Link href={backHref} className="flex h-14 items-center justify-center rounded-full bg-white/15 text-2xl">
+        <Link href={backHref} className="flex h-16 items-center justify-center rounded-full bg-white/15 text-2xl">
           {copy.back}
         </Link>
       </div>
@@ -98,14 +98,14 @@ export function WhatsNew({
         type="button"
         disabled={!voiceOn}
         onClick={() => speak({ text: `${question} ${starter}`, lang: "fr" })}
-        className="flex h-14 items-center justify-center rounded-full bg-sun text-2xl text-plum"
+        className="flex h-16 items-center justify-center rounded-full bg-sun text-2xl text-plum"
       >
         {copy.listen}
       </button>
-      <button type="button" onClick={() => void onRecord()} disabled={busy} className="flex h-14 items-center justify-center rounded-full bg-hot text-2xl">
+      <button type="button" onClick={() => void onRecord()} disabled={busy} className="flex h-16 items-center justify-center rounded-full bg-hot text-2xl">
         {recording ? copy.stop : copy.record}
       </button>
-      <Link href={backHref} className="flex h-14 items-center justify-center rounded-full bg-white/15 text-2xl">
+      <Link href={backHref} className="flex h-16 items-center justify-center rounded-full bg-white/15 text-2xl">
         {copy.back}
       </Link>
     </div>

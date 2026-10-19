@@ -17,7 +17,7 @@ export function CrewStrip({
   voice?: boolean;
 }) {
   return (
-    <div className="flex items-end justify-center gap-2 rounded-[28px] bg-[#3a1468] px-3 py-3">
+    <div className="flex items-end justify-center gap-3 rounded-[28px] bg-[#3a1468] px-3 py-3">
       {crew.map((friend) => (
         <button
           key={friend}

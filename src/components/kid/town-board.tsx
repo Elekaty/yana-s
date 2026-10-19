@@ -68,7 +68,7 @@ export function TownBoard({
         {stars} {copy.stars}
       </p>
       {full ? <p className="text-center text-2xl">{phrases.townDone[lang]}</p> : null}
-      <div className="relative grid grid-cols-4 gap-2">
+      <div className="relative grid grid-cols-4 gap-3">
         {friends.map((friend, index) => (
           <motion.span
             key={friend}
@@ -87,7 +87,7 @@ export function TownBoard({
               key={index}
               type="button"
               onClick={() => press(index)}
-              className={`flex h-14 items-center justify-center rounded-xl text-sm ${slot === index ? "bg-sun text-plum" : "bg-white/20"}`}
+              className={`flex h-16 items-center justify-center rounded-xl text-sm ${slot === index ? "bg-sun text-plum" : "bg-white/20"}`}
             >
               {named ? named[lang] : index + 1}
             </button>
@@ -97,13 +97,13 @@ export function TownBoard({
       <p className="text-center text-2xl">
         {item[lang]} · {item.cost}
       </p>
-      <button type="button" onClick={() => void buy()} disabled={busy || full || slot === null} className="flex h-14 items-center justify-center rounded-full bg-hot text-2xl">
+      <button type="button" onClick={() => void buy()} disabled={busy || full || slot === null} className="flex h-16 items-center justify-center rounded-full bg-hot text-2xl">
         {copy.buy}
       </button>
-      <button type="button" onClick={() => setItemIndex((itemIndex + 1) % TOWN_ITEMS.length)} className="flex h-14 items-center justify-center rounded-full bg-grape text-2xl">
+      <button type="button" onClick={() => setItemIndex((itemIndex + 1) % TOWN_ITEMS.length)} className="flex h-16 items-center justify-center rounded-full bg-grape text-2xl">
         {copy.next}
       </button>
-      <Link href="/kid/corner" className="flex h-14 items-center justify-center rounded-full bg-white/15 text-2xl">
+      <Link href="/kid/corner" className="flex h-16 items-center justify-center rounded-full bg-white/15 text-2xl">
         {copy.back}
       </Link>
     </div>

@@ -144,18 +144,18 @@ export function VoiceLadder({
         ))}
       </p>
       {rung === "record" ? (
-        <button type="button" onClick={() => void onRecord()} disabled={busy} className="flex h-14 items-center justify-center rounded-full bg-hot text-2xl">
+        <button type="button" onClick={() => void onRecord()} disabled={busy} className="flex h-16 items-center justify-center rounded-full bg-hot text-2xl">
           {recording ? copy.stop : copy.record}
         </button>
       ) : (
-        <button type="button" onClick={() => void onListen()} disabled={!voiceOn} className="flex h-14 items-center justify-center rounded-full bg-sun text-2xl text-plum">
+        <button type="button" onClick={() => void onListen()} disabled={!voiceOn} className="flex h-16 items-center justify-center rounded-full bg-sun text-2xl text-plum">
           {copy.listen}
         </button>
       )}
-      <button type="button" onClick={() => void onNext()} disabled={busy} className="flex h-14 items-center justify-center rounded-full bg-grape text-2xl">
+      <button type="button" onClick={() => void onNext()} disabled={busy} className="flex h-16 items-center justify-center rounded-full bg-grape text-2xl">
         {copy.next}
       </button>
-      <Link href={backHref} className="flex h-14 items-center justify-center rounded-full bg-white/15 text-2xl">
+      <Link href={backHref} className="flex h-16 items-center justify-center rounded-full bg-white/15 text-2xl">
         {copy.back}
       </Link>
     </div>

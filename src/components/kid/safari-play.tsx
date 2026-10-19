@@ -53,7 +53,7 @@ export function SafariPlay({ lang, copy, tags }: { lang: "fr" | "en"; copy: Copy
       {round.choices.map((id) => {
         const animal = animalById(id);
         return (
-          <button key={id} type="button" aria-label={animal?.[lang] ?? id} onClick={() => void choose(id)} className="flex h-14 items-center justify-center rounded-full bg-sun text-3xl">
+          <button key={id} type="button" aria-label={animal?.[lang] ?? id} onClick={() => void choose(id)} className="flex h-16 items-center justify-center rounded-full bg-sun text-3xl">
             {animal?.emoji}
           </button>
         );

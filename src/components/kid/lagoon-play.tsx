@@ -45,7 +45,7 @@ export function LagoonPlay({ copy, lang }: { copy: Copy; lang: "fr" | "en" }) {
     return (
       <div className="grid gap-4">
         <p className="text-center text-3xl">{copy.doneTitle}</p>
-        <Link href="/kid/games" className="flex h-14 items-center justify-center rounded-full bg-white/15 text-2xl">
+        <Link href="/kid/games" className="flex h-16 items-center justify-center rounded-full bg-white/15 text-2xl">
           {copy.back}
         </Link>
       </div>
@@ -62,14 +62,14 @@ export function LagoonPlay({ copy, lang }: { copy: Copy; lang: "fr" | "en" }) {
           const berry = level.berry.x === x && level.berry.y === y;
           const mochi = place?.x === x && place?.y === y;
           return (
-            <div key={`${x}-${y}`} className={`flex h-14 w-14 items-center justify-center rounded-xl text-2xl ${wall ? "bg-white/10" : "bg-white/25"}`}>
+            <div key={`${x}-${y}`} className={`flex h-16 w-16 items-center justify-center rounded-xl text-2xl ${wall ? "bg-white/10" : "bg-white/25"}`}>
               {mochi ? "🐱" : berry ? "🍓" : ""}
             </div>
           );
         })}
       </div>
       <p className="text-center text-2xl">{path.map((dir) => arrows.find((arrow) => arrow.dir === dir)?.label).join(" ")}</p>
-      <div className="grid grid-cols-4 gap-2">
+      <div className="grid grid-cols-4 gap-3">
         {arrows.map((arrow) => (
           <button
             key={arrow.dir}
@@ -77,16 +77,16 @@ export function LagoonPlay({ copy, lang }: { copy: Copy; lang: "fr" | "en" }) {
             disabled={path.length >= 8}
             aria-label={arrow[lang]}
             onClick={() => setPath([...path, arrow.dir])}
-            className="flex h-14 items-center justify-center rounded-full bg-sun text-2xl text-plum"
+            className="flex h-16 items-center justify-center rounded-full bg-sun text-2xl text-plum"
           >
             {arrow.label}
           </button>
         ))}
       </div>
-      <button type="button" onClick={() => void onGo()} disabled={busy || path.length === 0} className="flex h-14 items-center justify-center rounded-full bg-grape text-2xl">
+      <button type="button" onClick={() => void onGo()} disabled={busy || path.length === 0} className="flex h-16 items-center justify-center rounded-full bg-grape text-2xl">
         {copy.go}
       </button>
-      <Link href="/kid/games" className="flex h-14 items-center justify-center rounded-full bg-white/15 text-2xl">
+      <Link href="/kid/games" className="flex h-16 items-center justify-center rounded-full bg-white/15 text-2xl">
         {copy.back}
       </Link>
     </div>
