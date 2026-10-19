@@ -28,6 +28,7 @@ export type ScanCard = {
   flagged: boolean;
   questions: Question[];
   childStatus: string | null;
+  fromCache: boolean;
 };
 
 export function ScanDesk({
@@ -64,11 +65,15 @@ export function ScanDesk({
       if (uploadError) throw new Error(uploadError.message);
       setBusy("Queuing the reading…");
       const saved = await postJson("/api/scans", { imagePath: path });
-      setBusy("Reading the page…");
-      const reading = await postJson("/api/jobs/run", { scanId: saved.scanId });
-      if (reading.error) throw new Error("Could not read this photo.");
+      if (saved.cached) {
+        setBusy("Answered from cache…");
+      } else {
+        setBusy("Reading the page…");
+        const reading = await postJson("/api/jobs/run", { scanId: saved.scanId });
+        if (reading.error) throw new Error("I could not read this. Try again with more light.");
+      }
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Could not read this photo.");
+      setError(cause instanceof Error ? cause.message : "I could not read this. Try again with more light.");
     } finally {
       setBusy("");
       router.refresh();
@@ -83,7 +88,7 @@ export function ScanDesk({
       const reading = await postJson("/api/jobs/run", { scanId });
       if (reading.error) throw new Error("Could not read this photo.");
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Could not read this photo.");
+      setError(cause instanceof Error ? cause.message : "I could not read this. Try again with more light.");
     } finally {
       setBusy("");
       router.refresh();
@@ -101,6 +106,7 @@ export function ScanDesk({
       </div>
 
       <label
+        id="scan-drop"
         className="flex min-h-56 cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-border bg-muted/40 px-6 py-10 text-center"
         onDragOver={(event) => event.preventDefault()}
         onDrop={(event) => {
@@ -145,6 +151,7 @@ export function ScanDesk({
                 <p>{scan.objective}</p>
                 <p className="text-muted-foreground">{scan.action}</p>
                 {scan.unclearNote ? <p className="text-amber-800 dark:text-amber-200">{scan.unclearNote}</p> : null}
+                {scan.questions.length > 0 ? <p className="font-medium">Coaching questions</p> : null}
                 <ol className="space-y-2">
                   {scan.questions.map((question) => (
                     <li key={question.question_fr}>
@@ -156,10 +163,21 @@ export function ScanDesk({
                 </ol>
               </div>
             ) : null}
+            {scan.status === "ready" ? (
+              <div className="mt-4 flex flex-wrap items-center gap-3">
+                <p className="text-sm">{scan.fromCache ? "Answered from cache (the same photo was scanned before)." : "Read by AI"}</p>
+                <Button type="button" size="lg" variant="outline" disabled={Boolean(busy)} onClick={() => void retry(scan.id)}>
+                  Read again with AI
+                </Button>
+                <a className="inline-flex h-12 items-center text-sm font-semibold underline" href="#scan-drop">
+                  Scan another page
+                </a>
+              </div>
+            ) : null}
             {scan.status === "failed" ? (
               <div className="mt-4 flex flex-wrap items-center gap-3">
-                <p className="text-sm">Could not read this photo.</p>
-                <Button type="button" variant="outline" disabled={Boolean(busy)} onClick={() => void retry(scan.id)}>
+                <p className="text-sm">I could not read this. Try again with more light.</p>
+                <Button type="button" size="lg" variant="outline" disabled={Boolean(busy)} onClick={() => void retry(scan.id)}>
                   Retry
                 </Button>
               </div>
@@ -208,7 +226,7 @@ async function postJson(url: string, body: unknown) {
     headers: { "content-type": "application/json" },
     body: JSON.stringify(body),
   });
-  const payload = (await response.json().catch(() => ({}))) as { scanId?: string; error?: string };
+  const payload = (await response.json().catch(() => ({}))) as { scanId?: string; cached?: boolean; error?: string };
   if (!response.ok) throw new Error(payload.error ?? "Could not read this photo.");
   return payload;
 }

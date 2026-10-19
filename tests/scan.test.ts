@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
+import { reuseReadyScan } from "@/lib/scan/cache";
 import { gameTypeFor } from "@/lib/scan/game-type";
 import { applyMath, computeExpression } from "@/lib/scan/math";
 import { SCAN_SYSTEM_PROMPT } from "@/lib/scan/prompt";
@@ -68,6 +69,19 @@ describe("homework scan", () => {
     expect(redacted).toContain("[address]");
     expect(redacted).not.toContain("Victor");
     expect(redacted).not.toContain("Fleurs");
+  });
+
+  it("reuses a ready reading and does not ask Gemini again", () => {
+    expect(reuseReadyScan({ status: "ready", hasTask: true })).toBe(true);
+    expect(reuseReadyScan({ status: "ready", hasTask: false })).toBe(false);
+    expect(reuseReadyScan({ status: "failed", hasTask: true })).toBe(false);
+    expect(reuseReadyScan(null)).toBe(false);
+    const source = readFileSync("src/lib/scan/process.ts", "utf8");
+    const enqueue = source.slice(source.indexOf("export async function enqueueScan"), source.indexOf("async function copyCachedScan"));
+    expect(enqueue).toContain("cached: true");
+    expect(enqueue).not.toContain("readHomeworkPhoto");
+    const processing = source.slice(source.indexOf("export async function processNextScan"), source.indexOf("async function insertMiniGame"));
+    expect(processing).toContain("readHomeworkPhoto");
   });
 
   it("maps each task type onto a game", () => {

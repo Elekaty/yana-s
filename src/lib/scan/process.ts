@@ -3,6 +3,7 @@ import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { imageHash } from "@/lib/prizes";
+import { reuseReadyScan } from "@/lib/scan/cache";
 import { gameTypeFor, type GameType } from "@/lib/scan/game-type";
 import { readHomeworkPhoto } from "@/lib/scan/gemini";
 import { applyMath } from "@/lib/scan/math";
@@ -20,13 +21,19 @@ export async function enqueueScan(familyId: string, imagePath: string) {
   if (hash) {
     const prior = await admin
       .from("homework_scans")
-      .select("id")
+      .select("id, status")
       .eq("family_id", familyId)
       .eq("image_hash", hash)
       .eq("status", "ready")
       .limit(1)
       .maybeSingle();
-    if (prior.data?.id) return prior.data.id as string;
+    const task = prior.data?.id
+      ? await admin.from("tasks").select("id").eq("family_id", familyId).eq("scan_id", prior.data.id).limit(1).maybeSingle()
+      : { data: null };
+    if (reuseReadyScan(prior.data ? { status: String(prior.data.status), hasTask: Boolean(task.data?.id) } : null)) {
+      const copied = await copyCachedScan(admin, familyId, imagePath, hash, prior.data!.id as string);
+      if (copied) return { id: copied, cached: true as const };
+    }
   }
   const scan = await insertScan(admin, familyId, imagePath, hash, "queued");
   const { error: jobError } = await admin.from("jobs").insert({
@@ -36,6 +43,53 @@ export async function enqueueScan(familyId: string, imagePath: string) {
     status: "queued",
   });
   if (jobError) throw new Error(jobError.message);
+  return { id: scan.id, cached: false as const };
+}
+
+async function copyCachedScan(
+  admin: ReturnType<typeof createAdminClient>,
+  familyId: string,
+  imagePath: string,
+  hash: string,
+  priorId: string,
+) {
+  const { data: task } = await admin
+    .from("tasks")
+    .select("id, title, subject, translated_objective, parent_action, curriculum_skill, confidence, coaching, reward_stars")
+    .eq("family_id", familyId)
+    .eq("scan_id", priorId)
+    .limit(1)
+    .maybeSingle();
+  if (!task) return "";
+  const scan = await insertScan(admin, familyId, imagePath, hash, "ready");
+  const coaching = { ...((task.coaching as Record<string, unknown> | null) ?? {}), from_cache: true };
+  const { data: created, error } = await admin
+    .from("tasks")
+    .insert({
+      family_id: familyId,
+      scan_id: scan.id,
+      title: task.title,
+      subject: task.subject,
+      translated_objective: task.translated_objective,
+      parent_action: task.parent_action,
+      curriculum_skill: task.curriculum_skill,
+      confidence: task.confidence,
+      coaching,
+      status: "pending",
+      reward_stars: task.reward_stars,
+    })
+    .select("id")
+    .single();
+  if (error || !created) return scan.id;
+  const { data: games } = await admin.from("mini_games").select("game_type, game_data").eq("task_id", task.id);
+  for (const game of games ?? []) {
+    await insertMiniGame(admin, {
+      family_id: familyId,
+      task_id: created.id as string,
+      game_type: game.game_type as GameType,
+      game_data: game.game_data,
+    });
+  }
   return scan.id;
 }
 

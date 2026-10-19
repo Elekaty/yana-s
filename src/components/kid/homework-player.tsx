@@ -25,6 +25,7 @@ export function HomeworkPlayer({
   lang,
   childName,
   clock,
+  studyMinutes,
   copy,
 }: {
   familyId: string;
@@ -40,6 +41,7 @@ export function HomeworkPlayer({
   lang: "fr" | "en";
   childName: string;
   clock: StudyClock | null;
+  studyMinutes: number;
   copy: Copy;
 }) {
   const router = useRouter();
@@ -80,8 +82,10 @@ export function HomeworkPlayer({
       });
       if (uploadError) throw new Error(uploadError.message);
       const saved = await postJson("/api/scans", { imagePath: path });
-      const readingResult = await postJson("/api/jobs/run", { scanId: saved.scanId });
-      if (readingResult.error) throw new Error(copy.reading);
+      if (!saved.cached) {
+        const readingResult = await postJson("/api/jobs/run", { scanId: saved.scanId });
+        if (readingResult.error) throw new Error(copy.reading);
+      }
       router.refresh();
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : copy.reading);
@@ -124,12 +128,21 @@ export function HomeworkPlayer({
 
   const hint = hintText(step, hintLevel);
   const focus = clock && clock.mode !== "break" ? formatClock(clock.remainingSec) : "";
+  const totalSec = Math.max(1, studyMinutes * 60);
+  const focusRatio = clock && clock.mode !== "break" ? Math.max(0, Math.min(1, clock.remainingSec / totalSec)) : 0;
 
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-end justify-between gap-3">
         <h1 className="text-3xl">{title}</h1>
-        {focus ? <p className="text-lg text-sun">{focus}</p> : null}
+        {focus ? (
+          <div className="w-28">
+            <p className="text-right text-lg text-sun">{focus}</p>
+            <div className="mt-1 h-3 overflow-hidden rounded-full bg-white/20" role="meter" aria-label={focus} aria-valuenow={Math.round(focusRatio * 100)} aria-valuemin={0} aria-valuemax={100}>
+              <div className="h-full bg-sun" style={{ width: `${focusRatio * 100}%` }} />
+            </div>
+          </div>
+        ) : null}
       </div>
       <div className="flex items-center gap-3">
         <p className="flex-1 text-2xl">{step.instruction}</p>
@@ -210,7 +223,7 @@ async function postJson(url: string, body: unknown) {
     headers: { "content-type": "application/json" },
     body: JSON.stringify(body),
   });
-  const payload = (await response.json().catch(() => ({}))) as { scanId?: string; error?: string };
+  const payload = (await response.json().catch(() => ({}))) as { scanId?: string; cached?: boolean; error?: string };
   if (!response.ok) throw new Error(payload.error ?? "Could not read this photo.");
   return payload;
 }

@@ -24,7 +24,7 @@ export default async function ScanPage() {
   const cards = await Promise.all(
     (scans ?? []).map(async (scan) => {
       const task = (tasks ?? []).find((item) => item.scan_id === scan.id);
-      const coaching = (task?.coaching ?? {}) as { questions?: Question[]; unclear_note?: string; flagged?: boolean };
+      const coaching = (task?.coaching ?? {}) as { questions?: Question[]; unclear_note?: string; flagged?: boolean; from_cache?: boolean };
       const { data: signed } = await supabase.storage.from("scans").createSignedUrl(scan.image_path, 60 * 10);
       const card: ScanCard = {
         id: scan.id,
@@ -38,8 +38,9 @@ export default async function ScanPage() {
         confidence: task?.confidence ?? null,
         unclearNote: coaching.unclear_note ?? "",
         flagged: Boolean(coaching.flagged),
-        questions: coaching.questions ?? [],
+        questions: (coaching.questions ?? []).slice(0, 3),
         childStatus: task ? (runStatus.get(task.id) ?? null) : null,
+        fromCache: Boolean(coaching.from_cache),
       };
       return card;
     }),

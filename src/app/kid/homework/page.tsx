@@ -48,6 +48,7 @@ export default async function HomeworkPage() {
       lang={lang}
       childName={family.child_name ?? ""}
       clock={loaded?.clock ?? null}
+      studyMinutes={loaded?.settings.studyMinutes ?? 20}
       copy={copy}
     />
   );

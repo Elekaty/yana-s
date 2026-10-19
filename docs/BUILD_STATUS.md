@@ -40,6 +40,7 @@ Single list for the finish-the-app pass. One task at a time.
 | R5 | Today summary | DONE | `src/app/parent/(gate)/page.tsx`, `src/lib/parent/today.ts`, `tests/parent-today.test.ts` | Today shows Needs you, Tonight, and Homework in a compact group, then the later blocks only when they have something to show. |
 | R6 | Intake and Inbox | DONE | `src/app/parent/(gate)/inbox/page.tsx`, `src/app/api/intake/telegram/route.ts`, `src/app/api/intake/email/route.ts`, `tests/inbox.test.ts` | Inbox filters, 30/45/60 snooze, and archive only after both parents tick. A saved note gets a tier immediately. Real Telegram and forwarded email were not sent in this pass. |
 | R7 | Calendar, to do, reminders | DONE | `src/app/parent/(gate)/calendar/page.tsx`, `src/app/parent/(gate)/todo/page.tsx`, `src/lib/calendar/due.ts`, `tests/calendar.test.ts` | Month grid, add and remove, chosen reminders, to-do snooze and reassign. A due reminder is sent to the linked Telegram chat and to a subscribed phone. A live fire and a Telegram snooze were not watched. |
+| R8 | Scan, cache and homework | DONE | `src/lib/scan/process.ts`, `src/lib/scan/cache.ts`, `src/components/scan/desk.tsx`, `tests/scan.test.ts` | The same photo copies the saved reading and does not call Gemini again. The brief shows up to three coaching questions. Homework keeps hints, read-aloud, the focus bar, and the 15-minute break. A real photo was not scanned twice in this pass. |
 
 ## Parent views
 

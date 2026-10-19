@@ -13,8 +13,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "That photo is not in your family folder" }, { status: 400 });
   }
   try {
-    const scanId = await enqueueScan(family.family_id, imagePath);
-    return NextResponse.json({ scanId });
+    const saved = await enqueueScan(family.family_id, imagePath);
+    return NextResponse.json({ scanId: saved.id, cached: saved.cached });
   } catch {
     return NextResponse.json({ error: "Could not save the scan" }, { status: 500 });
   }
