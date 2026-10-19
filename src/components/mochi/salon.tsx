@@ -7,7 +7,8 @@ import { setSpeakMuted, speak } from "@/lib/speak";
 import { BUBBLE_FRIENDS, MOCHI_STATES, type BubbleFriend, type MochiState } from "@/lib/mochi";
 import { FRIEND_CAST } from "@/lib/mochi/friends";
 import { actionMs, initialMochi, nextMochi, type MochiAction } from "@/lib/mochi/machine";
-import { clockTime, greetingKey, pickPhrase, type PhraseKey } from "@/lib/mochi/phrases";
+import { FriendMark } from "@/components/mochi/friend-mark";
+import { clockTime, greetingKey, phraseAt, pickPhrase, type PhraseKey } from "@/lib/mochi/phrases";
 
 const friendColor: Record<BubbleFriend, string> = {
   bunny: "#f7c6d8",
@@ -46,6 +47,7 @@ export function Salon({
   lang,
   voice = true,
   busy = false,
+  crew = [],
   onMeetFriend,
 }: {
   forced: MochiState | null;
@@ -53,26 +55,24 @@ export function Salon({
   lang: "fr" | "en";
   voice?: boolean;
   busy?: boolean;
+  crew?: BubbleFriend[];
   onMeetFriend?: (friend: BubbleFriend) => void;
 }) {
   const router = useRouter();
-  const [machine, dispatch] = useReducer(nextMochi, initialMochi(new Date().getHours()));
+  const [machine, dispatch] = useReducer(nextMochi, initialMochi(12));
   const [look, setLook] = useState({ x: 0, y: 0 });
   const [bubble, setBubble] = useState<BubbleFriend | null>(null);
   const [beside, setBeside] = useState<BubbleFriend | null>(null);
   const [spoken, setSpoken] = useState<{ action: MochiAction; text: string } | null>(null);
   const [sky, setSky] = useState<"real" | "rain" | "night" | "sun">("real");
-  const [lamp, setLamp] = useState(() => {
-    const hour = new Date().getHours();
-    return hour >= 17 && hour < 21;
-  });
-  const [clock, setClock] = useState(() => new Date());
+  const [lamp, setLamp] = useState(false);
+  const [clock, setClock] = useState<Date | null>(null);
   const [bubbles, setBubbles] = useState(false);
   const [wiggle, setWiggle] = useState(false);
   const [muted, setMuted] = useState(false);
   const action = forced ? forcedAction(forced) : machine.action;
   const mood = forced === "sleepy-at-bedtime" ? "sleepy" : machine.mood;
-  const hour = clock.getHours();
+  const hour = clock?.getHours() ?? 12;
   const realSky = hour < 7 || hour >= 20 ? "#1b1464" : hour >= 17 ? "#f4a261" : "#8ec7ff";
   const skyFill = sky === "real" ? realSky : sky === "rain" ? "#6b7c93" : sky === "night" ? "#1b1464" : "#ffe08a";
   const dark = sky === "night" || (sky === "real" && (hour < 7 || hour >= 20));
@@ -125,11 +125,21 @@ export function Salon({
   }, [machine.hidden]);
 
   useEffect(() => {
-    const id = window.setInterval(() => setClock(new Date()), 30000);
-    return () => window.clearInterval(id);
+    const apply = () => {
+      const now = new Date();
+      setClock(now);
+      dispatch({ type: "hour", hour: now.getHours() });
+      setLamp(now.getHours() >= 17 && now.getHours() < 21);
+    };
+    const start = window.setTimeout(apply, 0);
+    const id = window.setInterval(apply, 30000);
+    return () => {
+      window.clearTimeout(start);
+      window.clearInterval(id);
+    };
   }, []);
 
-  const script = useMemo(() => pickPhrase(lineKey(action, hour), lang, childName).text, [action, hour, lang, childName]);
+  const script = useMemo(() => phraseAt(lineKey(action, hour), lang, childName), [action, hour, lang, childName]);
   const line = spoken?.action === action ? spoken.text : script;
   const yarnX = action === "chasing" ? 560 : 180;
 
@@ -192,13 +202,17 @@ export function Salon({
           role="button"
           tabIndex={0}
           aria-label={lang === "en" ? "Clock" : "Horloge"}
-          onClick={() => say(pickPhrase("clock", lang, childName).text.replaceAll("{time}", clockTime(lang, clock.getHours(), clock.getMinutes())))}
+          onClick={() => {
+            if (!clock) return;
+            say(pickPhrase("clock", lang, childName).text.replaceAll("{time}", clockTime(lang, clock.getHours(), clock.getMinutes())));
+          }}
           onKeyDown={(event) => {
+            if (!clock) return;
             if (event.key === "Enter" || event.key === " ") say(pickPhrase("clock", lang, childName).text.replaceAll("{time}", clockTime(lang, clock.getHours(), clock.getMinutes())));
           }}
         >
           <circle cx="210" cy="90" r="28" fill="#fff" />
-          <text x="210" y="96" textAnchor="middle" fontSize="14" fill="#2A0B4A">{`${clock.getHours()}:${String(clock.getMinutes()).padStart(2, "0")}`}</text>
+          <text x="210" y="96" textAnchor="middle" fontSize="14" fill="#2A0B4A">{clock ? `${clock.getHours()}:${String(clock.getMinutes()).padStart(2, "0")}` : "·:··"}</text>
         </g>
         <g
           data-p="books"
@@ -317,6 +331,19 @@ export function Salon({
           say(pickPhrase("purr", lang, childName).text);
         })}
       />
+      <div className="absolute bottom-16 right-3 flex gap-1">
+        {crew.map((friend) => (
+          <button
+            key={friend}
+            type="button"
+            className="flex h-16 w-16 items-center justify-center rounded-full bg-white/15"
+            aria-label={FRIEND_CAST[friend].name}
+            onClick={() => say(lang === "en" ? FRIEND_CAST[friend].en : FRIEND_CAST[friend].fr)}
+          >
+            <FriendMark friend={friend} />
+          </button>
+        ))}
+      </div>
       {beside ? (
         <p className="absolute right-6 bottom-24 rounded-full px-3 py-2 text-sm font-semibold text-plum" style={{ background: friendColor[beside] }}>
           {FRIEND_CAST[beside].name}

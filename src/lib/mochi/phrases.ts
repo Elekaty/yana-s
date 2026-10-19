@@ -103,6 +103,11 @@ const lines: Record<PhraseKey, { fr: [string, string, string]; en: [string, stri
 
 const lastIndex = new Map<string, number>();
 
+export function phraseAt(key: PhraseKey, lang: "fr" | "en", name: string, index = 0) {
+  const set = lines[key][lang];
+  return set[index % set.length].replaceAll("{name}", name || (lang === "fr" ? "toi" : "you"));
+}
+
 export function pickPhrase(key: PhraseKey, lang: "fr" | "en", name: string, avoid?: number) {
   const set = lines[key][lang];
   const memory = `${key}:${lang}`;

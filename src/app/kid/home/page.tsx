@@ -3,6 +3,8 @@ import { dayKey, holidayOn, type Holiday } from "@/lib/calendar/plan";
 import { getFamily } from "@/lib/family";
 import { fillPhrase, phrases } from "@/lib/phrases";
 import { t } from "@/lib/i18n";
+import { crewWithStarter } from "@/lib/mochi/crew";
+import { ensureStarterFriend } from "@/lib/mochi/starter";
 
 export const dynamic = "force-dynamic";
 
@@ -16,6 +18,10 @@ export default async function KidHomePage() {
     ? await supabase.from("children").select("settings").eq("id", family.child_id).maybeSingle()
     : { data: null };
   const voice = (child?.settings as { voice?: boolean } | null)?.voice !== false;
+  if (family?.child_id) await ensureStarterFriend(supabase, family.family_id, family.child_id);
+  const { data: met } = family?.child_id
+    ? await supabase.from("friends_unlocked").select("friend").eq("child_id", family.child_id)
+    : { data: [] };
   return (
     <HomeScreen
       childName={family?.child_name ?? ""}
@@ -25,6 +31,7 @@ export default async function KidHomePage() {
       copy={copy}
       nudge={nudge}
       voice={voice}
+      crew={crewWithStarter((met ?? []).map((row) => String(row.friend)))}
     />
   );
 }

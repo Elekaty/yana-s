@@ -1,0 +1,24 @@
+import { chromium } from "playwright";
+
+const browser = await chromium.launch({ headless: true });
+const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
+const errors = [];
+page.on("pageerror", (error) => errors.push(String(error)));
+await page.goto("http://localhost:3000/join", { waitUntil: "domcontentloaded", timeout: 45000 });
+await page.getByRole("button", { name: "Create family" }).waitFor({ timeout: 20000 });
+await page.locator("#familyName").fill("K1 audit");
+await page.locator("#childName").fill("Yana");
+await page.locator("#pin").fill("1357");
+await page.getByRole("button", { name: "Create family" }).click();
+await page.waitForURL("**/kid/**", { timeout: 45000 });
+await page.goto("http://localhost:3000/kid/home", { waitUntil: "domcontentloaded", timeout: 45000 });
+await page.getByRole("img", { name: "Mochi le chat" }).waitFor({ timeout: 20000 });
+await page.getByRole("button", { name: "Praline" }).waitFor({ timeout: 20000 });
+const mochi = await page.getByRole("img", { name: "Mochi le chat" }).isVisible();
+const praline = await page.getByRole("button", { name: "Praline" }).isVisible();
+await page.goto("http://localhost:3000/kid/games/friends", { waitUntil: "domcontentloaded", timeout: 45000 });
+const pralineText = await page.getByText("Praline", { exact: true }).isVisible();
+const locked = await page.getByText("?", { exact: true }).count();
+console.log(JSON.stringify({ mochi, praline, pralineText, locked, errors: errors.map((item) => item.slice(0, 180)) }));
+if (!mochi || !praline || !pralineText || locked < 4) process.exitCode = 1;
+await browser.close();

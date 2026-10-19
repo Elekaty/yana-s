@@ -15,6 +15,7 @@ export function HomeScreen({
   copy,
   nudge,
   voice = true,
+  crew = [],
 }: {
   childName: string;
   lang: "fr" | "en";
@@ -23,6 +24,7 @@ export function HomeScreen({
   copy: Copy;
   nudge?: string;
   voice?: boolean;
+  crew?: BubbleFriend[];
 }) {
   const [balance, setBalance] = useState(stars);
   const [note, setNote] = useState("");
@@ -55,6 +57,7 @@ export function HomeScreen({
           childName={childName}
           lang={lang}
           voice={voice}
+          crew={crew}
           onMeetFriend={(friend: BubbleFriend) => {
             void meetFriend(friend).then((result) => {
               if (result.fresh) setBalance(result.stars);
