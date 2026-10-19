@@ -136,14 +136,13 @@ export function Salon({
     const start = window.setTimeout(() => {
       setSpoken({ action: "idle", text });
       setWaving(true);
-      if (voice) speak({ text, lang });
     }, 0);
     const stop = window.setTimeout(() => setWaving(false), 2000);
     return () => {
       window.clearTimeout(start);
       window.clearTimeout(stop);
     };
-  }, [greet, lang, childName, voice]);
+  }, [greet, lang, childName]);
 
   useEffect(() => {
     const apply = () => {

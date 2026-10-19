@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { BreakGate } from "@/components/kid/break-gate";
 import { KidNav } from "@/components/kid/kid-nav";
+import { ScreenVoice } from "@/components/kid/screen-voice";
 import { getFamily } from "@/lib/family";
 import { t } from "@/lib/i18n";
 import { ensureStudyClock } from "@/lib/study/load";
@@ -34,6 +35,7 @@ export default async function KidLayout({ children }: { children: React.ReactNod
         copy={copy}
       >
         <div className="mx-auto flex min-h-dvh max-w-5xl flex-col min-[820px]:flex-row">
+          <ScreenVoice lang={family.child_language === "en" ? "en" : "fr"} name={family.child_name ?? ""} voice={voice} />
           <main className="flex-1 p-4 pt-16 min-[820px]:p-6 min-[820px]:pt-16">{children}</main>
           <KidNav links={links} />
         </div>
