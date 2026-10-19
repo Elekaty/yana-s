@@ -3,6 +3,7 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { matchesInboxFilter, parseInboxFilter } from "@/lib/inbox/filter";
 import { canArchive, canUndo, chooseTier, classifyByRules, digestKind, escalationTargets } from "@/lib/inbox/sort";
+import { arrivalTargets, customSnoozeReply, digestBody, progressBody, reminderButtons } from "@/lib/notify/copy";
 import { publicAppUrl } from "@/lib/intake/public-url";
 
 const now = new Date("2026-10-16T18:00:00.000Z");
@@ -62,6 +63,17 @@ describe("inbox tiers", () => {
     expect(digestKind(new Date("2026-10-16T17:00:00.000Z"), "Europe/Paris")).toBe("important");
     expect(digestKind(new Date("2026-10-18T16:00:00.000Z"), "Europe/Paris")).toBe("fyi");
     expect(digestKind(new Date("2026-10-16T10:00:00.000Z"), "Europe/Paris")).toBeNull();
+  });
+
+  it("tells both parents at once, then only the one who has not been told", () => {
+    expect(arrivalTargets([{ id: "mom" }, { id: "dad" }], [])).toEqual(["mom", "dad"]);
+    expect(arrivalTargets([{ id: "mom" }, { id: "dad" }], ["mom"])).toEqual(["dad"]);
+    expect(digestBody("important", ["Permission slip"])).toContain("Permission slip");
+    expect(digestBody("fyi", [])).toContain("nothing new");
+    expect(progressBody({ homework: 2, games: 4, stars: 6 })).toBe("This week: 2 homework, 4 games, 6 stars.");
+    const buttons = reminderButtons("11111111-1111-1111-1111-111111111111");
+    expect(buttons.map((button) => button.text)).toEqual(["Done", "30", "45", "60", "Custom"]);
+    expect(customSnoozeReply()).toBe("Open the app to choose a custom time.");
   });
 });
 

@@ -4,6 +4,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { afterClassifyError } from "@/lib/intake/mail";
 import { summarizeSchoolNote } from "@/lib/intake/model";
 import { parseClassifyResult } from "@/lib/intake/schema";
+import { alertUrgentArrival } from "@/lib/inbox/escalate";
 import { chooseTier, classifyByRules, type Tier } from "@/lib/inbox/sort";
 import { redactForModel } from "@/lib/scan/redact";
 
@@ -62,6 +63,9 @@ export async function processNextClassify(job: { id: string; family_id: string; 
         action_required: choice.actionRequired,
       })
       .eq("id", message.id);
+    if (choice.tier === "urgent") {
+      await alertUrgentArrival(job.family_id, message.id as string, parsed.title || "An urgent school message just arrived.").catch(() => 0);
+    }
     await admin.from("jobs").update({ status: "succeeded" }).eq("id", job.id);
     return { processed: true };
   } catch {

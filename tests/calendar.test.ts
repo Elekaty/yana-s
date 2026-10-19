@@ -76,6 +76,7 @@ describe("calendar reminders", () => {
     expect(shouldNotifyOther({ status: "sent", dueAt: "2026-10-16T16:00:00.000Z", escalated: false, target: "parent" }, now)).toBe(true);
     expect(shouldNotifyOther({ status: "sent", dueAt: "2026-10-16T16:10:00.000Z", escalated: false, target: "parent" }, now)).toBe(false);
     expect(parseReminderAction("r:11111111-1111-1111-1111-111111111111:45")?.action).toBe("45");
+    expect(parseReminderAction("r:11111111-1111-1111-1111-111111111111:custom")).toBeNull();
   });
 
   it("shows the family holiday instead of the national date, and lists weekdays for a break", () => {

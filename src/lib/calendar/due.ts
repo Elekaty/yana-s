@@ -1,6 +1,7 @@
 import "server-only";
 
 import { applySnooze, parseReminderAction, shouldNotifyOther } from "@/lib/calendar/plan";
+import { customSnoozeReply, reminderButtons } from "@/lib/notify/copy";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export async function runDueReminders(now = new Date()) {
@@ -18,8 +19,7 @@ export async function runDueReminders(now = new Date()) {
     const title = await reminderTitle(reminder.ref_type as string | null, reminder.ref_id as string | null);
     await admin.from("reminders").update({ status: "sent" }).eq("id", reminder.id).in("status", ["pending", "snoozed"]);
     if (reminder.target === "parent") {
-      await notifyFamily(reminder.family_id as string, reminder.id as string, title);
-      await sendPush(reminder.family_id as string, title);
+      await notifyParents(reminder.family_id as string, title, reminder.id as string);
     }
     sent += 1;
   }
@@ -44,8 +44,7 @@ export async function runDueReminders(now = new Date()) {
     );
     if (!ready) continue;
     await admin.from("reminders").update({ escalated: true }).eq("id", reminder.id);
-    await notifyFamily(reminder.family_id as string, reminder.id as string, "A reminder is still waiting.");
-    await sendPush(reminder.family_id as string, "A reminder is still waiting.");
+    await notifyParents(reminder.family_id as string, "A reminder is still waiting.", reminder.id as string);
   }
   return sent;
 }
@@ -80,7 +79,7 @@ export async function handleTelegramCallback(update: unknown) {
   if (!query?.id || !query.data) return false;
   const parsed = parseReminderAction(query.data);
   if (!parsed) {
-    await answerCallback(query.id, "Open the app to choose a custom time.");
+    await answerCallback(query.id, customSnoozeReply());
     return true;
   }
   const admin = createAdminClient();
@@ -117,26 +116,28 @@ async function reminderTitle(refType: string | null, refId: string | null) {
   return "Reminder";
 }
 
-async function notifyFamily(familyId: string, reminderId: string, title: string) {
+export async function notifyParents(familyId: string, text: string, reminderId?: string) {
+  await sendTelegram(familyId, text, reminderId);
+  await sendPush(familyId, text);
+}
+
+async function sendTelegram(familyId: string, text: string, reminderId?: string) {
   const token = process.env.TELEGRAM_BOT_TOKEN;
   if (!token) return;
   const admin = createAdminClient();
   const { data: chats } = await admin.from("telegram_chats").select("chat_id").eq("family_id", familyId);
+  const buttons = reminderId ? reminderButtons(reminderId) : [];
   for (const chat of chats ?? []) {
+    if (String(chat.chat_id).startsWith("-")) continue;
     await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
         chat_id: chat.chat_id,
-        text: title,
-        reply_markup: {
-          inline_keyboard: [[
-            { text: "Done", callback_data: `r:${reminderId}:done` },
-            { text: "30", callback_data: `r:${reminderId}:30` },
-            { text: "45", callback_data: `r:${reminderId}:45` },
-            { text: "60", callback_data: `r:${reminderId}:60` },
-          ]],
-        },
+        text,
+        reply_markup: buttons.length
+          ? { inline_keyboard: [buttons.map((button) => ({ text: button.text, callback_data: button.data }))] }
+          : undefined,
       }),
     });
   }

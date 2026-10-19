@@ -1,6 +1,7 @@
 import "server-only";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { alertUrgentArrival } from "@/lib/inbox/escalate";
 import { chooseTier, classifyByRules } from "@/lib/inbox/sort";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -70,6 +71,10 @@ export async function saveIncoming(input: {
     status: "queued",
   });
   if (jobError) throw new Error("Could not queue the reading");
+  if (choice.tier === "urgent") {
+    const line = input.text.trim().split("\n").find((row) => row.trim()) ?? "An urgent school message just arrived.";
+    await alertUrgentArrival(input.familyId, message.id as string, line.slice(0, 140)).catch(() => 0);
+  }
   return { saved: true as const, messageId: message.id as string };
 }
 
