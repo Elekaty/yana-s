@@ -58,7 +58,7 @@ None of these is reachable without a session. Each returned **307** to `/login` 
 | `/parent/curriculum` | stub | 307 `/login` | Empty state: “Nothing is listed for this month yet,” with a link to Setup. The skills and plan tables exist; this page does not list them. |
 | `/parent/voice` | stub | 307 `/login` | Empty state: “No recordings yet.” It does not load the recordings Progress can show. |
 | `/parent/study` | stub | 307 `/login` | Empty state. Study and prize fields stay on Setup. |
-| `/parent/rewards` | stub | 307 `/login` | Empty state with a link to Progress. Requests and the balance are not on this page. |
+| `/parent/rewards` | working | 307 `/login` | New prize, requests with Approve and Not now, the vault with Remove, and the balance. Not opened after the PIN. |
 | `/kid/home` | working | 307 `/login` | Salon home, stars, check-in. Not opened after sign-in. |
 | `/kid/homework` | working | 307 `/login` | Player when a ready scan has a task. Otherwise the empty homework card. Not opened after sign-in. |
 | `/kid/games` | working | 307 `/login` | Hub: Bay, Lagoon, Cove, Stories, My friends, Town. |
@@ -151,4 +151,4 @@ Present or empty in the local env files only. Vercel’s saved values were not v
 
 ## Not verified
 
-Signed-in layout at 390px and 1024px, light and dark. A real Telegram message, a real forwarded email, push on a phone, a Gemini scan, cron firing, and a signed-in look at Today, Inbox, Calendar, To do, Progress, and the kid games. R5 added the Today blocks in code. R6 added Inbox filters and snooze choices. R7 added calendar add and remove, and reminder delivery in code. R8 copies a repeated homework photo instead of calling Gemini again. This audit did not open them after the PIN, and it did not send a real Telegram message, a real forwarded email, watch a reminder fire, or scan a real photo twice.
+Signed-in layout at 390px and 1024px, light and dark. A real Telegram message, a real forwarded email, push on a phone, a Gemini scan, cron firing, and a signed-in look at Today, Inbox, Calendar, To do, Progress, and the kid games. R5 added the Today blocks in code. R6 added Inbox filters and snooze choices. R7 added calendar add and remove, and reminder delivery in code. R8 copies a repeated homework photo instead of calling Gemini again. R9 puts prizes, requests, and the balance on Rewards. This audit did not open them after the PIN, and it did not send a real Telegram message, a real forwarded email, watch a reminder fire, or scan a real photo twice.

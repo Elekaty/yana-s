@@ -126,6 +126,47 @@ it("hides another family's rows and blocks archive until both parents tick", asy
   expect(directArchive).toBeTruthy();
   const { data: stillNew } = await a.from("messages").select("status").eq("id", second!.id).single();
   expect(stillNew?.status).toBe("new");
+
+  const { data: reward, error: rewardError } = await a
+    .from("rewards")
+    .insert({ family_id: familyA, title: "Story", cost_stars: 2, active: true })
+    .select("id")
+    .single();
+  expect(rewardError).toBeNull();
+  const { data: purchase, error: askError } = await a
+    .from("purchases")
+    .insert({ family_id: familyA, child_id: childId, reward_id: reward!.id, status: "requested" })
+    .select("id")
+    .single();
+  expect(askError).toBeNull();
+  const { data: beforeBuy } = await a.rpc("my_family");
+  expect((beforeBuy as { star_balance: number }).star_balance).toBe(2);
+  const { data: left, error: approveError } = await a.rpc("approve_purchase", { p_purchase: purchase!.id });
+  expect(approveError).toBeNull();
+  expect(left).toBe(0);
+  const { data: spent } = await a.from("star_ledger").select("amount, reason").eq("child_id", childId).eq("reason", "purchase");
+  expect(spent).toEqual([{ amount: -2, reason: "purchase" }]);
+
+  const { data: dear, error: dearError } = await a
+    .from("rewards")
+    .insert({ family_id: familyA, title: "Trip", cost_stars: 5, active: true })
+    .select("id")
+    .single();
+  expect(dearError).toBeNull();
+  const { data: tooMuch, error: tooMuchAsk } = await a
+    .from("purchases")
+    .insert({ family_id: familyA, child_id: childId, reward_id: dear!.id, status: "requested" })
+    .select("id")
+    .single();
+  expect(tooMuchAsk).toBeNull();
+  const { error: short } = await a.rpc("approve_purchase", { p_purchase: tooMuch!.id });
+  expect(short).toBeTruthy();
+  const { data: stillAsked } = await a.from("purchases").select("status").eq("id", tooMuch!.id).single();
+  expect(stillAsked?.status).toBe("requested");
+  const { error: denied } = await a.from("purchases").update({ status: "denied" }).eq("id", tooMuch!.id);
+  expect(denied).toBeNull();
+  const { data: afterBuy } = await a.rpc("my_family");
+  expect((afterBuy as { star_balance: number }).star_balance).toBe(0);
 });
 
 async function makeUser() {

@@ -8,11 +8,11 @@ Single list for the finish-the-app pass. One task at a time.
 | A2 | Apply all migrations | TODO | | |
 | B1 | School calendar and break mode | TODO | | |
 | B2 | Study block and break timer | TODO | | |
-| B3 | On-time bonus and study chests | TODO | | |
+| B3 | On-time bonus and study chests | DONE | `src/lib/prizes.ts`, `src/app/kid/actions.ts`, `tests/prizes.test.ts` | A check-in in the evening window awards the daily stars, and five days award two fives. Active study opens up to three chests a day. Star chests use `award_stars`. |
 | B3b | Six characters | TODO | | |
 | B4 | Town purchases | TODO | | |
 | B5 | Thirty stories | TODO | | |
-| B6 | Store and reward vault | TODO | | |
+| B6 | Store and reward vault | DONE | `src/app/parent/(gate)/rewards/page.tsx`, `src/app/kid/store/page.tsx`, `tests/rewards.test.ts` | A parent adds a prize, Yana asks, and approval spends exactly the cost. The live check is in the database test. |
 | C1 | Telegram and email intake | TODO | | |
 | C2 | Inbox and two-tick archive | TODO | | |
 | C3 | To do and calendar events | TODO | | |
@@ -41,6 +41,7 @@ Single list for the finish-the-app pass. One task at a time.
 | R6 | Intake and Inbox | DONE | `src/app/parent/(gate)/inbox/page.tsx`, `src/app/api/intake/telegram/route.ts`, `src/app/api/intake/email/route.ts`, `tests/inbox.test.ts` | Inbox filters, 30/45/60 snooze, and archive only after both parents tick. A saved note gets a tier immediately. Real Telegram and forwarded email were not sent in this pass. |
 | R7 | Calendar, to do, reminders | DONE | `src/app/parent/(gate)/calendar/page.tsx`, `src/app/parent/(gate)/todo/page.tsx`, `src/lib/calendar/due.ts`, `tests/calendar.test.ts` | Month grid, add and remove, chosen reminders, to-do snooze and reassign. A due reminder is sent to the linked Telegram chat and to a subscribed phone. A live fire and a Telegram snooze were not watched. |
 | R8 | Scan, cache and homework | DONE | `src/lib/scan/process.ts`, `src/lib/scan/cache.ts`, `src/components/scan/desk.tsx`, `tests/scan.test.ts` | The same photo copies the saved reading and does not call Gemini again. The brief shows up to three coaching questions. Homework keeps hints, read-aloud, the focus bar, and the 15-minute break. A real photo was not scanned twice in this pass. |
+| R9 | Store, rewards and automatic prizes | DONE | `src/app/parent/(gate)/rewards/page.tsx`, `src/lib/prizes.ts`, `tests/rewards.test.ts`, `tests/rls.integration.test.ts` | The vault lists prizes, requests, and the balance. Approval spends exactly the cost. Check-in and study chests award stars through `award_stars`. A chest can also be a sticker, a dance, or a friend. |
 
 ## Parent views
 

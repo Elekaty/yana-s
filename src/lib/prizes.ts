@@ -16,7 +16,21 @@ export type PrizeState = {
   activeSec: number;
   chestsToday: number;
   chestDay: string;
+  stickers: string[];
+  dances: number;
+  friends: string[];
+  lastChest: string;
 };
+
+export type ChestPrize =
+  | { kind: "stars"; amount: number }
+  | { kind: "sticker"; id: string }
+  | { kind: "dance" }
+  | { kind: "friend"; friend: string };
+
+const CHEST_KINDS = ["stars", "stars", "sticker", "dance", "friend"] as const;
+const STICKERS = ["sun", "heart", "moon", "yarn", "flower"];
+const CHEST_FRIENDS = ["bunny", "panda", "fox", "corgi", "hamster"];
 
 export type StarAward = { amount: number; reason: string };
 
@@ -38,12 +52,31 @@ export function readPrizeState(raw: unknown): PrizeState {
     activeSec: clamp(prizes.activeSec, 0, 100_000, 0),
     chestsToday: clamp(prizes.chestsToday, 0, 5, 0),
     chestDay: typeof prizes.chestDay === "string" ? prizes.chestDay : "",
+    stickers: strings(prizes.stickers),
+    dances: clamp(prizes.dances, 0, 100, 0),
+    friends: strings(prizes.friends),
+    lastChest: typeof prizes.lastChest === "string" ? prizes.lastChest : "",
   };
 }
 
+export function openChest(day: string, index: number, takenFriends: string[]): ChestPrize {
+  const roll = chestRoll(day, index);
+  const kind = CHEST_KINDS[roll % CHEST_KINDS.length] ?? "stars";
+  if (kind === "sticker") return { kind, id: STICKERS[roll % STICKERS.length] ?? "sun" };
+  if (kind === "dance") return { kind };
+  if (kind === "friend") {
+    const friend = CHEST_FRIENDS.find((name) => !takenFriends.includes(name));
+    if (friend) return { kind, friend };
+  }
+  return { kind: "stars", amount: chestStars(day, index) };
+}
+
 export function chestStars(day: string, index: number) {
-  const sum = [...`${day}:${index}`].reduce((total, char) => total + char.charCodeAt(0), 0);
-  return (sum % 3) + 1;
+  return (chestRoll(day, index) % 3) + 1;
+}
+
+function chestRoll(day: string, index: number) {
+  return [...`${day}:${index}`].reduce((total, char) => total + char.charCodeAt(0), 0);
 }
 
 export function addStudySeconds(state: PrizeState, day: string, seconds: number, settings: PrizeSettings) {
@@ -51,6 +84,8 @@ export function addStudySeconds(state: PrizeState, day: string, seconds: number,
     ...state,
     checkins: [...state.checkins],
     perfectWeeks: [...state.perfectWeeks],
+    stickers: [...state.stickers],
+    friends: [...state.friends],
   };
   if (next.chestDay !== day) {
     next.chestDay = day;
@@ -59,12 +94,27 @@ export function addStudySeconds(state: PrizeState, day: string, seconds: number,
   }
   next.activeSec += Math.max(0, Math.floor(seconds));
   const awards: StarAward[] = [];
+  const prizes: ChestPrize[] = [];
   while (settings.chestDailyCap > 0 && next.activeSec >= settings.chestEverySec && next.chestsToday < settings.chestDailyCap) {
     next.activeSec -= settings.chestEverySec;
     next.chestsToday += 1;
-    awards.push({ amount: chestStars(day, next.chestsToday), reason: `chest:${day}:${next.chestsToday}` });
+    const prize = openChest(day, next.chestsToday, next.friends);
+    prizes.push(prize);
+    if (prize.kind === "stars") {
+      awards.push({ amount: prize.amount, reason: `chest:${day}:${next.chestsToday}` });
+      next.lastChest = `stars:${prize.amount}`;
+    } else if (prize.kind === "sticker") {
+      if (!next.stickers.includes(prize.id)) next.stickers.push(prize.id);
+      next.lastChest = `sticker:${prize.id}`;
+    } else if (prize.kind === "dance") {
+      next.dances += 1;
+      next.lastChest = "dance";
+    } else {
+      next.friends.push(prize.friend);
+      next.lastChest = `friend:${prize.friend}`;
+    }
   }
-  return { state: next, awards };
+  return { state: next, awards, prizes };
 }
 
 export function markCheckIn(state: PrizeState, day: string, weekDays: string[], weekKey: string, open: boolean, settings: PrizeSettings) {

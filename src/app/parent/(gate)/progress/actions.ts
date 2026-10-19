@@ -26,6 +26,7 @@ export async function addReward(formData: FormData) {
   if (!title || !Number.isInteger(cost) || cost < 1 || cost > 100) return;
   await ctx.supabase.from("rewards").insert({ family_id: ctx.familyId, title, cost_stars: cost, active: true });
   revalidatePath("/parent/progress");
+  revalidatePath("/parent/rewards");
   revalidatePath("/kid/store");
 }
 
@@ -35,6 +36,7 @@ export async function hideReward(formData: FormData) {
   const id = String(formData.get("id") ?? "");
   await ctx.supabase.from("rewards").update({ active: false }).eq("id", id).eq("family_id", ctx.familyId);
   revalidatePath("/parent/progress");
+  revalidatePath("/parent/rewards");
   revalidatePath("/kid/store");
 }
 
@@ -44,6 +46,7 @@ export async function approveReward(formData: FormData) {
   await ctx.supabase.rpc("approve_purchase", { p_purchase: String(formData.get("id") ?? "") });
   revalidatePath("/parent");
   revalidatePath("/parent/progress");
+  revalidatePath("/parent/rewards");
   revalidatePath("/kid/store");
 }
 
@@ -58,6 +61,7 @@ export async function denyReward(formData: FormData) {
     .eq("status", "requested");
   revalidatePath("/parent");
   revalidatePath("/parent/progress");
+  revalidatePath("/parent/rewards");
   revalidatePath("/kid/store");
 }
 

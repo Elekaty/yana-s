@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { addStudySeconds, chestStars, imageHash, markCheckIn, mondayKey, readPrizeState, weekDays } from "@/lib/prizes";
+import { addStudySeconds, chestStars, imageHash, markCheckIn, mondayKey, openChest, readPrizeState, weekDays } from "@/lib/prizes";
 
 const settings = { onTimeStars: 2, chestEverySec: 600, chestDailyCap: 3 };
 
@@ -15,12 +15,32 @@ describe("study chest", () => {
   it("opens one chest every ten active minutes and stops at the daily cap", () => {
     const start = readPrizeState({});
     const first = addStudySeconds(start, "2026-10-17", 600, settings);
-    expect(first.awards).toHaveLength(1);
-    expect(first.awards[0]?.amount).toBeGreaterThanOrEqual(1);
-    expect(first.awards[0]?.amount).toBeLessThanOrEqual(3);
+    expect(first.prizes).toHaveLength(1);
+    const prize = first.prizes[0];
+    if (prize?.kind === "stars") {
+      expect(first.awards.map((award) => award.amount)).toEqual([prize.amount]);
+      expect(prize.amount).toBeGreaterThanOrEqual(1);
+      expect(prize.amount).toBeLessThanOrEqual(3);
+    } else {
+      expect(first.awards).toEqual([]);
+    }
     const capped = addStudySeconds(first.state, "2026-10-17", 600 * 5, settings);
     expect(capped.state.chestsToday).toBe(3);
-    expect(capped.awards).toHaveLength(2);
+    expect(capped.prizes).toHaveLength(2);
+    expect(capped.awards.every((award) => award.amount >= 1 && award.amount <= 3)).toBe(true);
+  });
+
+  it("can open stars, a sticker, a dance, or a friend", () => {
+    const seen = new Set<string>();
+    let friendIndex = 0;
+    for (let index = 1; index <= 40; index += 1) {
+      const prize = openChest("2026-10-17", index, []);
+      seen.add(prize.kind);
+      if (prize.kind === "friend") friendIndex = index;
+      if (prize.kind === "stars") expect(prize.amount).toBe(chestStars("2026-10-17", index));
+    }
+    expect([...seen].sort()).toEqual(["dance", "friend", "stars", "sticker"]);
+    expect(openChest("2026-10-17", friendIndex, ["bunny", "panda", "fox", "corgi", "hamster"]).kind).toBe("stars");
   });
 
   it("does not count a new day toward yesterday's cap", () => {

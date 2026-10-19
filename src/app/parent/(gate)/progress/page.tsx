@@ -1,7 +1,8 @@
 import { ParentNote } from "@/components/parent-note";
 import { Button } from "@/components/ui/button";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
-import { addReward, approveReward, denyReward, hideReward, raiseSkill, reactToVoice } from "@/app/parent/(gate)/progress/actions";
+import Link from "next/link";
+import { raiseSkill, reactToVoice } from "@/app/parent/(gate)/progress/actions";
 import { requireParent } from "@/lib/parent/guard";
 import { skillStatus, weekCounts } from "@/lib/plan/outline";
 import { ensureOutline } from "@/lib/plan/seed";
@@ -30,12 +31,10 @@ export default async function ProgressPage() {
     outlineReady = false;
   }
   const week = weekStart(family.timezone || "Europe/Paris");
-  const [{ data: sessions }, { data: runs }, { data: reads }, { data: rewards }, { data: requests }, skillQuery, { data: progress }] = await Promise.all([
+  const [{ data: sessions }, { data: runs }, { data: reads }, skillQuery, { data: progress }] = await Promise.all([
     supabase.from("game_sessions").select("game, created_at").eq("family_id", family.family_id).gte("created_at", week),
     supabase.from("homework_runs").select("id").eq("family_id", family.family_id).eq("status", "done").gte("updated_at", week),
     supabase.from("story_reads").select("story_id").eq("family_id", family.family_id).gte("completed_at", week),
-    supabase.from("rewards").select("id, title, cost_stars, active").eq("family_id", family.family_id).order("cost_stars"),
-    supabase.from("purchases").select("id, reward_id, status").eq("family_id", family.family_id).eq("status", "requested"),
     supabase.from("skills").select("skill_key, area, title_fr, explanation_en, ask_fr, sort").is("family_id", null).order("sort"),
     family.child_id ? supabase.from("skill_progress").select("skill, level").eq("child_id", family.child_id) : Promise.resolve({ data: [] }),
   ]);
@@ -130,44 +129,9 @@ export default async function ProgressPage() {
           </ul>
         </Card>
       )}
-      <Card>
-        <CardTitle>Rewards</CardTitle>
-        <CardDescription>Approving spends stars. Denying leaves them.</CardDescription>
-        <form action={addReward} className="mt-3 flex flex-wrap gap-2">
-          <input name="title" aria-label="Reward" placeholder="Reward" className="h-10 rounded-md border border-border bg-background px-2" />
-          <input name="cost" type="number" aria-label="Star cost" min={1} max={100} defaultValue={5} className="h-10 w-20 rounded-md border border-border bg-background px-2" />
-          <Button type="submit">Add</Button>
-        </form>
-        <ul className="mt-3 space-y-2">
-          {(rewards ?? []).filter((reward) => reward.active).map((reward) => (
-            <li key={reward.id} className="flex items-center justify-between gap-2">
-              <span>{reward.title} · {reward.cost_stars} stars</span>
-              <form action={hideReward}>
-                <input type="hidden" name="id" value={reward.id} />
-                <Button type="submit" variant="ghost">Hide</Button>
-              </form>
-            </li>
-          ))}
-        </ul>
-        <ul className="mt-3 space-y-2">
-          {(requests ?? []).map((request) => {
-            const reward = (rewards ?? []).find((item) => item.id === request.reward_id);
-            return (
-              <li key={request.id} className="flex flex-wrap items-center gap-2">
-                <span>{reward?.title ?? "Reward"}</span>
-                <form action={approveReward}>
-                  <input type="hidden" name="id" value={request.id} />
-                  <Button type="submit">Approve</Button>
-                </form>
-                <form action={denyReward}>
-                  <input type="hidden" name="id" value={request.id} />
-                  <Button type="submit" variant="outline">Deny</Button>
-                </form>
-              </li>
-            );
-          })}
-        </ul>
-      </Card>
+      <p className="text-sm">
+        <Link href="/parent/rewards" className="underline">Reward vault</Link>
+      </p>
       {clips.length === 0 ? <ParentNote title="Voice" body="Recordings Yana makes will show here. Nothing is graded, and a recording is never sent to an AI." /> : null}
       {clips.map((clip) => (
         <Card key={clip.id}>

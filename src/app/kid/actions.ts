@@ -193,10 +193,15 @@ async function grantChests(
   ]);
   const timeZone = familyRow?.timezone || "Europe/Paris";
   const day = new Intl.DateTimeFormat("en-CA", { timeZone, year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
-  const added = addStudySeconds(readPrizeState(child?.settings), day, seconds, prizeSettings(familyRow?.settings));
-  if (added.awards.length === 0 && added.state.activeSec === readPrizeState(child?.settings).activeSec) return;
+  const prior = readPrizeState(child?.settings);
+  const added = addStudySeconds(prior, day, seconds, prizeSettings(familyRow?.settings));
+  if (added.prizes.length === 0 && added.state.activeSec === prior.activeSec && added.state.chestDay === prior.chestDay) return;
   const childSettings = { ...((child?.settings as Record<string, unknown> | null) ?? {}), prizes: added.state };
   await supabase.from("children").update({ settings: childSettings }).eq("id", childId);
+  for (const friend of added.state.friends) {
+    if (prior.friends.includes(friend)) continue;
+    await supabase.from("friends_unlocked").insert({ family_id: familyId, child_id: childId, friend });
+  }
   if (added.awards.length > 0) await payAwards(supabase, childId, added.awards, 0);
 }
 
