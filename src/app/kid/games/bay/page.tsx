@@ -2,20 +2,26 @@ import { KidBack } from "@/components/kid/kid-back";
 import { PlayChoice } from "@/components/kid/play-choice";
 import { getFamily } from "@/lib/family";
 import { t } from "@/lib/i18n";
-import { kidPlaces } from "@/lib/kid/places";
+import { bayCards, kidPlaces } from "@/lib/kid/places";
 
 export const dynamic = "force-dynamic";
+
+const cardLook = {
+  "/kid/games/bay/bulles": { key: "bulles", emoji: "🫧", tone: "sun" },
+  "/kid/games/bay/fruit": { key: "fruits", emoji: "🍓", tone: "hot" },
+  "/kid/games/bay/kitchen": { key: "kitchen", emoji: "🍎", tone: "grape" },
+} as const;
 
 export default async function BayPage() {
   const { family } = await getFamily();
   const copy = t(family?.child_language);
-  const en = family?.child_language === "en";
   return (
-    <div className="grid gap-4">
+    <div className="grid gap-3">
       <KidBack href={kidPlaces.games} label={copy.back} />
-      <PlayChoice href="/kid/games/bay/bulles" title={copy.bulles} hint={en ? "Pop the right bubble" : "Éclate la bonne bulle"} emoji="🫧" tone="sun" />
-      <PlayChoice href="/kid/games/bay/fruit" title={copy.fruits} hint={en ? "Slice the fruit" : "Coupe le fruit"} emoji="🍓" tone="hot" />
-      <PlayChoice href="/kid/games/bay/kitchen" title={copy.kitchen} hint={en ? "Fill the plate" : "Remplis l'assiette"} emoji="🍎" tone="grape" />
+      {bayCards.map((href) => {
+        const look = cardLook[href];
+        return <PlayChoice key={href} primary href={href} title={copy[look.key]} emoji={look.emoji} tone={look.tone} />;
+      })}
     </div>
   );
 }

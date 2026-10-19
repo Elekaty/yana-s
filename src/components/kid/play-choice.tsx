@@ -9,25 +9,20 @@ const tones = {
 export function PlayChoice({
   href,
   title,
-  hint,
   emoji,
   tone,
+  primary = false,
 }: {
   href: string;
   title: string;
-  hint: string;
   emoji: string;
   tone: keyof typeof tones;
+  primary?: boolean;
 }) {
   return (
-    <Link href={href} className={`flex h-28 items-center gap-4 rounded-3xl px-4 ring-2 ring-white/40 ${tones[tone]}`}>
-      <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-white/30 text-4xl" aria-hidden>
-        {emoji}
-      </span>
-      <span className="min-w-0">
-        <span className="block text-3xl leading-none">{title}</span>
-        <span className="mt-1 block text-sm opacity-80">{hint}</span>
-      </span>
+    <Link data-primary={primary ? "true" : undefined} href={href} className={`flex h-16 items-center justify-center gap-2 rounded-full px-4 text-2xl ${tones[tone]}`}>
+      <span aria-hidden>{emoji}</span>
+      {title}
     </Link>
   );
 }

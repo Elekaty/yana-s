@@ -9,12 +9,11 @@ export const dynamic = "force-dynamic";
 export default async function CovePage() {
   const { family } = await getFamily();
   const copy = t(family?.child_language);
-  const en = family?.child_language === "en";
   return (
-    <div className="grid gap-4">
+    <div className="grid gap-3">
       <KidBack href={kidPlaces.games} label={copy.back} />
-      <PlayChoice href="/kid/games/cove/draw" title={copy.draw} hint={en ? "Draw, paint, and stickers" : "Dessin, peinture et collages"} emoji="✏️" tone="sun" />
-      <PlayChoice href="/kid/games/cove/music" title={copy.music} hint={en ? "Play the song" : "Joue la chanson"} emoji="🎵" tone="hot" />
+      <PlayChoice href="/kid/games/cove/draw" title={copy.draw} emoji="✏️" tone="sun" />
+      <PlayChoice href="/kid/games/cove/music" title={copy.music} emoji="🎵" tone="hot" />
     </div>
   );
 }

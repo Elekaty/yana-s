@@ -45,7 +45,7 @@ export function KitchenPlay({ lang, copy, tags }: { lang: "fr" | "en"; copy: Cop
         <p className="text-center text-2xl">
           {stars} {copy.stars}
         </p>
-        <Link href="/kid/games/bay/more" className="flex h-14 items-center justify-center rounded-full bg-white/15 text-2xl">
+        <Link href="/kid/games/bay" className="flex h-14 items-center justify-center rounded-full bg-white/15 text-2xl">
           {copy.back}
         </Link>
       </div>

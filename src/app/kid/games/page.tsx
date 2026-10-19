@@ -1,27 +1,27 @@
-import { CrewStrip } from "@/components/mochi/crew-strip";
+import { KidMochi } from "@/components/kid/kid-mochi";
 import { PlayChoice } from "@/components/kid/play-choice";
 import { getFamily } from "@/lib/family";
 import { t } from "@/lib/i18n";
-import { crewWithStarter } from "@/lib/mochi/crew";
-import { ensureStarterFriend } from "@/lib/mochi/starter";
+import { gameIslands } from "@/lib/kid/places";
 
 export const dynamic = "force-dynamic";
 
+const islandLook = {
+  "/kid/games/bay": { key: "bay", emoji: "🏝️", tone: "hot" },
+  "/kid/games/lagoon": { key: "lagoon", emoji: "🌊", tone: "grape" },
+  "/kid/games/cove": { key: "cove", emoji: "🎨", tone: "sun" },
+} as const;
+
 export default async function GamesPage() {
-  const { supabase, family } = await getFamily();
+  const { family } = await getFamily();
   const copy = t(family?.child_language);
-  const en = family?.child_language === "en";
-  if (family?.child_id) await ensureStarterFriend(supabase, family.family_id, family.child_id);
-  const { data: met } = family?.child_id
-    ? await supabase.from("friends_unlocked").select("friend").eq("child_id", family.child_id)
-    : { data: [] };
-  const crew = crewWithStarter((met ?? []).map((row) => String(row.friend)));
   return (
-    <div className="grid gap-4">
-      <CrewStrip crew={crew} lang={en ? "en" : "fr"} childName={family?.child_name ?? ""} />
-      <PlayChoice href="/kid/games/bay" title={copy.bay} hint={en ? "Bubbles and fruit" : "Bulles et fruits"} emoji="🫧" tone="hot" />
-      <PlayChoice href="/kid/games/lagoon" title={copy.lagoon} hint={en ? "A path of arrows" : "Un chemin de flèches"} emoji="🌊" tone="grape" />
-      <PlayChoice href="/kid/games/cove" title={copy.cove} hint={en ? "Draw and music" : "Dessin et musique"} emoji="🎨" tone="sun" />
+    <div className="grid gap-3">
+      <KidMochi />
+      {gameIslands.map((href) => {
+        const look = islandLook[href];
+        return <PlayChoice key={href} primary href={href} title={copy[look.key]} emoji={look.emoji} tone={look.tone} />;
+      })}
     </div>
   );
 }
