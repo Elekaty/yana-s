@@ -1,6 +1,7 @@
 "use server";
 
 import { nextLevel, tablesSkillLevel } from "@/lib/plan/outline";
+import { growGarden } from "@/lib/garden/grow";
 import { getFamily } from "@/lib/family";
 import { gradeRound, tablesFrom } from "@/lib/games/questions";
 
@@ -47,5 +48,6 @@ export async function finishRound(input: { game: "bulles" | "fruit"; level: "eas
     },
     { onConflict: "child_id,skill" },
   );
+  await growGarden(supabase, family.child_id);
   return { stars: graded.stars, correct: graded.correct, balance };
 }

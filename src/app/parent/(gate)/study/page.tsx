@@ -14,6 +14,7 @@ export default async function StudyPage() {
     chest_daily_cap?: number;
     daily_cap_minutes?: number;
     town_star_cap?: number;
+    building_shop?: boolean;
   } | null) ?? {};
   const study = studySettings(familyRow?.settings);
 
@@ -61,6 +62,10 @@ export default async function StudyPage() {
         <label>
           Town spending cap
           <input name="townCap" type="number" min={0} max={500} defaultValue={settings.town_star_cap ?? ""} placeholder="No cap" className="mt-1 block h-12 w-28 rounded-md border border-border bg-background px-3" />
+        </label>
+        <label className="flex h-12 items-center gap-2">
+          <input type="checkbox" name="buildingShop" value="on" defaultChecked={settings.building_shop === true} />
+          Enable the building shop
         </label>
         <p className="text-sm text-muted-foreground">A perfect week adds 10 stars, as two fives. Idle time does not open a chest.</p>
         <Button type="submit" size="lg">Save</Button>

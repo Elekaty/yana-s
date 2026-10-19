@@ -30,6 +30,7 @@ export async function savePractice(formData: FormData) {
   settings.chest_daily_cap = clampSetting(formData.get("chestCap"), 0, 5, 3);
   if (townCap === null || Number.isNaN(townCap)) delete settings.town_star_cap;
   else settings.town_star_cap = townCap;
+  settings.building_shop = formData.get("buildingShop") === "on";
   const childSettings = { ...((child?.settings as Record<string, unknown> | null) ?? {}) };
   if (tables.length > 0) childSettings.tables = tables;
   childSettings.voice = formData.get("voice") === "on";
@@ -55,6 +56,7 @@ export async function saveStudy(formData: FormData) {
   const capRaw = String(formData.get("townCap") ?? "").trim();
   if (capRaw === "") delete settings.town_star_cap;
   else settings.town_star_cap = clampSetting(formData.get("townCap"), 0, 500, 0);
+  settings.building_shop = formData.get("buildingShop") === "on";
   await supabase.from("families").update({ settings }).eq("id", family.family_id);
   revalidatePath("/parent/study");
   revalidatePath("/parent/setup");

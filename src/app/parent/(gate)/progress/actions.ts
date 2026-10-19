@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { growGarden } from "@/lib/garden/grow";
 import { SKILLS, nextLevel } from "@/lib/plan/outline";
 import { getFamily } from "@/lib/family";
 
@@ -78,6 +79,7 @@ export async function confirmStory(formData: FormData) {
   const { data: paid } = await ctx.supabase.from("star_ledger").select("id").eq("child_id", ctx.childId).eq("reason", reason).limit(1);
   if ((paid ?? []).length > 0) return;
   await ctx.supabase.rpc("award_stars", { p_child: ctx.childId, p_amount: 2, p_reason: reason });
+  await growGarden(ctx.supabase, ctx.childId);
   const { data } = await ctx.supabase.from("skill_progress").select("correct, attempts, level").eq("child_id", ctx.childId).eq("skill", "reading").maybeSingle();
   const correct = Number(data?.correct ?? 0) + 1;
   await ctx.supabase.from("skill_progress").upsert(

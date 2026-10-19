@@ -1,0 +1,25 @@
+import { chromium } from "playwright";
+
+const browser = await chromium.launch({ headless: true });
+const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
+const errors = [];
+page.on("pageerror", (error) => errors.push(String(error)));
+await page.goto("http://localhost:3000/join", { waitUntil: "domcontentloaded", timeout: 45000 });
+await page.getByRole("button", { name: "Create family" }).waitFor({ timeout: 20000 });
+await page.locator("#familyName").fill("K5 audit");
+await page.locator("#childName").fill("Yana");
+await page.locator("#pin").fill("4680");
+await page.getByRole("button", { name: "Create family" }).click();
+await page.waitForURL("**/kid/**", { timeout: 45000 });
+await page.goto("http://localhost:3000/kid/garden", { waitUntil: "domcontentloaded", timeout: 45000 });
+await page.getByRole("img", { name: "Mochi le chat" }).waitFor({ timeout: 20000 });
+const sprouts = await page.getByText("🌱", { exact: true }).count();
+const buy = await page.getByText("Acheter", { exact: true }).count();
+const back = await page.getByRole("link", { name: "Retour" }).getAttribute("href");
+const scroll = await page.evaluate(() => document.documentElement.scrollHeight);
+await page.goto("http://localhost:3000/kid/town", { waitUntil: "domcontentloaded", timeout: 45000 });
+await page.waitForURL("**/kid/garden", { timeout: 20000 });
+const report = { sprouts, buy, back, scroll, town: page.url(), errors: errors.map((item) => item.slice(0, 180)) };
+console.log(JSON.stringify(report));
+if (sprouts !== 12 || buy !== 0 || back !== "/kid/corner" || scroll > 844 || errors.length > 0) process.exitCode = 1;
+await browser.close();

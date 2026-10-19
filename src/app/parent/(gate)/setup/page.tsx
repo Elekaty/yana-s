@@ -25,7 +25,7 @@ export default async function SetupPage({ searchParams }: { searchParams: Promis
     supabase.from("families").select("settings").eq("id", family.family_id).maybeSingle(),
   ]);
   const parents = (members ?? []).filter((member) => member.role === "parent");
-  const settings = (familyRow?.settings as { mom_member_id?: string; dad_member_id?: string; daily_cap_minutes?: number; evening_from?: string; evening_to?: string; town_star_cap?: number; on_time_stars?: number; chest_minutes?: number; chest_daily_cap?: number } | null) ?? {};
+  const settings = (familyRow?.settings as { mom_member_id?: string; dad_member_id?: string; daily_cap_minutes?: number; evening_from?: string; evening_to?: string; town_star_cap?: number; on_time_stars?: number; chest_minutes?: number; chest_daily_cap?: number; building_shop?: boolean } | null) ?? {};
   const { data: childRow } = family.child_id
     ? await supabase.from("children").select("settings").eq("id", family.child_id).maybeSingle()
     : { data: null };
@@ -269,6 +269,10 @@ export default async function SetupPage({ searchParams }: { searchParams: Promis
           <label>
             Town star cap
             <input name="townCap" type="number" min={0} max={500} defaultValue={settings.town_star_cap ?? ""} placeholder="No cap" className="mt-1 block h-10 w-24 rounded-md border border-border bg-background px-2" />
+          </label>
+          <label className="flex h-12 items-center gap-2">
+            <input type="checkbox" name="buildingShop" value="on" defaultChecked={settings.building_shop === true} />
+            Enable the building shop
           </label>
           <label>
             On-time stars

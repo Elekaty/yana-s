@@ -1,6 +1,7 @@
 "use server";
 
 import { nextLevel } from "@/lib/plan/outline";
+import { growGarden } from "@/lib/garden/grow";
 import { getFamily } from "@/lib/family";
 import { isFamilyVoicePath } from "@/lib/voice/record";
 import { NEW_PROMPTS, phraseById } from "@/lib/voice/packs";
@@ -66,6 +67,7 @@ async function awardOnce(key: string, skill: string) {
     stars,
   });
   await bumpSkill(ctx, skill);
+  await growGarden(ctx.supabase, ctx.childId);
   return { stars, balance: data };
 }
 

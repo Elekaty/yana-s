@@ -13,6 +13,7 @@ import {
   studySettings,
   type StudyClock,
 } from "@/lib/study/clock";
+import { growGarden } from "@/lib/garden/grow";
 import { stepsFromGames, type RunStatus } from "@/lib/study/homework";
 
 const pinSchema = z.string().regex(/^\d{4,6}$/);
@@ -145,8 +146,9 @@ export async function completeStep(input: { taskId: string; stepIndex: number })
         ...row,
       });
   if (saved.error) return { error: "Could not save this step." };
-  if (done) {
+  if (done && ctx.run?.status !== "done") {
     await ctx.supabase.from("tasks").update({ status: "completed" }).eq("id", input.taskId).eq("family_id", ctx.familyId);
+    await growGarden(ctx.supabase, ctx.childId);
   }
   return { stars, done, stepIndex: nextIndex };
 }
@@ -282,7 +284,7 @@ async function runContext(taskId: string) {
     supabase.from("mini_games").select("game_data").eq("task_id", taskId),
     supabase
       .from("homework_runs")
-      .select("id, awarded_steps")
+      .select("id, awarded_steps, status")
       .eq("child_id", family.child_id)
       .eq("task_id", taskId)
       .maybeSingle(),
@@ -294,6 +296,6 @@ async function runContext(taskId: string) {
     lang: family.child_language,
     stars: family.star_balance,
     games: games ?? [],
-    run: run ? { id: run.id as string, awarded_steps: (run.awarded_steps ?? []) as number[] } : null,
+    run: run ? { id: run.id as string, awarded_steps: (run.awarded_steps ?? []) as number[], status: String(run.status ?? "") } : null,
   };
 }

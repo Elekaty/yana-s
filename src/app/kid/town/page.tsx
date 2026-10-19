@@ -1,13 +1,18 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { TownBoard } from "@/components/kid/town-board";
 import { getFamily } from "@/lib/family";
+import { buildingShopOn } from "@/lib/garden/kinds";
 import { t } from "@/lib/i18n";
+import { kidPlaces } from "@/lib/kid/places";
 
 export const dynamic = "force-dynamic";
 
 export default async function TownPage() {
   const { supabase, family } = await getFamily();
   if (!family?.child_id) return null;
+  const { data: familyRow } = await supabase.from("families").select("settings").eq("id", family.family_id).maybeSingle();
+  if (!buildingShopOn(familyRow?.settings)) redirect(kidPlaces.garden);
   const copy = t(family.child_language);
   const lang = family.child_language === "en" ? "en" : "fr";
   const [{ data: plots, error }, { data: friends }] = await Promise.all([

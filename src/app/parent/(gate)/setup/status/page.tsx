@@ -29,6 +29,7 @@ const tables = [
   ["plan_items", "item_key"],
   ["rewards", "id"],
   ["roster_drafts", "id"],
+  ["garden_items", "id"],
 ] as const;
 
 export default async function SetupStatusPage() {
@@ -80,7 +81,7 @@ export default async function SetupStatusPage() {
         <CardDescription>The minute job still has to be scheduled in Supabase. A set secret does not prove it is running.</CardDescription>
       </Card>
       {tableRows.some((row) => !row.ok) ? (
-        <ParentNote title="Migrations" body="A checked table is missing. Apply supabase/migrations in order, from 0001 through 0011." />
+        <ParentNote title="Migrations" body="A checked table is missing. Apply supabase/migrations in order, from 0001 through 0012." />
       ) : (
         <ParentNote title="Migrations" body="The tables this screen checks are present." />
       )}

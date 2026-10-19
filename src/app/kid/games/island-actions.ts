@@ -7,6 +7,8 @@ import { kitchenFoods } from "@/lib/dictionary";
 import { gradeKitchen, type Plate } from "@/lib/games/kitchen";
 import { cleared, levelById, type Dir } from "@/lib/games/lagoon";
 import { gradeSafari } from "@/lib/games/safari";
+import { growGarden } from "@/lib/garden/grow";
+import { buildingShopOn } from "@/lib/garden/kinds";
 import { townItem } from "@/lib/games/town";
 import { getFamily } from "@/lib/family";
 
@@ -38,6 +40,8 @@ export async function finishSong(notes: string[]) {
 export async function buyPlot(slot: number, item: string) {
   const ctx = await childContext();
   if (!ctx || !townItem(item) || !Number.isInteger(slot)) return { ok: false, balance: 0 };
+  const { data: familyRow } = await ctx.supabase.from("families").select("settings").eq("id", ctx.familyId).maybeSingle();
+  if (!buildingShopOn(familyRow?.settings)) return { ok: false, balance: ctx.stars };
   const { data, error } = await ctx.supabase.rpc("buy_town_item", { p_child: ctx.childId, p_slot: slot, p_item: item });
   if (error || typeof data !== "number") return { ok: false, balance: ctx.stars };
   return { ok: true, balance: data };
@@ -96,6 +100,7 @@ async function awardRound(game: string, skill: string, stars: number, score: num
     stars: given,
   });
   if (given > 0) await bumpSkill(ctx, skill);
+  await growGarden(ctx.supabase, ctx.childId);
   return { stars: given, balance };
 }
 

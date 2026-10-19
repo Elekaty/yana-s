@@ -1,0 +1,16 @@
+.bed {
+  position: relative;
+  min-height: 4.5rem;
+}
+.walker {
+  position: absolute;
+  bottom: 0;
+  animation: stroll 9s ease-in-out infinite;
+}
+@keyframes stroll {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(7rem); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .walker { animation: none; }
+}

@@ -47,7 +47,7 @@ describe("school year dates", () => {
       expect(source).not.toMatch(/SQL editor/);
       expect(source).not.toMatch(/Paste supabase/);
     }
-    expect(status).toContain("0001 through 0011");
+    expect(status).toContain("0001 through 0012");
     expect(status).toContain("The tables this screen checks are present.");
   });
 });
