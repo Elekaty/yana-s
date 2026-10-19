@@ -52,4 +52,20 @@ describe("route matrix", () => {
     expect(study).toContain("saveStudy");
     expect(curriculum).toContain("monthPlan");
   });
+
+  it("puts parent and kid mode beside the language switch and lists every parent page in the side menu", () => {
+    const root = readFileSync(path.join(process.cwd(), "src", "app", "layout.tsx"), "utf8");
+    const mode = readFileSync(path.join(process.cwd(), "src", "components", "mode-switch.tsx"), "utf8");
+    const nav = readFileSync(path.join(process.cwd(), "src", "components", "parent", "parent-nav.tsx"), "utf8");
+    expect(root).toContain("ModeSwitch");
+    expect(root).toContain("LanguageBar");
+    expect(mode).toContain("Parent");
+    expect(mode).toContain("Kid");
+    expect(nav).toContain("Show menu");
+    expect(nav).toContain("Hide menu");
+    for (const href of ["/parent/inbox", "/parent/calendar", "/parent/todo", "/parent/scan", "/parent/curriculum", "/parent/voice", "/parent/rewards", "/parent/study", "/parent/setup"]) {
+      expect(nav).toContain(href);
+    }
+    expect(nav).not.toContain("More");
+  });
 });

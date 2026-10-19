@@ -1,9 +1,7 @@
 import { ParentNav } from "@/components/parent/parent-nav";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { Button } from "@/components/ui/button";
 import { requireParent } from "@/lib/parent/guard";
 import { loadToday } from "@/lib/parent/queries";
-import { lockAndGoToKid } from "@/app/parent/unlock/actions";
 
 export const dynamic = "force-dynamic";
 
@@ -16,7 +14,7 @@ export default async function ParentLayout({ children }: { children: React.React
       <ParentNav unseen={today?.unseenCount ?? 0} />
       <div className="min-w-0">
         <header className="sticky top-0 z-20 bg-plum text-white shadow-lg">
-          <div className="mx-auto flex max-w-6xl flex-col gap-2 px-4 py-3 pr-28">
+          <div className="mx-auto flex max-w-6xl flex-col gap-2 pb-3 pl-16 pr-4 pt-16 min-[1024px]:pb-3 min-[1024px]:pl-6 min-[1024px]:pr-80 min-[1024px]:pt-3">
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
                 <p className="truncate font-fredoka text-2xl leading-none">{today?.childName ?? family.child_name ?? "Yana"}</p>
@@ -26,15 +24,10 @@ export default async function ParentLayout({ children }: { children: React.React
             </div>
             <div className="flex flex-wrap items-center gap-2">
               <ThemeToggle className="h-12 border-white/25 bg-white/10 text-white hover:bg-white/20" />
-              <form action={lockAndGoToKid}>
-                <Button type="submit" className="h-12 border-0 bg-hot text-white hover:opacity-90">
-                  Kid mode
-                </Button>
-              </form>
             </div>
           </div>
         </header>
-        <div className="mx-auto max-w-6xl p-4 pb-24 min-[1024px]:p-6 [&_h1]:font-fredoka [&_h1]:text-3xl [&_h1]:text-plum dark:[&_h1]:text-white">{children}</div>
+        <div className="mx-auto max-w-6xl p-4 min-[1024px]:p-6 [&_h1]:font-fredoka [&_h1]:text-3xl [&_h1]:text-plum dark:[&_h1]:text-white">{children}</div>
       </div>
     </div>
   );
