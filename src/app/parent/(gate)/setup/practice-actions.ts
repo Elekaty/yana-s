@@ -39,6 +39,28 @@ export async function savePractice(formData: FormData) {
   revalidatePath("/kid", "layout");
 }
 
+export async function saveStudy(formData: FormData) {
+  const { supabase, family } = await getFamily();
+  if (!family || family.my_role !== "parent") return;
+  const { data: familyRow } = await supabase.from("families").select("settings").eq("id", family.family_id).single();
+  const settings = { ...((familyRow?.settings as Record<string, unknown> | null) ?? {}) };
+  settings.study_minutes = clampSetting(formData.get("study"), 10, 30, 20);
+  settings.break_minutes = clampSetting(formData.get("break"), 10, 20, 15);
+  settings.heads_up_minutes = clampSetting(formData.get("headsUp"), 1, 10, 5);
+  settings.max_postponements = clampSetting(formData.get("postponements"), 0, 4, 2);
+  settings.on_time_stars = clampSetting(formData.get("onTime"), 1, 5, 2);
+  settings.chest_minutes = clampSetting(formData.get("chestMinutes"), 5, 60, 10);
+  settings.chest_daily_cap = clampSetting(formData.get("chestCap"), 0, 5, 3);
+  settings.daily_cap_minutes = clampSetting(formData.get("cap"), 5, 60, 15);
+  const capRaw = String(formData.get("townCap") ?? "").trim();
+  if (capRaw === "") delete settings.town_star_cap;
+  else settings.town_star_cap = clampSetting(formData.get("townCap"), 0, 500, 0);
+  await supabase.from("families").update({ settings }).eq("id", family.family_id);
+  revalidatePath("/parent/study");
+  revalidatePath("/parent/setup");
+  revalidatePath("/kid", "layout");
+}
+
 function clampSetting(value: FormDataEntryValue | null, min: number, max: number, fallback: number) {
   const number = Number(value);
   if (!Number.isFinite(number)) return fallback;

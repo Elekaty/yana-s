@@ -55,9 +55,9 @@ None of these is reachable without a session. Each returned **307** to `/login` 
 | `/parent/setup` | working | 307 `/login` | Invite, Telegram, senders, roster, practice, language. Not opened after sign-in. |
 | `/parent/setup/status` | working | 307 `/login` | Checklist of env names and tables. It does not show secret values. Not opened after sign-in. |
 | `/parent/scan` | working | 307 `/login` | Scan desk and tonight card. A photo was not uploaded, so Gemini was not called. |
-| `/parent/curriculum` | stub | 307 `/login` | Empty state: “Nothing is listed for this month yet,” with a link to Setup. The skills and plan tables exist; this page does not list them. |
-| `/parent/voice` | stub | 307 `/login` | Empty state: “No recordings yet.” It does not load the recordings Progress can show. |
-| `/parent/study` | stub | 307 `/login` | Empty state. Study and prize fields stay on Setup. |
+| `/parent/curriculum` | working | 307 `/login` | November plan, edits, game tables, and skills. Not opened after the PIN. |
+| `/parent/voice` | working | 307 `/login` | Loads Yana's recordings, with a player and 👍 ❤️ 🌟. Empty copy says they come from Say it and are never graded or sent to an AI. Not opened after the PIN. |
+| `/parent/study` | working | 307 `/login` | Study block, break, warning, postponements, on-time stars, chests, play cap, and town cap. Saving writes the family settings the kid timer reads. Not opened after the PIN. |
 | `/parent/rewards` | working | 307 `/login` | New prize, requests with Approve and Not now, the vault with Remove, and the balance. Not opened after the PIN. |
 | `/kid/home` | working | 307 `/login` | Salon home, stars, check-in. Not opened after sign-in. |
 | `/kid/homework` | working | 307 `/login` | Player when a ready scan has a task. Otherwise the empty homework card. Not opened after sign-in. |
@@ -72,14 +72,14 @@ None of these is reachable without a session. Each returned **307** to `/login` 
 | `/kid/games/cove` | working | 307 `/login` | Draw and music links. |
 | `/kid/games/cove/draw` | working | 307 `/login` | Draw page. Not used. |
 | `/kid/games/cove/music` | working | 307 `/login` | Music page. Not used. |
-| `/kid/games/stories` | working | 307 `/login` | Story list. Shows a short “soon” line only if the stories query errors. `stories` answers. |
+| `/kid/games/stories` | working | 307 `/login` | Story list, or a short empty line if none are stored. Outside stories ask for the parent PIN. `stories` answers. |
 | `/kid/games/stories/chat-lune` | working | 307 `/login` | One story route. Not opened after sign-in. |
 | `/kid/games/friends` | working | 307 `/login` | Friend collection. `friends_unlocked` answers. |
 | `/kid/games/voice` | working | 307 `/login` | Say-it hub. |
 | `/kid/games/voice/practice` | working | 307 `/login` | Practice page. Not recorded. |
 | `/kid/games/voice/new` | working | 307 `/login` | What’s-new page. Not recorded. |
-| `/kid/games/voice/album` | working | 307 `/login` | Album page. Shows “soon” only if its query errors. `voice_recordings` answers. |
-| `/kid/town` | working | 307 `/login` | Town board. Shows “soon” only if the plots query errors. `town_plots` answers. |
+| `/kid/games/voice/album` | working | 307 `/login` | Album page. Empty copy says nothing is recorded yet. `voice_recordings` answers. |
+| `/kid/town` | working | 307 `/login` | Town board. If the plots query fails, the page says the town is not ready. `town_plots` answers. |
 | `/kid/store` | working | 307 `/login` | Lists active rewards, or asks Yana to ask a parent. `rewards` answers. |
 | `/dev/mochi` | working | **200, reachable** | Salon state lab. It is outside the parent and kid gate, on local and on production. |
 | `/manifest.webmanifest` | working | 200 | PWA manifest. |
@@ -95,7 +95,7 @@ None of these is reachable without a session. Each returned **307** to `/login` 
 | `GET /api/calendar/00000000-0000-0000-0000-000000000000` | working | 404 | Well-formed token that matches no family. A real family feed was not requested. |
 | `GET` on the POST-only API routes | working | 405 | Those six routes do not answer GET. |
 
-No route returned 500. No route is marked broken. No route is marked needs migration: the tables this pass asked for are present (below).
+No route returned 500. No route is marked broken. Voice, Study, and Curriculum render their own data. The tables this pass asked for are present (below).
 
 ## Tables
 
@@ -151,4 +151,4 @@ Present or empty in the local env files only. Vercel’s saved values were not v
 
 ## Not verified
 
-Signed-in layout at 390px and 1024px, light and dark. A real Telegram message, a real forwarded email, push on a phone, a Gemini scan, cron firing, and a signed-in look at Today, Inbox, Calendar, To do, Progress, and the kid games. R5 added the Today blocks in code. R6 added Inbox filters and snooze choices. R7 added calendar add and remove, and reminder delivery in code. R8 copies a repeated homework photo instead of calling Gemini again. R9 puts prizes, requests, and the balance on Rewards. R10 draws the layered cat in the salon and keeps story links behind the parent PIN. This audit did not open them after the PIN, and it did not send a real Telegram message, a real forwarded email, watch a reminder fire, or scan a real photo twice. It also did not measure animation on a phone.
+Signed-in layout at 390px and 1024px, light and dark. A real Telegram message, a real forwarded email, push on a phone, a Gemini scan, cron firing, and a signed-in look at Today, Inbox, Calendar, To do, Progress, and the kid games. R5 added the Today blocks in code. R6 added Inbox filters and snooze choices. R7 added calendar add and remove, and reminder delivery in code. R8 copies a repeated homework photo instead of calling Gemini again. R9 puts prizes, requests, and the balance on Rewards. R10 draws the layered cat in the salon and keeps story links behind the parent PIN. This audit did not open them after the PIN, and it did not send a real Telegram message, a real forwarded email, watch a reminder fire, or scan a real photo twice. It also did not measure animation on a phone. R11 fills Voice and Study, logs a page error in the console, and checks every parent and kid route in `tests/quality.test.ts`. Playwright was not installed. A phone Lighthouse run was not done. Visiting those routes from here would open a new device account.

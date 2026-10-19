@@ -22,8 +22,9 @@ afterAll(async () => {
   }
 });
 
-it("hides another family's rows and blocks archive until both parents tick", async () => {
-  if (!admin || !anon) throw new Error("NEXT_PUBLIC_SUPABASE_URL, anon key, and service role are required");
+const live = Boolean(admin && anon);
+
+it.skipIf(!live)("hides another family's rows and blocks archive until both parents tick", async () => {
 
   const parentA = await makeUser();
   const parentB = await makeUser();

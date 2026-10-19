@@ -43,6 +43,7 @@ Single list for the finish-the-app pass. One task at a time.
 | R8 | Scan, cache and homework | DONE | `src/lib/scan/process.ts`, `src/lib/scan/cache.ts`, `src/components/scan/desk.tsx`, `tests/scan.test.ts` | The same photo copies the saved reading and does not call Gemini again. The brief shows up to three coaching questions. Homework keeps hints, read-aloud, the focus bar, and the 15-minute break. A real photo was not scanned twice in this pass. |
 | R9 | Store, rewards and automatic prizes | DONE | `src/app/parent/(gate)/rewards/page.tsx`, `src/lib/prizes.ts`, `tests/rewards.test.ts`, `tests/rls.integration.test.ts` | The vault lists prizes, requests, and the balance. Approval spends exactly the cost. Check-in and study chests award stars through `award_stars`. A chest can also be a sticker, a dance, or a friend. |
 | R10 | Kid experience and Mochi | DONE | `src/components/mochi/Mochi.tsx`, `src/lib/mochi/machine.ts`, `src/components/mochi/salon.tsx`, `tests/mochi-machine.test.ts` | The salon cat is the layered drawing: blink, breath, ears, tail, and one action at a time. Friends, stories behind the parent PIN, the town, voice, and the games are reachable. A phone layout and a performance trace were not run. |
+| R11 | Quality | DONE | `tests/quality.test.ts`, `.github/workflows/check.yml`, `src/app/parent/(gate)/voice/page.tsx`, `src/app/parent/(gate)/study/page.tsx` | Every parent and kid route is checked signed out, and a parent without the PIN is sent to unlock. Voice and Study render their own data. A page error is logged in the console. Playwright and a phone Lighthouse run were not done. |
 
 ## Parent views
 
@@ -54,8 +55,8 @@ Single list for the finish-the-app pass. One task at a time.
 | P4 | Calendar | DONE | `src/app/parent/(gate)/calendar/page.tsx`, `tests/calendar.test.ts` | Month grid, holiday bands, add and remove, and the reminder choice from a message. |
 | P5 | To do | DONE | `src/app/parent/(gate)/todo/page.tsx` | Open tasks link back to the school message. Done, snooze, and reassign. |
 | P6 | Progress and Curriculum | TODO | | |
-| P7 | Rewards and Voice | TODO | | |
-| P8 | Study and Setup | TODO | | |
+| P7 | Rewards and Voice | DONE | `src/app/parent/(gate)/rewards/page.tsx`, `src/app/parent/(gate)/voice/page.tsx` | Approving a request spends the cost. Voice plays a recording and can react. |
+| P8 | Study and Setup | DONE | `src/app/parent/(gate)/study/page.tsx`, `src/app/parent/(gate)/setup/page.tsx` | Study saves the block, the break, and the prize caps. Setup still shows the family, Telegram, and email fields. |
 | P9 | Notifications | TODO | | |
 | P10 | Quality | TODO | | |
 
