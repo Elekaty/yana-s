@@ -4,75 +4,90 @@
 }
 .lazy { --lz: 0.42; }
 .sleepy { --lz: 0.62; }
-.rig :global(.m-bd) { transform-origin: 120px 206px; animation: br 3.2s ease-in-out infinite; }
-.rig :global(.m-hd) { transform-origin: 120px 140px; animation: hdl 8s ease-in-out infinite; }
-.rig :global(.m-e1) { transform-origin: 84px 64px; animation: tw1 7s infinite; }
-.rig :global(.m-e2) { transform-origin: 156px 64px; animation: tw2 11s infinite 2s; }
-.rig :global(.m-tl) { transform-origin: 186px 176px; animation: ts 3.4s ease-in-out infinite; }
-.rig :global(.m-tp) { transform-origin: 222px 150px; animation: tt 3.4s ease-in-out infinite -0.5s; }
-.rig :global(.m-lid) { transform-box: fill-box; transform-origin: 50% 0%; transform: scaleY(0); animation: bl 4.8s infinite; }
-.rig :global(.m-hp) { opacity: 0; }
-.rig :global(.m-mo) { transform-origin: 120px 124px; transform: scaleY(0); }
-.rig :global(.m-tg) { opacity: 0; }
-.rig :global(.m-wh) { transform-origin: 120px 124px; animation: wht 4s ease-in-out infinite; }
-.rig :global(.m-f1) { transform-origin: 96px 172px; }
-.rig :global(.m-f2) { transform-origin: 144px 172px; }
-.rig :global(.m-h1) { transform-origin: 76px 178px; }
-.rig :global(.m-h2) { transform-origin: 164px 178px; }
-.rig :global(.m-pup) { transform: translate(var(--lx, 0px), var(--ly, 0px)); }
+.bd { transform-origin: 120px 206px; animation: br 3.2s ease-in-out infinite; }
+.hd { transform-origin: 120px 140px; animation: hdl 8s ease-in-out infinite; }
+.e1 { transform-origin: 84px 64px; animation: tw1 7s infinite; }
+.e2 { transform-origin: 156px 64px; animation: tw2 11s infinite 2s; }
+.tl { transform-origin: 186px 176px; animation: ts 3.4s ease-in-out infinite; }
+.tp { transform-origin: 222px 150px; animation: tt 3.4s ease-in-out infinite -0.5s; }
+.lid { transform-box: fill-box; transform-origin: 50% 0%; transform: scaleY(0); animation: bl 4.8s infinite; }
+.hp { opacity: 0; }
+.mo { transform-origin: 120px 124px; transform: scaleY(0); }
+.tg { opacity: 0; }
+.wh { transform-origin: 120px 124px; animation: wht 4s ease-in-out infinite; }
+.f1 { transform-origin: 96px 172px; }
+.f2 { transform-origin: 144px 172px; }
+.h1 { transform-origin: 76px 178px; }
+.h2 { transform-origin: 164px 178px; }
+.pup { transform: translate(var(--lx, 0px), var(--ly, 0px)); }
 
-.walk :global(.m-f2),
-.walk :global(.m-h1) { animation: lgs 0.4s ease-in-out infinite; }
-.walk :global(.m-f1),
-.walk :global(.m-h2) { animation: lgs 0.4s ease-in-out infinite reverse; }
-.walk :global(.m-tl) { animation-duration: 0.7s; }
+.walk .f2,
+.walk .h1 { animation: lgs 0.4s ease-in-out infinite; }
+.walk .f1,
+.walk .h2 { animation: lgs 0.4s ease-in-out infinite reverse; }
+.walk .tl { animation-duration: 0.7s; }
 
 .stretch { transform-origin: 50% 100%; animation: stc 2.2s ease-in-out; }
-.stretch :global(.m-hd) { animation: none; transform: rotate(-8deg) translateY(10px); }
-.stretch :global(.m-tl) { animation: none; transform: rotate(-28deg); }
+.stretch .hd { animation: none; transform: rotate(-8deg) translateY(10px); }
+.stretch .tl { animation: none; transform: rotate(-28deg); }
 
-.yawn :global(.m-mo) { transform: scaleY(1); }
-.yawn :global(.m-lid) { animation: none; transform: scaleY(0.85); }
-.yawn :global(.m-hd) { animation: none; transform: rotate(-6deg) translateY(-3px); }
+.yawn .mo { transform: scaleY(1); }
+.yawn .lid { animation: none; transform: scaleY(0.85); }
+.yawn .hd { animation: none; transform: rotate(-6deg) translateY(-3px); }
 
-.lick :global(.m-f1) { transform: translate(20px, -58px) rotate(-26deg); animation: lk 0.5s 0.4s infinite alternate; }
-.lick :global(.m-hd) { animation: none; transform: rotate(6deg) translateY(6px); }
-.lick :global(.m-tg) { opacity: 1; }
-.lick :global(.m-lid) { animation: none; transform: scaleY(0.55); }
+.lick .f1 { transform: translate(20px, -58px) rotate(-26deg); animation: lk 0.5s 0.4s infinite alternate; }
+.lick .hd { animation: none; transform: rotate(6deg) translateY(6px); }
+.lick .tg { opacity: 1; }
+.lick .lid { animation: none; transform: scaleY(0.55); }
 
 .pounce { animation: pn 1.1s cubic-bezier(0.3, 0.7, 0.3, 1); }
-.surprised :global(.m-lid) { animation: none; transform: scaleY(0); }
-.surprised :global(.m-e1) { animation: none; transform: rotate(-26deg); }
-.surprised :global(.m-e2) { animation: none; transform: rotate(26deg); }
-.surprised :global(.m-scl) { transform-box: fill-box; transform-origin: center; transform: scale(1.14); }
-.surprised :global(.m-mo) { transform: scaleY(0.5); }
+.surprised .lid { animation: none; transform: scaleY(0); }
+.surprised .e1 { animation: none; transform: rotate(-26deg); }
+.surprised .e2 { animation: none; transform: rotate(26deg); }
+.surprised .scl { transform-box: fill-box; transform-origin: center; transform: scale(1.14); }
+.surprised .mo { transform: scaleY(0.5); }
 
 .happy { animation: prr 0.36s linear infinite; }
-.happy :global(.m-hp) { opacity: 1; }
-.happy :global(.m-ey) { opacity: 0; }
-.happy :global(.m-tl),
-.happy :global(.m-tp) { animation-duration: 0.45s; }
+.happy .hp { opacity: 1; }
+.happy .ey { opacity: 0; }
+.happy .tl,
+.happy .tp { animation-duration: 0.45s; }
 
 .cheer { animation: hop 0.6s ease-in-out; }
 .listen { filter: drop-shadow(0 0 8px #ff5fa2); }
-.listen :global(.m-e1) { animation: none; transform: rotate(8deg); }
-.listen :global(.m-e2) { animation: none; transform: rotate(-8deg); }
+.listen .e1 { animation: none; transform: rotate(8deg); }
+.listen .e2 { animation: none; transform: rotate(-8deg); }
 
-.nap :global(.m-lid) { animation: none; transform: scaleY(1); }
-.nap :global(.m-hd) { animation: none; transform: rotate(9deg) translateY(12px); }
-.nap :global(.m-bd) { animation-duration: 5s; }
+.nap .lid { animation: none; transform: scaleY(1); }
+.nap .hd { animation: none; transform: rotate(9deg) translateY(12px); }
+.nap .bd { animation-duration: 5s; }
 
-.calm.walk :global(.m-f1),
-.calm.walk :global(.m-f2),
-.calm.walk :global(.m-h1),
-.calm.walk :global(.m-h2),
+.calm.walk .f1,
+.calm.walk .f2,
+.calm.walk .h1,
+.calm.walk .h2,
 .calm.stretch,
 .calm.pounce,
 .calm.happy,
 .calm.cheer,
-.calm.lick :global(.m-f1) { animation: none; }
+.calm.lick .f1 { animation: none; }
 
-.paused, .paused * { animation-play-state: paused; }
+.paused .bd,
+.paused .hd,
+.paused .e1,
+.paused .e2,
+.paused .tl,
+.paused .tp,
+.paused .lid,
+.paused .wh,
+.paused .f1,
+.paused .f2,
+.paused .h1,
+.paused .h2,
+.paused.stretch,
+.paused.pounce,
+.paused.happy,
+.paused.cheer { animation-play-state: paused; }
 
 @keyframes br { 50% { transform: scale(1.025, 1.04); } }
 @keyframes hdl {

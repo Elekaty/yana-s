@@ -290,7 +290,6 @@ export function Salon({
           tabIndex={0}
           aria-label={lang === "en" ? "Yarn ball" : "Pelote"}
           onClick={() => press(() => {
-            setYarnX(560);
             dispatch({ type: "yarnTap" });
             say(pickPhrase("yarn", lang, childName).text);
           })}
