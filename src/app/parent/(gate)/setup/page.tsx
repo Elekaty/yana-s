@@ -2,7 +2,7 @@ import { CopyCode } from "@/app/parent/(gate)/setup/copy-code";
 import { savePractice } from "@/app/parent/(gate)/setup/practice-actions";
 import { addSender, registerWebhook, removeSender } from "@/app/parent/(gate)/setup/intake-actions";
 import { confirmRoster, readRoster, saveAvailability, saveEvening, updateDraft, uploadRoster } from "@/app/parent/(gate)/setup/roster-actions";
-import { sendTestMessage } from "@/app/parent/(gate)/setup/test-message";
+import { sendTestMessage, trySchoolNote } from "@/app/parent/(gate)/setup/test-message";
 import { Button } from "@/components/ui/button";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 import { studySettings } from "@/lib/study/clock";
@@ -61,7 +61,17 @@ export default async function SetupPage({ searchParams }: { searchParams: Promis
         <CardDescription>See which tables and keys are present, without showing secret values.</CardDescription>
         <a className="mt-3 inline-block text-sm underline" href="/parent/setup/status">Open the checklist</a>
         <form action={sendTestMessage} className="mt-3">
-          <Button type="submit" variant="outline">Send a test message</Button>
+          <Button type="submit" size="lg" variant="outline">Send a test message</Button>
+        </form>
+        <form action={trySchoolNote} className="mt-3 space-y-2">
+          <textarea
+            name="text"
+            required
+            aria-label="French school note"
+            placeholder="Paste a French school note"
+            className="h-24 w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
+          />
+          <Button type="submit" size="lg" variant="outline">Save this note to the inbox</Button>
         </form>
       </Card>
       <Card>

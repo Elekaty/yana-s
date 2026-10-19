@@ -17,6 +17,7 @@ export async function snoozeTonight(formData: FormData) {
     status: "pending",
   });
   revalidatePath("/parent");
+  revalidatePath("/parent/inbox");
   revalidatePath("/parent/calendar");
 }
 
@@ -53,6 +54,7 @@ export async function remindSoon(formData: FormData) {
     status: "pending",
   });
   revalidatePath("/parent");
+  revalidatePath("/parent/inbox");
   revalidatePath("/parent/calendar");
 }
 

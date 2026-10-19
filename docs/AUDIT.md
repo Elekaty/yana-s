@@ -151,4 +151,4 @@ Present or empty in the local env files only. Vercel’s saved values were not v
 
 ## Not verified
 
-Signed-in layout at 390px and 1024px, light and dark. A real Telegram message, a real forwarded email, push on a phone, a Gemini scan, cron firing, and a signed-in look at Today, Inbox, Calendar, To do, Progress, and the kid games. R5 added the Today blocks in code; this audit did not open them after the PIN.
+Signed-in layout at 390px and 1024px, light and dark. A real Telegram message, a real forwarded email, push on a phone, a Gemini scan, cron firing, and a signed-in look at Today, Inbox, Calendar, To do, Progress, and the kid games. R5 added the Today blocks in code. R6 added Inbox filters and snooze choices. This audit did not open them after the PIN, and it did not send a real Telegram message or a real forwarded email.

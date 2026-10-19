@@ -1,5 +1,9 @@
+import { readFileSync } from "node:fs";
+import path from "node:path";
 import { describe, expect, it } from "vitest";
+import { matchesInboxFilter, parseInboxFilter } from "@/lib/inbox/filter";
 import { canArchive, canUndo, chooseTier, classifyByRules, digestKind, escalationTargets } from "@/lib/inbox/sort";
+import { publicAppUrl } from "@/lib/intake/public-url";
 
 const now = new Date("2026-10-16T18:00:00.000Z");
 
@@ -58,5 +62,33 @@ describe("inbox tiers", () => {
     expect(digestKind(new Date("2026-10-16T17:00:00.000Z"), "Europe/Paris")).toBe("important");
     expect(digestKind(new Date("2026-10-18T16:00:00.000Z"), "Europe/Paris")).toBe("fyi");
     expect(digestKind(new Date("2026-10-16T10:00:00.000Z"), "Europe/Paris")).toBeNull();
+  });
+});
+
+describe("inbox filters", () => {
+  it("keeps urgent, important, FYI, and waiting-for-me apart", () => {
+    expect(parseInboxFilter("nope")).toBe("all");
+    expect(matchesInboxFilter({ tier: "urgent" }, "urgent", false)).toBe(true);
+    expect(matchesInboxFilter({ tier: "fyi" }, "urgent", true)).toBe(false);
+    expect(matchesInboxFilter({ tier: "fyi" }, "mine", true)).toBe(true);
+    expect(matchesInboxFilter({ tier: "fyi" }, "mine", false)).toBe(false);
+  });
+
+  it("points the webhook at the live app when the saved address is the retired host", () => {
+    expect(publicAppUrl({ APP_URL: "https://yana-s-ele18.vercel.app" })).toBe("https://yana-s.vercel.app");
+    expect(publicAppUrl({ APP_URL: "https://yana-s.vercel.app" })).toBe("https://yana-s.vercel.app");
+    expect(publicAppUrl({})).toBe("");
+  });
+
+  it("shows the filter chips, the snooze choices, and the two-parent archive rule", () => {
+    const page = readFileSync(path.join(process.cwd(), "src/app/parent/(gate)/inbox/page.tsx"), "utf8");
+    expect(page).toContain("Waiting for me");
+    expect(page).toContain("Needs both parents");
+    expect(page).toContain("No messages yet. Forward a school email or post in the linked Telegram group.");
+    expect(page).toContain("canArchive");
+    const snooze = readFileSync(path.join(process.cwd(), "src/components/parent/snooze-forms.tsx"), "utf8");
+    expect(snooze).toContain("30 min");
+    expect(snooze).toContain("45 min");
+    expect(snooze).toContain("1 hour");
   });
 });

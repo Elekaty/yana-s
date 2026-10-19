@@ -1,6 +1,7 @@
 import "server-only";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { chooseTier, classifyByRules } from "@/lib/inbox/sort";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export type IncomingFile = {
@@ -28,6 +29,7 @@ export async function saveIncoming(input: {
     .maybeSingle();
   if (existing) return { saved: false as const, messageId: existing.id as string };
 
+  const choice = chooseTier(classifyByRules(input.text));
   const { data: message, error } = await admin
     .from("messages")
     .insert({
@@ -40,6 +42,10 @@ export async function saveIncoming(input: {
       sender: input.sender ?? null,
       read_status: "saved",
       status: "new",
+      tier: choice.tier,
+      confidence: choice.confidence,
+      please_check: choice.pleaseCheck,
+      action_required: choice.actionRequired,
     })
     .select("id")
     .single();
