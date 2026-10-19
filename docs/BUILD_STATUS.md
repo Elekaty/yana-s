@@ -57,8 +57,8 @@ Single list for the finish-the-app pass. One task at a time.
 | P6 | Progress and Curriculum | DONE | `src/app/parent/(gate)/progress/page.tsx`, `src/lib/parent/progress.ts`, `tests/progress-view.test.ts` | The week shows study minutes, stars earned, and hints. She read it awards the story once. Suggested skills link to Curriculum. The weekly note can be sent to Telegram. Sunday does not send it on its own, and email is not connected. |
 | P7 | Rewards and Voice | DONE | `src/app/parent/(gate)/rewards/page.tsx`, `src/app/parent/(gate)/voice/page.tsx` | Approving a request spends the cost. Voice plays a recording and can react. |
 | P8 | Study and Setup | DONE | `src/app/parent/(gate)/study/page.tsx`, `src/app/parent/(gate)/setup/page.tsx` | Study saves the block, the break, and the prize caps. Setup still shows the family, Telegram, and email fields. |
-| P9 | Notifications | TODO | | |
-| P10 | Quality | TODO | | |
+| P9 | Notifications | DONE | `src/lib/inbox/escalate.ts`, `src/lib/notify/copy.ts`, `src/lib/calendar/due.ts`, `tests/inbox.test.ts` | An urgent note alerts both parents once. The 7pm and Sunday digests send text, and Sunday adds a progress line. Reminder buttons are Done, 30, 45, 60, and Custom. Custom only says to open the app. A live Telegram message and a snooze tap were not watched. |
+| P10 | Quality | DONE | `e2e/parent-routes.mjs`, `src/lib/parent/list-states.ts`, `tests/quality.test.ts` | Signed out, every parent route ends on the family form and shows no parent list. Without the PIN, every route stays on the unlock form. With the PIN, every route renders. Keyboard focus, contrast, reduced motion, a wide layout, and dark mode passed on a phone-sized browser. Lighthouse on the local dev server, phone profile, scored performance 43 and accessibility 100 for `/parent`. That run was not production and not CI. |
 
 ## A1 route check
 

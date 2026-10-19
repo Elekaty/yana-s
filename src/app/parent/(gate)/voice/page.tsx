@@ -3,16 +3,26 @@ import { ParentNote } from "@/components/parent-note";
 import { Button } from "@/components/ui/button";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 import { requireParent } from "@/lib/parent/guard";
+import { isMissingTable } from "@/lib/supabase/db-error";
 
 export const dynamic = "force-dynamic";
 
 export default async function VoicePage() {
   const { supabase, family } = await requireParent();
-  const { data: recordings } = await supabase
+  const { data: recordings, error } = await supabase
     .from("voice_recordings")
     .select("id, path, parent_reaction, created_at")
     .eq("family_id", family.family_id)
     .order("created_at", { ascending: false });
+  if (isMissingTable(error)) {
+    return (
+      <div className="space-y-4">
+        <h1 className="text-2xl font-semibold tracking-tight">Voice</h1>
+        <ParentNote title="Voice" body="The recordings table is missing. Open the setup checklist." />
+        <a className="text-sm underline" href="/parent/setup/status">Setup checklist</a>
+      </div>
+    );
+  }
   const clips = await Promise.all(
     (recordings ?? []).map(async (row) => {
       const signed = await supabase.storage.from("voice").createSignedUrl(row.path, 60 * 10);

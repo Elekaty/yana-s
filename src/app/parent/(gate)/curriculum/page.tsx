@@ -2,12 +2,14 @@ import { createBreakPlan } from "@/app/parent/(gate)/calendar/actions";
 import { saveGameTables } from "@/app/parent/(gate)/curriculum/actions";
 import { addPlanItem, hidePlanItem, savePlanItem, tickPlanItem } from "@/app/parent/(gate)/todo/actions";
 import { raiseSkill } from "@/app/parent/(gate)/progress/actions";
+import { ParentNote } from "@/components/parent-note";
 import { Button } from "@/components/ui/button";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 import { ensureHolidays } from "@/lib/calendar/seed";
 import { dayKey, holidayOn, type Holiday } from "@/lib/calendar/plan";
 import { tablesFrom } from "@/lib/games/questions";
 import { requireParent } from "@/lib/parent/guard";
+import { isMissingTable } from "@/lib/supabase/db-error";
 import { monthPlan, SCHOOL_MONTHS, skillStatus, type PlanItem } from "@/lib/plan/outline";
 import { ensureOutline } from "@/lib/plan/seed";
 
@@ -25,15 +27,18 @@ export default async function CurriculumPage() {
   }
   const today = dayKey(new Date(), timeZone);
   const currentMonth = today.slice(0, 7);
-  const [{ data: planRows }, { data: holidayRows }, { data: familyRow }, { data: child }, skillQuery, progressQuery] = await Promise.all([
+  const [planQuery, holidayQuery, familyQuery, childQuery, skillQuery, progressQuery] = await Promise.all([
     supabase.from("plan_items").select("family_id, item_key, month, period, subject, text, source, done, hidden"),
     supabase.from("school_calendar").select("family_id, label, starts_on, ends_on, zone, kind"),
     supabase.from("families").select("settings").eq("id", family.family_id).maybeSingle(),
-    family.child_id ? supabase.from("children").select("settings").eq("id", family.child_id).maybeSingle() : Promise.resolve({ data: null }),
+    family.child_id ? supabase.from("children").select("settings").eq("id", family.child_id).maybeSingle() : Promise.resolve({ data: null, error: null }),
     supabase.from("skills").select("skill_key, area, title_fr, explanation_en, ask_fr").is("family_id", null).order("sort"),
-    family.child_id ? supabase.from("skill_progress").select("skill, level").eq("child_id", family.child_id) : Promise.resolve({ data: [] }),
+    family.child_id ? supabase.from("skill_progress").select("skill, level").eq("child_id", family.child_id) : Promise.resolve({ data: [], error: null }),
   ]);
-  const plan = (planRows ?? []) as PlanItem[];
+  const plan = (planQuery.data ?? []) as PlanItem[];
+  const holidayRows = holidayQuery.data;
+  const familyRow = familyQuery.data;
+  const child = childQuery.data;
   const zoneSetting = (familyRow?.settings as { school_zone?: string } | null)?.school_zone;
   const zone = zoneSetting === "B" || zoneSetting === "C" ? zoneSetting : "A";
   const breakToday = holidayOn(today, (holidayRows ?? []) as Holiday[], zone);
@@ -44,6 +49,7 @@ export default async function CurriculumPage() {
   return (
     <div className="space-y-4">
       <h1>Curriculum</h1>
+      {isMissingTable(planQuery.error) ? <ParentNote title="Monthly plan" body="The plan table is missing." /> : null}
       {breakToday ? (
         <Card>
           <CardTitle>{breakToday.label}</CardTitle>
@@ -94,6 +100,7 @@ export default async function CurriculumPage() {
         return (
           <section key={month} className={`space-y-3 rounded-2xl p-1 ${month === currentMonth ? "ring-2 ring-grape" : ""}`}>
             <h2 className="font-fredoka text-2xl">{title}</h2>
+            {lines.length === 0 ? <p className="text-sm text-muted-foreground">Nothing in this month yet.</p> : null}
             {lines.map((line) => (
               <Card key={line.item_key}>
                 <CardTitle>{line.subject}</CardTitle>
@@ -145,6 +152,13 @@ export default async function CurriculumPage() {
       <Card>
         <CardTitle>Skills</CardTitle>
         <CardDescription>A game can raise Tables. A status you set stays if it is higher.</CardDescription>
+        {skillQuery.error ? (
+          <p className="mt-3 text-sm">
+            Skills could not be loaded. <a className="underline" href="/parent/setup/status">Setup checklist</a>
+          </p>
+        ) : (skillQuery.data ?? []).length === 0 ? (
+          <p className="mt-3 text-sm text-muted-foreground">No skills are listed yet.</p>
+        ) : (
         <ul className="mt-3 space-y-4">
           {(skillQuery.data ?? []).map((skill) => (
             <li key={skill.skill_key} id={skill.skill_key}>
@@ -174,6 +188,7 @@ export default async function CurriculumPage() {
             </li>
           ))}
         </ul>
+        )}
       </Card>
     </div>
   );

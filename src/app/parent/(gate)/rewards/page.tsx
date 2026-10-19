@@ -1,15 +1,17 @@
 import { addReward, approveReward, denyReward, hideReward } from "@/app/parent/(gate)/progress/actions";
 import { Button } from "@/components/ui/button";
 import { requireParent } from "@/lib/parent/guard";
+import { isMissingTable } from "@/lib/supabase/db-error";
 
 export const dynamic = "force-dynamic";
 
 export default async function RewardsPage() {
   const { supabase, family } = await requireParent();
-  const [{ data: rewards }, { data: requests }] = await Promise.all([
+  const [{ data: rewards, error: rewardError }, { data: requests, error: requestError }] = await Promise.all([
     supabase.from("rewards").select("id, title, cost_stars, active").eq("family_id", family.family_id).order("cost_stars"),
     supabase.from("purchases").select("id, reward_id").eq("family_id", family.family_id).eq("status", "requested"),
   ]);
+  const rewardsMissing = isMissingTable(rewardError) || isMissingTable(requestError);
   const vault = (rewards ?? []).filter((reward) => reward.active);
   const waiting = requests ?? [];
 
@@ -33,7 +35,8 @@ export default async function RewardsPage() {
       </form>
       <section className="rounded-2xl border border-grape/15 bg-card p-4">
         <h2 className="font-fredoka text-lg text-plum dark:text-white">Requests</h2>
-        {waiting.length === 0 ? <p className="mt-2 text-sm text-muted-foreground">No requests yet.</p> : null}
+        {rewardsMissing ? <p className="mt-2 text-sm">The rewards table is missing. <a className="underline" href="/parent/setup/status">Setup checklist</a></p> : null}
+        {!rewardsMissing && waiting.length === 0 ? <p className="mt-2 text-sm text-muted-foreground">No requests yet.</p> : null}
         <ul className="mt-3 space-y-3">
           {waiting.map((request) => {
             const reward = (rewards ?? []).find((item) => item.id === request.reward_id);
@@ -57,7 +60,7 @@ export default async function RewardsPage() {
       </section>
       <section className="rounded-2xl border border-grape/15 bg-card p-4">
         <h2 className="font-fredoka text-lg text-plum dark:text-white">Reward vault</h2>
-        {vault.length === 0 ? <p className="mt-2 text-sm text-muted-foreground">No prizes yet. Add one and Yana can ask for it.</p> : null}
+        {!rewardsMissing && vault.length === 0 ? <p className="mt-2 text-sm text-muted-foreground">No prizes yet. Add one and Yana can ask for it.</p> : null}
         <ul className="mt-3 space-y-2">
           {vault.map((reward) => (
             <li key={reward.id} className="flex items-center justify-between gap-2">

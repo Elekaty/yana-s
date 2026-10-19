@@ -57,6 +57,11 @@ body {
   }
 }
 
+:focus-visible {
+  outline: 3px solid #ffd23f;
+  outline-offset: 3px;
+}
+
 .kid :focus-visible {
   outline: 3px solid #ffd23f;
   outline-offset: 3px;

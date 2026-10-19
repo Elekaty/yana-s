@@ -1,0 +1,96 @@
+export const sharedLoading = "Loading";
+export const sharedCrash = "This page did not load";
+
+export const parentLists = [
+  {
+    list: "Needs you",
+    route: "/parent",
+    empty: "All caught up. Nothing is waiting for you.",
+    error: sharedCrash,
+    file: "src/app/parent/(gate)/page.tsx",
+  },
+  {
+    list: "Inbox",
+    route: "/parent/inbox",
+    empty: "No messages yet. Forward a school email or post in the linked Telegram group.",
+    error: "The inbox table is missing.",
+    file: "src/app/parent/(gate)/inbox/page.tsx",
+  },
+  {
+    list: "Calendar day",
+    route: "/parent/calendar",
+    empty: "Nothing on this day.",
+    error: "School dates could not be loaded.",
+    file: "src/app/parent/(gate)/calendar/page.tsx",
+  },
+  {
+    list: "Coming up",
+    route: "/parent/calendar",
+    empty: "No events yet.",
+    error: "School dates could not be loaded.",
+    file: "src/app/parent/(gate)/calendar/page.tsx",
+  },
+  {
+    list: "Reminders",
+    route: "/parent/calendar",
+    empty: "No reminders yet.",
+    error: "School dates could not be loaded.",
+    file: "src/app/parent/(gate)/calendar/page.tsx",
+  },
+  {
+    list: "To do",
+    route: "/parent/todo",
+    empty: "Nothing waiting",
+    error: "The plan table is missing.",
+    file: "src/app/parent/(gate)/todo/page.tsx",
+  },
+  {
+    list: "Reading log",
+    route: "/parent/progress",
+    empty: "None yet.",
+    error: "Skills could not be loaded.",
+    file: "src/app/parent/(gate)/progress/page.tsx",
+  },
+  {
+    list: "Month plan",
+    route: "/parent/curriculum",
+    empty: "Nothing in this month yet.",
+    error: "The plan table is missing.",
+    file: "src/app/parent/(gate)/curriculum/page.tsx",
+  },
+  {
+    list: "Skills",
+    route: "/parent/curriculum",
+    empty: "No skills are listed yet.",
+    error: "Skills could not be loaded.",
+    file: "src/app/parent/(gate)/curriculum/page.tsx",
+  },
+  {
+    list: "Voice",
+    route: "/parent/voice",
+    empty: "No recordings yet",
+    error: "The recordings table is missing.",
+    file: "src/app/parent/(gate)/voice/page.tsx",
+  },
+  {
+    list: "Requests",
+    route: "/parent/rewards",
+    empty: "No requests yet.",
+    error: "The rewards table is missing.",
+    file: "src/app/parent/(gate)/rewards/page.tsx",
+  },
+  {
+    list: "Reward vault",
+    route: "/parent/rewards",
+    empty: "No prizes yet. Add one and Yana can ask for it.",
+    error: "The rewards table is missing.",
+    file: "src/app/parent/(gate)/rewards/page.tsx",
+  },
+  {
+    list: "Scans",
+    route: "/parent/scan",
+    empty: "Drop a photo here, or take one with the camera.",
+    error: "I could not read this. Try again with more light.",
+    file: "src/components/scan/desk.tsx",
+  },
+] as const;

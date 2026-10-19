@@ -1,6 +1,7 @@
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
+import { parentLists, sharedCrash, sharedLoading } from "@/lib/parent/list-states";
 import { decideGate } from "@/lib/parent-gate";
 
 function pagesUnder(dir: string): string[] {
@@ -67,5 +68,28 @@ describe("route matrix", () => {
       expect(nav).toContain(href);
     }
     expect(nav).not.toContain("More");
+  });
+
+  it("keeps a keyboard ring and a reduced-motion pause", () => {
+    const css = readFileSync(path.join(process.cwd(), "src", "app", "globals.css"), "utf8");
+    expect(css).toContain(":focus-visible");
+    expect(css).toContain("prefers-reduced-motion: reduce");
+  });
+
+  it("writes an empty line and an error line for each parent list", () => {
+    const loading = readFileSync(path.join(process.cwd(), "src", "components", "parent", "screen-state.tsx"), "utf8");
+    const crash = readFileSync(path.join(appDir, "parent", "(gate)", "error.tsx"), "utf8");
+    const gateLoading = readFileSync(path.join(appDir, "parent", "(gate)", "loading.tsx"), "utf8");
+    expect(loading).toContain(sharedLoading);
+    expect(loading).toContain("Try again");
+    expect(crash).toContain(sharedCrash);
+    expect(gateLoading).toContain("LoadingState");
+    expect(parentLists.length).toBeGreaterThan(10);
+    for (const item of parentLists) {
+      const text = readFileSync(path.join(process.cwd(), item.file), "utf8");
+      expect(text, item.list).toContain(item.empty);
+      const errorSource = item.error === sharedCrash ? crash : text;
+      expect(errorSource, item.list).toContain(item.error);
+    }
   });
 });
