@@ -1,10 +1,12 @@
 import { HomeScreen } from "@/components/kid/home-screen";
 import { dayKey, holidayOn, type Holiday } from "@/lib/calendar/plan";
 import { getFamily } from "@/lib/family";
-import { fillPhrase, phrases } from "@/lib/phrases";
+import { helperMark } from "@/lib/kid/home-row";
 import { t } from "@/lib/i18n";
 import { crewWithStarter } from "@/lib/mochi/crew";
 import { ensureStarterFriend } from "@/lib/mochi/starter";
+import { loadTonight } from "@/lib/plan/load";
+import { readPrizeState } from "@/lib/prizes";
 
 export const dynamic = "force-dynamic";
 
@@ -12,12 +14,15 @@ export default async function KidHomePage() {
   const { supabase, family } = await getFamily();
   const copy = t(family?.child_language);
   const lang = family?.child_language === "en" ? "en" : "fr";
-  const today = family ? await todayTitle(supabase, family.family_id, lang) : "";
-  const nudge = family ? await kidNudge(supabase, family.family_id, family.child_name ?? "", lang, family.timezone || "Europe/Paris") : "";
+  const onBreak = family ? await breakToday(supabase, family.family_id, family.timezone || "Europe/Paris") : false;
+  const plan = family ? await loadTonight(supabase, family) : null;
+  const helper = helperMark({ onBreak, role: plan?.role ?? "solo", start: plan?.start ?? "" });
   const { data: child } = family?.child_id
     ? await supabase.from("children").select("settings").eq("id", family.child_id).maybeSingle()
     : { data: null };
   const voice = (child?.settings as { voice?: boolean } | null)?.voice !== false;
+  const day = dayKey(new Date(), family?.timezone || "Europe/Paris");
+  const checkedIn = readPrizeState(child?.settings).checkins.includes(day);
   if (family?.child_id) await ensureStarterFriend(supabase, family.family_id, family.child_id);
   const { data: met } = family?.child_id
     ? await supabase.from("friends_unlocked").select("friend").eq("child_id", family.child_id)
@@ -27,20 +32,18 @@ export default async function KidHomePage() {
       childName={family?.child_name ?? ""}
       lang={lang}
       stars={family?.star_balance ?? 0}
-      today={today}
       copy={copy}
-      nudge={nudge}
       voice={voice}
+      checkedIn={checkedIn}
+      helper={helper}
       crew={crewWithStarter((met ?? []).map((row) => String(row.friend)))}
     />
   );
 }
 
-async function kidNudge(
+async function breakToday(
   supabase: Awaited<ReturnType<typeof getFamily>>["supabase"],
   familyId: string,
-  name: string,
-  lang: "fr" | "en",
   timeZone: string,
 ) {
   const today = dayKey(new Date(), timeZone);
@@ -50,38 +53,5 @@ async function kidNudge(
   ]);
   const zone = (familyRow?.settings as { school_zone?: string } | null)?.school_zone;
   const schoolZone = zone === "B" || zone === "C" ? zone : "A";
-  if (holidayOn(today, (holidays ?? []) as Holiday[], schoolZone)) return phrases.breakTime[lang];
-  const { data: reminders } = await supabase
-    .from("reminders")
-    .select("id")
-    .eq("family_id", familyId)
-    .eq("target", "child")
-    .neq("status", "done")
-    .lte("due_at", new Date().toISOString())
-    .limit(1);
-  if ((reminders ?? []).length === 0) return "";
-  return fillPhrase(phrases.reminder[lang], name);
-}
-
-async function todayTitle(
-  supabase: Awaited<ReturnType<typeof getFamily>>["supabase"],
-  familyId: string,
-  lang: "fr" | "en",
-) {
-  const { data: scans } = await supabase
-    .from("homework_scans")
-    .select("id, status")
-    .eq("family_id", familyId)
-    .eq("status", "ready")
-    .order("created_at", { ascending: false })
-    .limit(5);
-  const scanIds = (scans ?? []).map((scan) => scan.id);
-  if (scanIds.length === 0) return "";
-  const { data: tasks } = await supabase
-    .from("tasks")
-    .select("title, subject, status, scan_id")
-    .in("scan_id", scanIds);
-  const open = (tasks ?? []).find((task) => task.status !== "completed") ?? tasks?.[0];
-  if (!open) return "";
-  return (lang === "en" ? open.subject : open.title) || open.subject || open.title || "";
+  return Boolean(holidayOn(today, (holidays ?? []) as Holiday[], schoolZone));
 }

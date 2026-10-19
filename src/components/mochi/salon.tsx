@@ -48,6 +48,8 @@ export function Salon({
   voice = true,
   busy = false,
   crew = [],
+  greet = false,
+  compact = false,
   onMeetFriend,
 }: {
   forced: MochiState | null;
@@ -56,6 +58,8 @@ export function Salon({
   voice?: boolean;
   busy?: boolean;
   crew?: BubbleFriend[];
+  greet?: boolean;
+  compact?: boolean;
   onMeetFriend?: (friend: BubbleFriend) => void;
 }) {
   const router = useRouter();
@@ -70,6 +74,7 @@ export function Salon({
   const [bubbles, setBubbles] = useState(false);
   const [wiggle, setWiggle] = useState(false);
   const [muted, setMuted] = useState(false);
+  const [waving, setWaving] = useState(false);
   const action = forced ? forcedAction(forced) : machine.action;
   const mood = forced === "sleepy-at-bedtime" ? "sleepy" : machine.mood;
   const hour = clock?.getHours() ?? 12;
@@ -123,6 +128,21 @@ export function Salon({
     }, 9000);
     return () => window.clearInterval(id);
   }, [machine.hidden]);
+
+  useEffect(() => {
+    if (!greet) return;
+    const text = lang === "en" ? `Hello ${childName || "you"}!` : `Bonjour ${childName || "toi"} !`;
+    const start = window.setTimeout(() => {
+      setSpoken({ action: "idle", text });
+      setWaving(true);
+      if (voice) speak({ text, lang });
+    }, 0);
+    const stop = window.setTimeout(() => setWaving(false), 2000);
+    return () => {
+      window.clearTimeout(start);
+      window.clearTimeout(stop);
+    };
+  }, [greet, lang, childName, voice]);
 
   useEffect(() => {
     const apply = () => {
@@ -319,6 +339,7 @@ export function Salon({
           look={look}
           paused={machine.hidden}
           reduced={machine.reduced}
+          waving={waving && !machine.reduced}
           label={lang === "en" ? "Mochi the cat" : "Mochi le chat"}
         />
       </div>
@@ -379,7 +400,7 @@ export function Salon({
           {FRIEND_CAST[bubble].name}
         </button>
       ) : null}
-      <p className="px-4 pb-4 text-center text-lg">{line}</p>
+      <p className={compact ? "pointer-events-none absolute inset-x-0 bottom-2 text-center text-lg" : "px-4 pb-4 text-center text-lg"}>{line}</p>
     </div>
   );
 }

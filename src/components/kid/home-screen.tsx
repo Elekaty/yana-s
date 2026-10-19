@@ -11,53 +11,49 @@ export function HomeScreen({
   childName,
   lang,
   stars,
-  today,
   copy,
-  nudge,
   voice = true,
   crew = [],
+  checkedIn = false,
+  helper,
 }: {
   childName: string;
   lang: "fr" | "en";
   stars: number;
-  today: string;
   copy: Copy;
-  nudge?: string;
   voice?: boolean;
   crew?: BubbleFriend[];
+  checkedIn?: boolean;
+  helper: { icon: string; text: string };
 }) {
   const [balance, setBalance] = useState(stars);
+  const [here, setHere] = useState(checkedIn);
   const [note, setNote] = useState("");
 
   async function checkIn() {
     const result = await checkInNow();
     setBalance(result.stars);
-    setNote(result.note === "ok" || result.note === "week" ? copy.checkInDone : result.note === "already" ? copy.checkInDone : copy.checkInClosed);
+    if (result.note === "ok" || result.note === "week" || result.note === "already") setHere(true);
+    setNote(result.note === "ok" || result.note === "week" || result.note === "already" ? copy.checkInDone : copy.checkInClosed);
   }
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex items-end justify-between gap-3">
-        <div>
-          <p className="text-sm text-sun">{copy.hello}</p>
-          <h1 className="text-4xl leading-none">{childName || "Yana"}</h1>
-        </div>
-        <div className="flex flex-col items-end gap-2">
-          <p className="rounded-full bg-sun px-4 py-2 text-lg font-semibold text-plum shadow-[0_6px_0_#e0b520]">{balance} ★</p>
-          <button type="button" onClick={() => void checkIn()} className="h-14 rounded-full bg-white/15 px-4 text-lg">
-            {copy.checkIn}
-          </button>
-        </div>
+    <div className="flex flex-col gap-2">
+      <div className="flex items-center justify-between gap-2">
+        <Link href="/parent/unlock" aria-label={copy.parents} className="flex h-12 w-12 items-center justify-center rounded-full bg-white/15 text-2xl">
+          🔒
+        </Link>
+        <p className="rounded-full bg-sun px-4 py-2 text-lg font-semibold text-plum shadow-[0_6px_0_#e0b520]">{balance} ★</p>
       </div>
-      {note ? <p className="rounded-2xl bg-white/10 px-4 py-3 text-xl">{note}</p> : null}
-      {nudge ? <p className="rounded-2xl bg-hot/90 px-4 py-3 text-xl">{nudge}</p> : null}
-      <div className="rounded-[32px] p-1 shadow-[0_0_0_4px_#FFD23F]">
+      <div className="overflow-hidden rounded-[28px] p-1 shadow-[0_0_0_4px_#FFD23F]">
         <Salon
           forced={null}
           childName={childName}
           lang={lang}
           voice={voice}
           crew={crew}
+          greet
+          compact
           onMeetFriend={(friend: BubbleFriend) => {
             void meetFriend(friend).then((result) => {
               if (result.fresh) setBalance(result.stars);
@@ -65,20 +61,30 @@ export function HomeScreen({
           }}
         />
       </div>
-      <section className="rounded-[28px] bg-sun px-4 py-4 text-plum shadow-[0_8px_0_#e0b520]">
-        <p className="text-sm font-semibold">{today ? (lang === "en" ? "Today's mission" : "Mission du jour") : copy.today}</p>
-        <p className="text-2xl">{today || copy.noHomework}</p>
-        <Link href="/kid/homework" className="mt-3 flex h-14 items-center justify-center rounded-full bg-plum text-lg text-white">
-          {copy.homeworkGo}
+      <Link data-primary="true" href="/kid/homework" className="flex h-16 items-center justify-center gap-2 rounded-full bg-grape text-2xl text-white shadow-[0_6px_0_#5b21b6]">
+        <span aria-hidden>✏️</span>
+        {copy.homework}
+      </Link>
+      <Link data-primary="true" href="/kid/games" className="flex h-16 items-center justify-center gap-2 rounded-full bg-hot text-2xl text-white shadow-[0_6px_0_#c4186e]">
+        <span aria-hidden>🎮</span>
+        {copy.play}
+      </Link>
+      <Link data-primary="true" href="/kid/games/voice" className="flex h-16 items-center justify-center gap-2 rounded-full bg-sun text-2xl text-plum shadow-[0_6px_0_#e0b520]">
+        <span aria-hidden>🗣️</span>
+        {copy.words}
+      </Link>
+      <div className="flex items-center gap-2">
+        <Link href="/kid/games/friends" className="flex h-12 flex-1 items-center justify-center rounded-full bg-white/15 text-sm">
+          🎒 {copy.corner}
         </Link>
-      </section>
-      <div className="grid grid-cols-2 gap-3">
-        <Link href="/kid/store" className="flex h-16 items-center justify-center rounded-full bg-hot text-lg shadow-[0_6px_0_#c4186e]">
-          {copy.store}
-        </Link>
-        <Link href="/parent/unlock" className="flex h-16 items-center justify-center rounded-full bg-white/15 text-lg ring-2 ring-white/30">
-          {copy.parents}
-        </Link>
+        <p className="flex h-12 flex-1 items-center justify-center rounded-full bg-white/10 text-sm" aria-label={lang === "en" ? "Tonight" : "Ce soir"}>
+          {helper.icon} {helper.text}
+        </p>
+        {here ? null : (
+          <button type="button" onClick={() => void checkIn()} className="flex h-12 flex-1 items-center justify-center rounded-full bg-white/15 text-sm">
+            {note || `✋ ${copy.checkIn}`}
+          </button>
+        )}
       </div>
     </div>
   );
