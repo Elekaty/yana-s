@@ -1,3 +1,5 @@
+import { mochiSend, speakMs } from "@/lib/mochi/bus";
+
 export type SpeakRequest = {
   text: string;
   lang: "fr" | "en";
@@ -8,10 +10,15 @@ export type SpeakRequest = {
  * Later this can play a reviewed audio file without changing callers.
  */
 let muted = false;
+let talkToken = 0;
 
 export function setSpeakMuted(value: boolean) {
   muted = value;
-  if (value && typeof window !== "undefined") window.speechSynthesis?.cancel();
+  if (value && typeof window !== "undefined") {
+    talkToken += 1;
+    mochiSend({ type: "talk", on: false });
+    window.speechSynthesis?.cancel();
+  }
 }
 
 export function speak({ text, lang }: SpeakRequest) {
@@ -23,7 +30,18 @@ export function speak({ text, lang }: SpeakRequest) {
   const voices = window.speechSynthesis.getVoices();
   const match = voices.find((voice) => voice.lang.toLowerCase().startsWith(lang === "fr" ? "fr" : "en"));
   if (match) utterance.voice = match;
+  const token = ++talkToken;
+  utterance.onend = () => {
+    if (token === talkToken) mochiSend({ type: "talk", on: false });
+  };
+  utterance.onerror = () => {
+    if (token === talkToken) mochiSend({ type: "talk", on: false });
+  };
   window.speechSynthesis.cancel();
+  mochiSend({ type: "talk", on: true });
+  window.setTimeout(() => {
+    if (token === talkToken) mochiSend({ type: "talk", on: false });
+  }, speakMs(text));
   window.speechSynthesis.speak(utterance);
 }
 
@@ -37,9 +55,20 @@ export function speakWhenDone({ text, lang }: SpeakRequest) {
     utterance.lang = lang === "fr" ? "fr-FR" : "en-US";
     utterance.pitch = 1.35;
     utterance.rate = 0.92;
-    utterance.onend = () => resolve();
-    utterance.onerror = () => resolve();
+    const token = ++talkToken;
+    utterance.onend = () => {
+      if (token === talkToken) mochiSend({ type: "talk", on: false });
+      resolve();
+    };
+    utterance.onerror = () => {
+      if (token === talkToken) mochiSend({ type: "talk", on: false });
+      resolve();
+    };
     window.speechSynthesis.cancel();
+    mochiSend({ type: "talk", on: true });
+    window.setTimeout(() => {
+      if (token === talkToken) mochiSend({ type: "talk", on: false });
+    }, speakMs(text));
     window.speechSynthesis.speak(utterance);
   });
 }

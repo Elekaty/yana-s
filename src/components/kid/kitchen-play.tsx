@@ -7,6 +7,7 @@ import type { Copy } from "@/lib/i18n";
 import { kitchenFoods } from "@/lib/dictionary";
 import { emptyPlate, orderAt, orderText, plateMatches, type Food, type Plate } from "@/lib/games/kitchen";
 import { playNote } from "@/lib/games/cove";
+import { mochiSend } from "@/lib/mochi/bus";
 
 export function KitchenPlay({ lang, copy, tags }: { lang: "fr" | "en"; copy: Copy; tags?: string[] }) {
   const foods = kitchenFoods(tags);
@@ -20,6 +21,7 @@ export function KitchenPlay({ lang, copy, tags }: { lang: "fr" | "en"; copy: Cop
     playNote(520);
     const next = { ...plate, [food]: (plate[food] ?? 0) + 1 };
     if ((next[food] ?? 0) > 3) {
+      mochiSend({ type: "wrong" });
       setPlate(emptyPlate(tags));
       return;
     }
@@ -27,6 +29,7 @@ export function KitchenPlay({ lang, copy, tags }: { lang: "fr" | "en"; copy: Cop
       setPlate(next);
       return;
     }
+    mochiSend({ type: "correct" });
     const plates = [...done, next];
     setDone(plates);
     setPlate(emptyPlate(tags));

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { finishLagoon } from "@/app/kid/games/island-actions";
 import type { Copy } from "@/lib/i18n";
 import { LEVELS, walk, type Dir } from "@/lib/games/lagoon";
+import { mochiSend } from "@/lib/mochi/bus";
 
 const arrows: { dir: Dir; label: string; fr: string; en: string }[] = [
   { dir: "up", label: "↑", fr: "Haut", en: "Up" },
@@ -27,9 +28,11 @@ export function LagoonPlay({ copy, lang }: { copy: Copy; lang: "fr" | "en" }) {
     const result = await finishLagoon(level.id, path);
     setBusy(false);
     if (!result.cleared) {
+      mochiSend({ type: "wrong" });
       setPath([]);
       return;
     }
+    mochiSend({ type: "correct" });
     if (levelIndex < LEVELS.length - 1) {
       setLevelIndex(levelIndex + 1);
       setPath([]);

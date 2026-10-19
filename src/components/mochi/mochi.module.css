@@ -18,6 +18,9 @@
 .f1 { transform-origin: 96px 172px; }
 .f2 { transform-origin: 144px 172px; }
 .wave .f2 { animation: wv 0.5s ease-in-out 4; }
+.talk .mo { animation: talk 0.2s ease-in-out infinite; }
+.talk .hd { animation: nod 0.4s ease-in-out infinite; }
+.tilt .hd { animation: none; transform: rotate(14deg); }
 .h1 { transform-origin: 76px 178px; }
 .h2 { transform-origin: 164px 178px; }
 .pup { transform: translate(var(--lx, 0px), var(--ly, 0px)); }
@@ -72,7 +75,9 @@
 .calm.happy,
 .calm.cheer,
 .calm.lick .f1,
-.calm.wave .f2 { animation: none; }
+.calm.wave .f2,
+.calm.talk .mo,
+.calm.talk .hd { animation: none; }
 
 .paused .bd,
 .paused .hd,
@@ -86,6 +91,8 @@
 .paused .f2,
 .paused .h1,
 .paused .h2,
+.paused.talk .mo,
+.paused.talk .hd,
 .paused.stretch,
 .paused.pounce,
 .paused.happy,
@@ -143,4 +150,12 @@
 @keyframes wv {
   0%, 100% { transform: rotate(0deg); }
   50% { transform: rotate(-46deg) translateY(-18px); }
+}
+@keyframes talk {
+  0%, 100% { transform: scaleY(0.12); }
+  50% { transform: scaleY(1); }
+}
+@keyframes nod {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(5deg) translateY(2px); }
 }

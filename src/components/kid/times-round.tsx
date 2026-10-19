@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { finishRound } from "@/app/kid/games/actions";
+import { mochiSend } from "@/lib/mochi/bus";
 import { FRUIT_LEVELS, questionAt, type FruitLevel } from "@/lib/games/questions";
 import type { Copy } from "@/lib/i18n";
 
@@ -73,9 +74,11 @@ export function TimesRound({
     if (done) return;
     if (choice !== question.answer) {
       setWrong(true);
+      mochiSend({ type: "wrong" });
       return;
     }
     setWrong(false);
+    mochiSend({ type: "correct" });
     beep();
     const nextPicks = [...picks, choice];
     if (nextPicks.length >= 5) {

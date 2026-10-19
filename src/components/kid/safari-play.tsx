@@ -6,6 +6,7 @@ import { finishSafari } from "@/app/kid/games/island-actions";
 import { kidPlaces } from "@/lib/kid/places";
 import type { Copy } from "@/lib/i18n";
 import { animalById, safariAt } from "@/lib/games/safari";
+import { mochiSend } from "@/lib/mochi/bus";
 import { speak } from "@/lib/speak";
 
 export function SafariPlay({ lang, copy, tags }: { lang: "fr" | "en"; copy: Copy; tags?: string[] }) {
@@ -16,7 +17,11 @@ export function SafariPlay({ lang, copy, tags }: { lang: "fr" | "en"; copy: Copy
   const answer = animalById(round.answer);
 
   async function choose(id: string) {
-    if (id !== round.answer) return;
+    if (id !== round.answer) {
+      mochiSend({ type: "wrong" });
+      return;
+    }
+    mochiSend({ type: "correct" });
     const animal = animalById(id);
     if (animal) speak({ text: animal[lang], lang });
     const next = [...picks, id];

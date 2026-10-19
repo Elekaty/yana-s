@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useReducer, useState } from "react";
 import { Mochi } from "@/components/mochi/Mochi";
+import { useMochiStage } from "@/components/mochi/mochi-stage";
 import { setSpeakMuted, speak } from "@/lib/speak";
 import { BUBBLE_FRIENDS, MOCHI_STATES, type BubbleFriend, type MochiState } from "@/lib/mochi";
 import { FRIEND_CAST } from "@/lib/mochi/friends";
@@ -64,7 +65,12 @@ export function Salon({
   onMeetFriend?: (friend: BubbleFriend) => void;
 }) {
   const router = useRouter();
-  const [machine, dispatch] = useReducer(nextMochi, initialMochi(12));
+  const stage = useMochiStage();
+  const [localMachine, localDispatch] = useReducer(nextMochi, initialMochi(12));
+  const machine = stage?.machine ?? localMachine;
+  const dispatch = stage?.dispatch ?? localDispatch;
+  const usingStage = stage !== null;
+  const shareWave = stage?.setWaving;
   const [look, setLook] = useState({ x: 0, y: 0 });
   const [bubble, setBubble] = useState<BubbleFriend | null>(null);
   const [beside, setBeside] = useState<BubbleFriend | null>(null);
@@ -88,29 +94,32 @@ export function Salon({
   }, [voice, muted]);
 
   useEffect(() => {
+    if (usingStage) return;
     const onHide = () => dispatch({ type: "visibility", hidden: document.hidden });
     document.addEventListener("visibilitychange", onHide);
     return () => document.removeEventListener("visibilitychange", onHide);
-  }, []);
+  }, [usingStage, dispatch]);
 
   useEffect(() => {
+    if (usingStage) return;
     const media = window.matchMedia("(prefers-reduced-motion: reduce)");
     const apply = () => dispatch({ type: "reduced", value: media.matches });
     apply();
     media.addEventListener("change", apply);
     return () => media.removeEventListener("change", apply);
-  }, []);
+  }, [usingStage, dispatch]);
 
   useEffect(() => {
+    if (usingStage) return;
     const read = () => dispatch({ type: "busy", value: busy || document.documentElement.dataset.mochiBusy === "1" });
     read();
     const watcher = new MutationObserver(read);
     watcher.observe(document.documentElement, { attributes: true, attributeFilter: ["data-mochi-busy"] });
     return () => watcher.disconnect();
-  }, [busy]);
+  }, [busy, usingStage, dispatch]);
 
   useEffect(() => {
-    if (forced) return;
+    if (usingStage || forced) return;
     if (machine.hidden || machine.reduced || machine.busy) return;
     if (machine.action !== "idle") {
       const ms = actionMs(machine.action);
@@ -120,7 +129,7 @@ export function Salon({
     }
     const id = window.setTimeout(() => dispatch({ type: "idleTick", roll: Math.random() }), 6000 + Math.random() * 1000);
     return () => window.clearTimeout(id);
-  }, [forced, machine.action, machine.hidden, machine.reduced, machine.busy]);
+  }, [usingStage, forced, machine.action, machine.hidden, machine.reduced, machine.busy, dispatch]);
 
   useEffect(() => {
     if (machine.hidden) return;
@@ -135,20 +144,24 @@ export function Salon({
     const text = lang === "en" ? `Hello ${childName || "you"}!` : `Bonjour ${childName || "toi"} !`;
     const start = window.setTimeout(() => {
       setSpoken({ action: "idle", text });
-      setWaving(true);
+      if (shareWave) shareWave(true);
+      else setWaving(true);
     }, 0);
-    const stop = window.setTimeout(() => setWaving(false), 2000);
+    const stop = window.setTimeout(() => {
+      if (shareWave) shareWave(false);
+      else setWaving(false);
+    }, 2000);
     return () => {
       window.clearTimeout(start);
       window.clearTimeout(stop);
     };
-  }, [greet, lang, childName]);
+  }, [greet, lang, childName, shareWave]);
 
   useEffect(() => {
     const apply = () => {
       const now = new Date();
       setClock(now);
-      dispatch({ type: "hour", hour: now.getHours() });
+      if (!usingStage) dispatch({ type: "hour", hour: now.getHours() });
       setLamp(now.getHours() >= 17 && now.getHours() < 21);
     };
     const start = window.setTimeout(apply, 0);
@@ -157,7 +170,7 @@ export function Salon({
       window.clearTimeout(start);
       window.clearInterval(id);
     };
-  }, []);
+  }, [usingStage, dispatch]);
 
   const script = useMemo(() => phraseAt(lineKey(action, hour), lang, childName), [action, hour, lang, childName]);
   const line = spoken?.action === action ? spoken.text : script;
@@ -339,7 +352,9 @@ export function Salon({
           look={look}
           paused={machine.hidden}
           reduced={machine.reduced}
-          waving={waving && !machine.reduced}
+          waving={(stage ? stage.waving : waving) && !machine.reduced}
+          talking={stage?.talking ?? false}
+          tilt={stage?.tilt ?? false}
           label={lang === "en" ? "Mochi the cat" : "Mochi le chat"}
         />
       </div>

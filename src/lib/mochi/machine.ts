@@ -52,6 +52,12 @@ export function moodForHour(hour: number): MochiMood {
   return "alert";
 }
 
+export function bedtimeStep(mood: MochiMood, action: MochiAction, stretched: boolean, yawned: boolean): "stretch" | "yawn" | null {
+  if (mood !== "sleepy" || action !== "idle" || yawned) return null;
+  if (!stretched) return "stretch";
+  return "yawn";
+}
+
 export function idleAction(roll: number): MochiAction {
   if (roll < 0.28) return "walking";
   if (roll < 0.42) return "chasing";

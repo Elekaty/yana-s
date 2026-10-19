@@ -26,6 +26,8 @@ export function Mochi({
   paused,
   reduced,
   waving = false,
+  talking = false,
+  tilt = false,
   label,
 }: {
   action: MochiAction;
@@ -34,6 +36,8 @@ export function Mochi({
   paused: boolean;
   reduced: boolean;
   waving?: boolean;
+  talking?: boolean;
+  tilt?: boolean;
   label: string;
 }) {
   const shade = useId().replace(/:/g, "");
@@ -43,7 +47,11 @@ export function Mochi({
       viewBox="0 0 240 232"
       role="img"
       aria-label={label}
-      className={`${styles.rig} ${poseClass[action]} ${moodClass} ${waving ? styles.wave : ""} ${reduced ? styles.calm : ""} ${paused ? styles.paused : ""}`}
+      data-action={action}
+      data-talking={talking ? "true" : "false"}
+      data-tilt={tilt ? "true" : "false"}
+      data-waving={waving ? "true" : "false"}
+      className={`${styles.rig} ${poseClass[action]} ${moodClass} ${waving ? styles.wave : ""} ${talking ? styles.talk : ""} ${tilt ? styles.tilt : ""} ${reduced ? styles.calm : ""} ${paused ? styles.paused : ""}`}
       style={{ ["--lx" as string]: `${look.x}px`, ["--ly" as string]: `${look.y}px` }}
     >
       <defs>

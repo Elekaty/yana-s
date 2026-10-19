@@ -1,7 +1,6 @@
 "use client";
 
 import { FriendMark } from "@/components/mochi/friend-mark";
-import { Mochi } from "@/components/mochi/Mochi";
 import type { BubbleFriend } from "@/lib/mochi";
 import { FRIEND_CAST } from "@/lib/mochi/friends";
 import { speak } from "@/lib/speak";
@@ -19,9 +18,6 @@ export function CrewStrip({
 }) {
   return (
     <div className="flex items-end justify-center gap-2 rounded-[28px] bg-[#3a1468] px-3 py-3">
-      <div className="w-24 shrink-0">
-        <Mochi action="idle" mood="alert" look={{ x: 0, y: 0 }} paused={false} reduced={false} label={lang === "en" ? "Mochi the cat" : "Mochi le chat"} />
-      </div>
       {crew.map((friend) => (
         <button
           key={friend}

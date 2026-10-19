@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { BreakGate } from "@/components/kid/break-gate";
 import { KidNav } from "@/components/kid/kid-nav";
 import { ScreenVoice } from "@/components/kid/screen-voice";
+import { MochiProvider } from "@/components/mochi/mochi-stage";
 import { getFamily } from "@/lib/family";
 import { t } from "@/lib/i18n";
 import { ensureStudyClock } from "@/lib/study/load";
@@ -26,6 +27,7 @@ export default async function KidLayout({ children }: { children: React.ReactNod
 
   return (
     <div className="kid min-h-dvh bg-[radial-gradient(circle_at_top,_#6d3aa8_0%,_#2A0B4A_46%,_#1a062c_100%)] text-white" style={{ fontFamily: "var(--font-fredoka), ui-rounded, system-ui, sans-serif" }}>
+      <MochiProvider lang={family.child_language === "en" ? "en" : "fr"}>
       <BreakGate
         settings={loaded?.settings ?? null}
         initial={loaded ? { ...loaded.clock, updatedAt: loaded.updatedAt } : null}
@@ -40,6 +42,7 @@ export default async function KidLayout({ children }: { children: React.ReactNod
           <KidNav links={links} />
         </div>
       </BreakGate>
+      </MochiProvider>
     </div>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FriendMark } from "@/components/mochi/friend-mark";
 import { GARDEN, gardenKind, gardenTheme } from "@/lib/garden/kinds";
 import type { BubbleFriend } from "@/lib/mochi";
@@ -23,17 +23,24 @@ export function GardenBed({
   fullLabel: string;
 }) {
   const [said, setSaid] = useState("");
+  const [hidden, setHidden] = useState(false);
   const grown = new Map(planted.map((item) => [item.slot, item.kind]));
+  const newest = planted.reduce((slot, item) => Math.max(slot, item.slot), -1);
   const theme = gardenTheme(fullAt, new Date());
+  useEffect(() => {
+    const onHide = () => setHidden(document.hidden);
+    document.addEventListener("visibilitychange", onHide);
+    return () => document.removeEventListener("visibilitychange", onHide);
+  }, []);
   return (
-    <div className={`rounded-[28px] p-3 ${theme === "night" ? "bg-[#14243f]" : "bg-[#1f6b3a]"}`}>
+    <div className={`rounded-[28px] p-3 ${hidden ? styles.paused : ""} ${theme === "night" ? "bg-[#14243f]" : "bg-[#1f6b3a]"}`}>
       <div className="grid grid-cols-4 justify-items-center gap-2">
         {GARDEN.map((item, slot) => {
           const kind = grown.get(slot);
           const plant = kind ? gardenKind(kind) : null;
           if (!plant) {
             return (
-              <span key={slot} className="flex h-16 w-16 items-center justify-center text-3xl" aria-hidden>
+              <span key={slot} data-sway="true" className={`flex h-16 w-16 items-center justify-center text-3xl ${styles.sway}`} aria-hidden>
                 🌱
               </span>
             );
@@ -44,7 +51,9 @@ export function GardenBed({
               key={slot}
               type="button"
               aria-label={name}
-              className="flex h-16 w-16 items-center justify-center rounded-full bg-white/20 text-3xl"
+              data-sway="true"
+              data-pop={slot === newest ? "true" : "false"}
+              className={`flex h-16 w-16 items-center justify-center rounded-full bg-white/20 text-3xl ${styles.sway} ${slot === newest ? styles.pop : ""}`}
               onClick={() => {
                 setSaid(name);
                 if (!voice) return;
@@ -58,6 +67,8 @@ export function GardenBed({
         })}
       </div>
       <div className={styles.bed}>
+        <span className={`${styles.bug} ${styles.bee}`} data-bug="bee" aria-hidden>🐝</span>
+        <span className={`${styles.bug} ${styles.butterfly}`} data-bug="butterfly" aria-hidden>🦋</span>
         {friends.map((friend, index) => (
           <span key={friend} className={styles.walker} style={{ left: `${index * 12}px`, animationDelay: `${index * 0.8}s` }}>
             <FriendMark friend={friend} />

@@ -7,10 +7,40 @@
   bottom: 0;
   animation: stroll 9s ease-in-out infinite;
 }
+.bug {
+  position: absolute;
+  top: 0.2rem;
+  font-size: 1.4rem;
+  animation: drift 5s ease-in-out infinite;
+}
+.bee { left: 0.4rem; animation-duration: 4.2s; }
+.butterfly { right: 0.4rem; animation-duration: 5.4s; animation-delay: -1.2s; }
+.sway { animation: sway 2.8s ease-in-out infinite; }
+.pop { animation: pop 0.7s ease-out 1, sway 2.8s ease-in-out 0.7s infinite; }
+.paused .walker,
+.paused .bug,
+.paused .sway,
+.paused .pop { animation-play-state: paused; }
 @keyframes stroll {
   0%, 100% { transform: translateX(0); }
   50% { transform: translateX(7rem); }
 }
+@keyframes drift {
+  0%, 100% { transform: translate(0, 0); opacity: 1; }
+  50% { transform: translate(3.2rem, -0.8rem); opacity: 0.75; }
+}
+@keyframes sway {
+  0%, 100% { transform: rotate(-6deg); }
+  50% { transform: rotate(6deg); }
+}
+@keyframes pop {
+  0% { transform: scale(0.2); }
+  55% { transform: scale(1.2, 0.82); }
+  100% { transform: scale(1); }
+}
 @media (prefers-reduced-motion: reduce) {
-  .walker { animation: none; }
+  .walker,
+  .bug,
+  .sway,
+  .pop { animation: none; }
 }
