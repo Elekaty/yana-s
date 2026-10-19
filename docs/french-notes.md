@@ -12,8 +12,8 @@ Please mark each line keep, or write the replacement.
 
 ## Stories
 
-- **Il garde bien au chaud.** (`manteau-vert` in `src/lib/stories/library.ts`). The coat has no object here. "Il tient chaud" may be the intended line.
-- **Une petite étoile a peur.** (`etoile-timide`). The title says "timide" and the English page says "shy". The French page says she is afraid.
+- **Il tient chaud.** (`manteau-vert` in `src/lib/stories/library.ts`). The coat keeps someone warm.
+- **Une petite étoile est timide.** (`etoile-timide`). This matches the title and the English line "shy".
 
 ## Story ending
 

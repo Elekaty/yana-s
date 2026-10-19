@@ -16,13 +16,13 @@ export const STORIES: Story[] = [
   { slug: "chaussette-perdue", title_fr: "La chaussette perdue", title_en: "The lost sock", pages: [{ fr: "Une chaussette se cache.", en: "A sock is hiding." }, { fr: "Elle était sous le lit.", en: "It was under the bed." }] },
   { slug: "oiseau-bleu", title_fr: "L'oiseau bleu", title_en: "The blue bird", pages: [{ fr: "Un oiseau bleu chante.", en: "A blue bird sings." }, { fr: "Puis il vole vers le toit.", en: "Then it flies to the roof." }] },
   { slug: "soupe-carottes", title_fr: "La soupe aux carottes", title_en: "Carrot soup", pages: [{ fr: "Les carottes dansent dans la soupe.", en: "The carrots dance in the soup." }, { fr: "Tout le monde dit merci.", en: "Everyone says thank you." }] },
-  { slug: "etoile-timide", title_fr: "L'étoile timide", title_en: "The shy star", pages: [{ fr: "Une petite étoile a peur.", en: "A little star is shy." }, { fr: "La lune lui tient compagnie.", en: "The moon keeps it company." }] },
+  { slug: "etoile-timide", title_fr: "L'étoile timide", title_en: "The shy star", pages: [{ fr: "Une petite étoile est timide.", en: "A little star is shy." }, { fr: "La lune lui tient compagnie.", en: "The moon keeps it company." }] },
   { slug: "ballon-jaune", title_fr: "Le ballon jaune", title_en: "The yellow ball", pages: [{ fr: "Le ballon jaune rebondit.", en: "The yellow ball bounces." }, { fr: "Il revient toujours.", en: "It always comes back." }] },
   { slug: "fourmi-pont", title_fr: "La fourmi et le pont", title_en: "The ant and the bridge", pages: [{ fr: "Une fourmi cherche un pont.", en: "An ant looks for a bridge." }, { fr: "Une feuille fait le chemin.", en: "A leaf makes the path." }] },
   { slug: "nuage-rose", title_fr: "Le nuage rose", title_en: "The pink cloud", pages: [{ fr: "Un nuage rose passe.", en: "A pink cloud goes by." }, { fr: "Il laisse une goutte brillante.", en: "It leaves one bright drop." }] },
   { slug: "petite-cle", title_fr: "La petite clé", title_en: "The little key", pages: [{ fr: "Nina trouve une clé.", en: "Nina finds a key." }, { fr: "La clé ouvre une boîte à crayons.", en: "The key opens a pencil box." }] },
   { slug: "poisson-rire", title_fr: "Le poisson qui rit", title_en: "The fish who laughs", pages: [{ fr: "Le poisson fait des bulles.", en: "The fish makes bubbles." }, { fr: "Chaque bulle est un rire.", en: "Each bubble is a laugh." }] },
-  { slug: "manteau-vert", title_fr: "Le manteau vert", title_en: "The green coat", pages: [{ fr: "Le manteau vert est trop grand.", en: "The green coat is too big." }, { fr: "Il garde bien au chaud.", en: "It keeps someone warm." }] },
+  { slug: "manteau-vert", title_fr: "Le manteau vert", title_en: "The green coat", pages: [{ fr: "Le manteau vert est trop grand.", en: "The green coat is too big." }, { fr: "Il tient chaud.", en: "It keeps someone warm." }] },
   { slug: "lune-biscuit", title_fr: "Le biscuit lune", title_en: "The moon biscuit", pages: [{ fr: "Le biscuit a la forme d'une lune.", en: "The biscuit is shaped like a moon." }, { fr: "On le croque tout doucement.", en: "They nibble it slowly." }] },
   { slug: "petit-train", title_fr: "Le petit train", title_en: "The little train", pages: [{ fr: "Le petit train dit tchou.", en: "The little train says choo." }, { fr: "Il emmène les peluches.", en: "It carries the soft toys." }] },
   { slug: "fleur-nuit", title_fr: "La fleur de nuit", title_en: "The night flower", pages: [{ fr: "La fleur se ferme le jour.", en: "The flower closes by day." }, { fr: "Elle s'ouvre quand les étoiles arrivent.", en: "It opens when the stars come." }] },
@@ -42,4 +42,15 @@ export const STORIES: Story[] = [
 
 export function storyBySlug(slug: string) {
   return STORIES.find((story) => story.slug === slug) ?? null;
+}
+
+export function storyOrder(slug: string) {
+  const index = STORIES.findIndex((story) => story.slug === slug);
+  return index < 0 ? STORIES.length : index;
+}
+
+export function storyAt(index: number) {
+  const count = STORIES.length;
+  const safe = ((Math.floor(index) % count) + count) % count;
+  return { story: STORIES[safe], index: safe, count };
 }

@@ -3,6 +3,7 @@ import { KidBack } from "@/components/kid/kid-back";
 import { getFamily } from "@/lib/family";
 import { t } from "@/lib/i18n";
 import { kidPlaces } from "@/lib/kid/places";
+import { STORIES } from "@/lib/stories/library";
 import { ensureStories } from "@/lib/stories/seed";
 
 export const dynamic = "force-dynamic";
@@ -16,8 +17,8 @@ export default async function StoriesPage({ searchParams }: { searchParams: Prom
   } catch {
     // The stories still show after 0008 is pasted.
   }
-  const { data } = await supabase.from("stories").select("slug, title_fr, title_en").order("slug");
-  const rows = data ?? [];
+  const { data } = await supabase.from("stories").select("slug, title_fr, title_en");
+  const rows = (data ?? []).slice().sort((a, b) => place(a.slug) - place(b.slug));
   if (rows.length === 0) {
     return (
       <div className="grid gap-4">
@@ -33,6 +34,7 @@ export default async function StoriesPage({ searchParams }: { searchParams: Prom
   return (
     <div className="grid gap-4">
       <KidBack href={kidPlaces.words} label={copy.back} />
+      <p className="text-center text-xl">{index + 1} / {rows.length}</p>
       <p className="text-center text-3xl">{title}</p>
       <Link href={`/kid/games/stories/${row.slug}`} className="flex h-16 items-center justify-center rounded-full bg-sun text-2xl text-plum">
         {copy.listen}
@@ -42,4 +44,9 @@ export default async function StoriesPage({ searchParams }: { searchParams: Prom
       </Link>
     </div>
   );
+}
+
+function place(slug: string) {
+  const index = STORIES.findIndex((story) => story.slug === slug);
+  return index < 0 ? STORIES.length : index;
 }

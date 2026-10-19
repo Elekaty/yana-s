@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { STORIES } from "@/lib/stories/library";
+import { STORIES, storyAt, storyBySlug } from "@/lib/stories/library";
 import { allPhrases, newPromptFor, promptForToday, RUNGS } from "@/lib/voice/packs";
 import { isFamilyVoicePath, recordingExtension } from "@/lib/voice/record";
 
@@ -34,6 +34,10 @@ describe("stories", () => {
     const sql = readFileSync("supabase/migrations/0008_stories.sql", "utf8");
     expect(sql.startsWith("-- 0008 stories")).toBe(true);
     expect(STORIES).toHaveLength(30);
+    expect(storyAt(0).story.slug).toBe("chat-lune");
+    expect(storyAt(30).index).toBe(0);
+    expect(storyBySlug("manteau-vert")?.pages[1]?.fr).toBe("Il tient chaud.");
+    expect(storyBySlug("etoile-timide")?.pages[0]?.fr).toBe("Une petite étoile est timide.");
     const slugs = STORIES.map((story) => story.slug);
     expect(new Set(slugs).size).toBe(30);
     for (const story of STORIES) {
