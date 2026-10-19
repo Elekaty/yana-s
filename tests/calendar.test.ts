@@ -4,7 +4,10 @@ import { describe, expect, it } from "vitest";
 import {
   applySnooze,
   defaultOffsets,
+  displayTitle,
+  eventMark,
   holidayOn,
+  offsetsForChoice,
   icsCalendar,
   NATIONAL_HOLIDAYS,
   parseLocalDateTime,
@@ -87,5 +90,15 @@ describe("calendar reminders", () => {
     expect(body).toContain("BEGIN:VCALENDAR");
     expect(body).toContain("SUMMARY:Meeting\\, school");
     expect(body).toContain("DTSTART:20261020T130000Z");
+  });
+
+  it("keeps the reminder the parent chose, and marks school and homework events", () => {
+    const soon = parseLocalDateTime("2026-10-20T15:00", paris)!;
+    const now = new Date("2026-10-16T08:00:00.000Z");
+    expect(offsetsForChoice("day", soon, now, paris)).toEqual([24 * 60]);
+    expect(offsetsForChoice("morning", soon, now, paris)).toEqual([7 * 60]);
+    expect(eventMark("📝 Tables", false)).toBe("homework");
+    expect(eventMark("Picnic", true)).toBe("school");
+    expect(displayTitle("🏫 Sortie")).toBe("Sortie");
   });
 });

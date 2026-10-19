@@ -136,7 +136,7 @@ export default async function InboxPage({ searchParams }: { searchParams: Promis
         const photos = links.get(message.id) ?? [];
         const please = Boolean(message.please_check) || (typeof message.confidence === "number" && message.confidence < 0.6);
         return (
-          <Card key={message.id}>
+          <Card key={message.id} id={message.id}>
             <div className="flex flex-wrap items-start justify-between gap-2">
               <CardTitle>{failed ? "Could not read" : message.title || "Message"}</CardTitle>
               <span className="rounded-full bg-muted px-3 py-1 text-xs font-semibold">{tierLabel(String(message.tier || "fyi"))}</span>

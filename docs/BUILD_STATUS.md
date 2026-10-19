@@ -39,6 +39,7 @@ Single list for the finish-the-app pass. One task at a time.
 | R4 | Curriculum | DONE | `src/app/parent/(gate)/curriculum/page.tsx`, `tests/outline.test.ts` | Curriculum shows the November plan, edit and add, the break-plan button, game tables, and skills. A tables round raises that skill and does not lower a Strong mark. |
 | R5 | Today summary | DONE | `src/app/parent/(gate)/page.tsx`, `src/lib/parent/today.ts`, `tests/parent-today.test.ts` | Today shows Needs you, Tonight, and Homework in a compact group, then the later blocks only when they have something to show. |
 | R6 | Intake and Inbox | DONE | `src/app/parent/(gate)/inbox/page.tsx`, `src/app/api/intake/telegram/route.ts`, `src/app/api/intake/email/route.ts`, `tests/inbox.test.ts` | Inbox filters, 30/45/60 snooze, and archive only after both parents tick. A saved note gets a tier immediately. Real Telegram and forwarded email were not sent in this pass. |
+| R7 | Calendar, to do, reminders | DONE | `src/app/parent/(gate)/calendar/page.tsx`, `src/app/parent/(gate)/todo/page.tsx`, `src/lib/calendar/due.ts`, `tests/calendar.test.ts` | Month grid, add and remove, chosen reminders, to-do snooze and reassign. A due reminder is sent to the linked Telegram chat and to a subscribed phone. A live fire and a Telegram snooze were not watched. |
 
 ## Parent views
 
@@ -47,8 +48,8 @@ Single list for the finish-the-app pass. One task at a time.
 | P1 | Shell, navigation and data layer | DONE | `src/components/parent/parent-nav.tsx`, `src/lib/parent/queries.ts` | Today, Inbox, Calendar, Progress, and More. Scan lives at `/parent/scan`. Curriculum, Voice, Study, and Rewards render. |
 | P2 | Today summary | DONE | `src/app/parent/(gate)/page.tsx`, `tests/parent-today.test.ts` | Blocks 1 to 9. Empty optional lists stay hidden. The first three sit in one compact group. |
 | P3 | Inbox | DONE | `src/app/parent/(gate)/inbox/page.tsx`, `tests/inbox.test.ts` | Filters, two-tick archive, undo, tier change, and the archive folder. |
-| P4 | Calendar | TODO | | |
-| P5 | To do | TODO | | |
+| P4 | Calendar | DONE | `src/app/parent/(gate)/calendar/page.tsx`, `tests/calendar.test.ts` | Month grid, holiday bands, add and remove, and the reminder choice from a message. |
+| P5 | To do | DONE | `src/app/parent/(gate)/todo/page.tsx` | Open tasks link back to the school message. Done, snooze, and reassign. |
 | P6 | Progress and Curriculum | TODO | | |
 | P7 | Rewards and Voice | TODO | | |
 | P8 | Study and Setup | TODO | | |

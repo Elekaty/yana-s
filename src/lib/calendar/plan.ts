@@ -33,6 +33,33 @@ export type Holiday = {
   kind: string;
 };
 
+export function offsetsForChoice(choice: string, startsAt: Date, now: Date, timeZone = "Europe/Paris") {
+  if (choice === "week") return [8 * DAY, DAY];
+  if (choice === "day") return [DAY];
+  if (choice === "morning") {
+    const morning = minutesUntilMorning(startsAt, timeZone);
+    return [morning >= 30 ? morning : 60];
+  }
+  return defaultOffsets(startsAt, now, timeZone);
+}
+
+export function eventMark(title: string, fromMessage: boolean) {
+  if (title.startsWith("📝 ")) return "homework" as const;
+  if (title.startsWith("🏫 ") || fromMessage) return "school" as const;
+  return "family" as const;
+}
+
+export function displayTitle(title: string) {
+  return title.replace(/^(📝|🏫) /, "");
+}
+
+export function titledEvent(title: string, type: string) {
+  const clean = displayTitle(title);
+  if (type === "homework") return `📝 ${clean}`;
+  if (type === "school") return `🏫 ${clean}`;
+  return clean;
+}
+
 export function defaultOffsets(startsAt: Date, now: Date, timeZone = "Europe/Paris") {
   const ahead = (startsAt.getTime() - now.getTime()) / 60000;
   if (ahead > 7 * DAY) return [8 * DAY, DAY];

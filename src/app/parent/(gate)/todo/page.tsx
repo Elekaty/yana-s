@@ -1,5 +1,5 @@
 import { completeTask } from "@/app/parent/(gate)/calendar/actions";
-import { addPlanItem, hidePlanItem, savePlanItem, tickPlanItem } from "@/app/parent/(gate)/todo/actions";
+import { addPlanItem, addQuickTask, hidePlanItem, reassignTask, savePlanItem, snoozeTask, tickPlanItem } from "@/app/parent/(gate)/todo/actions";
 import { ParentNote } from "@/components/parent-note";
 import { Button } from "@/components/ui/button";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
@@ -11,13 +11,16 @@ export const dynamic = "force-dynamic";
 
 export default async function TodoPage() {
   const { supabase, family } = await requireParent();
-  const { data: tasks } = await supabase
-    .from("tasks")
-    .select("id, title, parent_action, status, due_at")
-    .eq("family_id", family.family_id)
-    .eq("status", "pending")
-    .order("due_at", { ascending: true, nullsFirst: false })
-    .limit(40);
+  const [{ data: tasks }, { data: parents }] = await Promise.all([
+    supabase
+      .from("tasks")
+      .select("id, title, parent_action, status, due_at, message_id, assignee_member_id")
+      .eq("family_id", family.family_id)
+      .eq("status", "pending")
+      .order("due_at", { ascending: true, nullsFirst: false })
+      .limit(40),
+    supabase.from("members").select("id, display_name").eq("role", "parent"),
+  ]);
   const month = monthKey(new Date(), family.timezone || "Europe/Paris");
   let plan: PlanItem[] | null = null;
   try {
@@ -33,16 +36,58 @@ export default async function TodoPage() {
     <div className="space-y-4">
       <h1 className="text-2xl font-semibold tracking-tight">To do</h1>
       {(tasks ?? []).length === 0 ? <ParentNote title="Nothing waiting" body="Press To do on an inbox message and it will collect here." /> : null}
-      {(tasks ?? []).map((task) => (
-        <Card key={task.id}>
-          <CardTitle>{task.title || "To do"}</CardTitle>
-          {task.parent_action ? <CardDescription>{task.parent_action}</CardDescription> : null}
-          <form action={completeTask} className="mt-3">
-            <input type="hidden" name="taskId" value={task.id} />
-            <Button type="submit" variant="outline">Done</Button>
-          </form>
-        </Card>
-      ))}
+      {(tasks ?? []).map((task) => {
+        const owner = (parents ?? []).find((parent) => parent.id === task.assignee_member_id);
+        return (
+          <Card key={task.id}>
+            <CardTitle>{task.title || "To do"}</CardTitle>
+            <CardDescription>
+              {task.due_at ? String(task.due_at).slice(0, 16).replace("T", " ") : "No due date"}
+              {owner ? ` · ${owner.display_name}` : ""}
+            </CardDescription>
+            {task.parent_action ? <p className="mt-2 text-sm">{task.parent_action}</p> : null}
+            {task.message_id ? (
+              <a className="mt-2 inline-flex h-12 items-center text-sm font-semibold underline" href={`/parent/inbox#${task.message_id}`}>
+                School message
+              </a>
+            ) : null}
+            <div className="mt-3 flex flex-wrap gap-2">
+              <form action={completeTask}>
+                <input type="hidden" name="taskId" value={task.id} />
+                <Button type="submit" size="lg" variant="outline">Done</Button>
+              </form>
+              {[
+                ["30", "30 min"],
+                ["45", "45 min"],
+                ["60", "1 hour"],
+              ].map(([minutes, label]) => (
+                <form key={minutes} action={snoozeTask}>
+                  <input type="hidden" name="taskId" value={task.id} />
+                  <input type="hidden" name="minutes" value={minutes} />
+                  <Button type="submit" size="lg" variant="outline">{label}</Button>
+                </form>
+              ))}
+            </div>
+            <form action={reassignTask} className="mt-3 flex flex-wrap gap-2">
+              <input type="hidden" name="taskId" value={task.id} />
+              <select name="memberId" aria-label="Reassign" defaultValue={String(task.assignee_member_id ?? "")} className="h-12 rounded-md border border-border bg-background px-2">
+                {(parents ?? []).map((parent) => (
+                  <option key={parent.id} value={parent.id}>{parent.display_name}</option>
+                ))}
+              </select>
+              <Button type="submit" size="lg" variant="outline">Reassign</Button>
+            </form>
+          </Card>
+        );
+      })}
+      <Card>
+        <CardTitle>Add a task</CardTitle>
+        <form action={addQuickTask} className="mt-3 flex flex-wrap gap-2">
+          <input name="title" aria-label="Task" required placeholder="What needs doing" className="h-12 min-w-40 flex-1 rounded-md border border-border bg-background px-3" />
+          <input name="due" type="date" aria-label="Due date" className="h-12 rounded-md border border-border bg-background px-2" />
+          <Button type="submit" size="lg">Add</Button>
+        </form>
+      </Card>
       <h2 className="text-xl font-semibold">This month</h2>
       <p className="text-sm text-muted-foreground">General outline. A change here is saved for your family.</p>
       {plan === null ? (

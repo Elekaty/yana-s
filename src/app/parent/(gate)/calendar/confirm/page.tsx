@@ -21,12 +21,27 @@ export default async function ConfirmEventPage({ searchParams }: { searchParams:
         </label>
         <label className="block text-sm">
           Date and time ({timeZone})
-          <input name="when" type="datetime-local" required defaultValue={localInput(query.starts ?? "", timeZone)} className="mt-1 h-10 w-full rounded-md border border-border bg-background px-3" />
+          <input name="when" type="datetime-local" required defaultValue={localInput(query.starts ?? "", timeZone)} className="mt-1 h-12 w-full rounded-md border border-border bg-background px-3" />
         </label>
-        <Button type="submit">Save on the calendar</Button>
+        <input type="hidden" name="type" value="school" />
+        <label className="block text-sm">
+          Reminder
+          <select name="reminder" aria-label="Reminder" defaultValue={farAway(query.starts ?? "") ? "day" : "morning"} className="mt-1 h-12 w-full rounded-md border border-border bg-background px-2">
+            <option value="morning">Morning of</option>
+            <option value="day">1 day before</option>
+            <option value="week">1 week and 1 day before</option>
+          </select>
+        </label>
+        <Button type="submit" size="lg">Save on the calendar</Button>
       </form>
     </Card>
   );
+}
+
+function farAway(iso: string) {
+  const time = Date.parse(iso);
+  if (Number.isNaN(time)) return false;
+  return time - Date.now() > 7 * 24 * 60 * 60 * 1000;
 }
 
 function localInput(iso: string, timeZone: string) {

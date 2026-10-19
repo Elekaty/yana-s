@@ -1,4 +1,4 @@
-import { icsCalendar, visibleHolidays, type Holiday } from "@/lib/calendar/plan";
+import { displayTitle, icsCalendar, visibleHolidays, type Holiday } from "@/lib/calendar/plan";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export async function GET(_request: Request, context: { params: Promise<{ token: string }> }) {
@@ -17,7 +17,7 @@ export async function GET(_request: Request, context: { params: Promise<{ token:
   const body = icsCalendar([
     ...(events ?? []).map((event) => ({
       uid: `${event.id}@mochi`,
-      title: String(event.title ?? "Event"),
+      title: displayTitle(String(event.title ?? "Event")),
       startsAt: String(event.starts_at),
       endsAt: event.ends_at ? String(event.ends_at) : null,
     })),

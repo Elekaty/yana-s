@@ -1,15 +1,16 @@
-import { createBreakPlan, saveHoliday, saveZone, snoozeReminder } from "@/app/parent/(gate)/calendar/actions";
+import { createBreakPlan, removeEvent, saveEvent, saveHoliday, saveZone, snoozeReminder } from "@/app/parent/(gate)/calendar/actions";
 import { ParentNote } from "@/components/parent-note";
+import { PhoneReminders } from "@/components/parent/phone-reminders";
 import { Button } from "@/components/ui/button";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 import { ensureHolidays } from "@/lib/calendar/seed";
-import { dayKey, holidayOn, monthCells, visibleHolidays, type Holiday } from "@/lib/calendar/plan";
+import { dayKey, displayTitle, eventMark, holidayOn, monthCells, visibleHolidays, type Holiday } from "@/lib/calendar/plan";
 import { requireParent } from "@/lib/parent/guard";
 import { isMissingTable } from "@/lib/supabase/db-error";
 
 export const dynamic = "force-dynamic";
 
-export default async function CalendarPage({ searchParams }: { searchParams: Promise<{ month?: string }> }) {
+export default async function CalendarPage({ searchParams }: { searchParams: Promise<{ month?: string; day?: string }> }) {
   const { supabase, family } = await requireParent();
   try {
     await ensureHolidays();
@@ -18,9 +19,10 @@ export default async function CalendarPage({ searchParams }: { searchParams: Pro
   }
   const timeZone = family.timezone || "Europe/Paris";
   const today = dayKey(new Date(), timeZone);
-  const requested = (await searchParams).month ?? today.slice(0, 7);
+  const query = await searchParams;
+  const requested = query.month ?? today.slice(0, 7);
   const month = /^\d{4}-\d{2}$/.test(requested) ? requested : today.slice(0, 7);
-  const own = await supabase.from("events").select("id, title, starts_at").eq("family_id", family.family_id).order("starts_at");
+  const own = await supabase.from("events").select("id, title, starts_at, source_message_id").eq("family_id", family.family_id).order("starts_at");
   const reminderQuery = await supabase.from("reminders").select("id, due_at, status, note, escalated, target, ref_type, ref_id").neq("status", "done").order("due_at").limit(12);
   const rosterQuery = await supabase.from("roster_days").select("date, status").eq("family_id", family.family_id);
   const holidayQuery = await supabase.from("school_calendar").select("family_id, label, starts_on, ends_on, zone, kind");
@@ -50,6 +52,10 @@ export default async function CalendarPage({ searchParams }: { searchParams: Pro
   const previous = new Date(Date.UTC(year, monthNumber - 2, 1)).toISOString().slice(0, 7);
   const next = new Date(Date.UTC(year, monthNumber, 1)).toISOString().slice(0, 7);
   const monthHolidays = holidays.filter((holiday) => holiday.starts_on.slice(0, 7) <= month && holiday.ends_on.slice(0, 7) >= month);
+  const selectedDay = query.day && /^\d{4}-\d{2}-\d{2}$/.test(query.day) ? query.day : today;
+  const dayEvents = (events ?? []).filter((event) => dayKey(new Date(event.starts_at as string), timeZone) === selectedDay);
+  const coming = (events ?? []).filter((event) => dayKey(new Date(event.starts_at as string), timeZone) >= today).slice(0, 5);
+  const vapid = process.env.VAPID_PUBLIC_KEY ?? "";
 
   return (
     <div className="space-y-4">
@@ -81,18 +87,76 @@ export default async function CalendarPage({ searchParams }: { searchParams: Pro
           const holiday = holidays.find((row) => row.kind === "holiday" && row.starts_on <= cell.day && cell.day <= row.ends_on);
           const flying = (roster ?? []).some((day) => String(day.date) === cell.day && (day.status === "flying" || day.status === "layover"));
           const titles = (events ?? []).filter((event) => dayKey(new Date(event.starts_at as string), timeZone) === cell.day).map((event) => event.title as string);
+          const marks = [
+            flying ? "✈️" : "",
+            holiday ? "🏖️" : "",
+            ...titles.map((title) => {
+              const event = (events ?? []).find((item) => item.title === title && dayKey(new Date(item.starts_at as string), timeZone) === cell.day);
+              const kind = eventMark(title, Boolean(event?.source_message_id));
+              return kind === "homework" ? "📝" : kind === "school" ? "🏫" : "🏠";
+            }),
+          ].filter(Boolean);
           return (
-            <div key={cell.day} className={`min-h-16 rounded-md border border-border p-1 text-xs ${holiday ? "bg-sun/40" : "bg-card"} ${cell.day === today ? "ring-2 ring-primary" : ""}`}>
+            <a key={cell.day} href={`/parent/calendar?month=${month}&day=${cell.day}`} className={`block min-h-16 rounded-md border border-border p-1 text-xs ${holiday ? "bg-sun/40" : "bg-card"} ${cell.day === today ? "ring-2 ring-primary" : ""} ${cell.day === selectedDay ? "ring-2 ring-grape" : ""}`}>
               <div className="font-medium">{Number(cell.day.slice(8))}</div>
-              {flying ? <div>✈️</div> : null}
+              <div aria-hidden="true">{marks.join(" ")}</div>
               {holiday ? <div className="truncate">{holiday.label}</div> : null}
-              {titles.slice(0, 2).map((title) => <div key={title} className="truncate">{title}</div>)}
-            </div>
+            </a>
           );
         })}
       </div>
       <Card>
+        <CardTitle>{selectedDay}</CardTitle>
+        <CardDescription>Tap a day to see it. A holiday band runs across its days.</CardDescription>
+        {dayEvents.length === 0 ? <p className="mt-3 text-sm text-muted-foreground">Nothing on this day.</p> : null}
+        <ul className="mt-3 space-y-2">
+          {dayEvents.map((event) => (
+            <li key={event.id} className="flex flex-wrap items-center justify-between gap-2 text-sm">
+              <span>
+                {eventMark(String(event.title), Boolean(event.source_message_id)) === "homework" ? "📝 " : eventMark(String(event.title), Boolean(event.source_message_id)) === "school" ? "🏫 " : "🏠 "}
+                {displayTitle(String(event.title))}
+              </span>
+              <form action={removeEvent}>
+                <input type="hidden" name="eventId" value={event.id} />
+                <Button type="submit" size="lg" variant="outline">Remove</Button>
+              </form>
+            </li>
+          ))}
+        </ul>
+      </Card>
+      <Card>
+        <CardTitle>Add event</CardTitle>
+        <form action={saveEvent} className="mt-3 grid gap-2">
+          <input name="title" aria-label="Event title" required placeholder="Title" className="h-12 rounded-md border border-border bg-background px-3" />
+          <input name="when" type="datetime-local" aria-label="Date and time" required defaultValue={`${selectedDay}T10:00`} className="h-12 rounded-md border border-border bg-background px-3" />
+          <select name="type" aria-label="Event type" defaultValue="family" className="h-12 rounded-md border border-border bg-background px-2">
+            <option value="school">School</option>
+            <option value="family">Family</option>
+            <option value="homework">Homework</option>
+          </select>
+          <select name="reminder" aria-label="Reminder" defaultValue="morning" className="h-12 rounded-md border border-border bg-background px-2">
+            <option value="morning">Morning of</option>
+            <option value="day">1 day before</option>
+            <option value="week">1 week and 1 day before</option>
+          </select>
+          <Button type="submit" size="lg">Add event</Button>
+        </form>
+      </Card>
+      <Card>
         <CardTitle>Coming up</CardTitle>
+        {coming.length === 0 ? <p className="mt-3 text-sm text-muted-foreground">No events yet.</p> : null}
+        <ul className="mt-3 space-y-1 text-sm">
+          {coming.map((event) => (
+            <li key={event.id}>
+              <a className="underline" href={`/parent/calendar?month=${String(event.starts_at).slice(0, 7)}&day=${dayKey(new Date(event.starts_at as string), timeZone)}`}>
+                {displayTitle(String(event.title))} · {dayKey(new Date(event.starts_at as string), timeZone)}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </Card>
+      <Card>
+        <CardTitle>Reminders</CardTitle>
         <ul className="mt-3 space-y-3 text-sm">
           {(reminders ?? []).length === 0 ? <li className="text-muted-foreground">No reminders yet.</li> : null}
           {(reminders ?? []).map((reminder) => (
@@ -147,9 +211,16 @@ export default async function CalendarPage({ searchParams }: { searchParams: Pro
           ))}
         </ul>
       </Card>
+      <Card>
+        <CardTitle>This phone</CardTitle>
+        <CardDescription>
+          {vapid ? "Allow reminders on this phone. They also go to the linked Telegram chat, with Done, 30, 45, and 60." : "Phone reminders need the push keys. Telegram still sends them when the bot is linked."}
+        </CardDescription>
+        {vapid ? <div className="mt-3"><PhoneReminders publicKey={vapid} /></div> : null}
+      </Card>
       {familyRow?.ics_token ? (
-        <p className="text-sm text-muted-foreground">
-          Private calendar link: <span className="break-all">/api/calendar/{familyRow.ics_token}</span>
+        <p className="text-sm">
+          <a className="underline" href={`/api/calendar/${familyRow.ics_token}`}>Download the calendar</a>
         </p>
       ) : null}
     </div>

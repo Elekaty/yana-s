@@ -17,7 +17,10 @@ export async function runDueReminders(now = new Date()) {
   for (const reminder of due) {
     const title = await reminderTitle(reminder.ref_type as string | null, reminder.ref_id as string | null);
     await admin.from("reminders").update({ status: "sent" }).eq("id", reminder.id).in("status", ["pending", "snoozed"]);
-    if (reminder.target === "parent") await notifyFamily(reminder.family_id as string, reminder.id as string, title);
+    if (reminder.target === "parent") {
+      await notifyFamily(reminder.family_id as string, reminder.id as string, title);
+      await sendPush(reminder.family_id as string, title);
+    }
     sent += 1;
   }
 
@@ -42,6 +45,7 @@ export async function runDueReminders(now = new Date()) {
     if (!ready) continue;
     await admin.from("reminders").update({ escalated: true }).eq("id", reminder.id);
     await notifyFamily(reminder.family_id as string, reminder.id as string, "A reminder is still waiting.");
+    await sendPush(reminder.family_id as string, "A reminder is still waiting.");
   }
   return sent;
 }
@@ -119,7 +123,6 @@ async function notifyFamily(familyId: string, reminderId: string, title: string)
   const admin = createAdminClient();
   const { data: chats } = await admin.from("telegram_chats").select("chat_id").eq("family_id", familyId);
   for (const chat of chats ?? []) {
-    if (String(chat.chat_id).startsWith("-")) continue;
     await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
       method: "POST",
       headers: { "content-type": "application/json" },
@@ -136,6 +139,26 @@ async function notifyFamily(familyId: string, reminderId: string, title: string)
         },
       }),
     });
+  }
+}
+
+async function sendPush(familyId: string, title: string) {
+  const publicKey = process.env.VAPID_PUBLIC_KEY;
+  const privateKey = process.env.VAPID_PRIVATE_KEY;
+  if (!publicKey || !privateKey) return;
+  const admin = createAdminClient();
+  const { data } = await admin.from("push_subscriptions").select("endpoint, keys").eq("family_id", familyId);
+  if (!data || data.length === 0) return;
+  const webpush = await import("web-push");
+  webpush.setVapidDetails("mailto:parents@signin.yana-s.app", publicKey, privateKey);
+  for (const row of data) {
+    const keys = row.keys as { p256dh?: string; auth?: string } | null;
+    if (!row.endpoint || !keys?.p256dh || !keys.auth) continue;
+    try {
+      await webpush.sendNotification({ endpoint: String(row.endpoint), keys: { p256dh: keys.p256dh, auth: keys.auth } }, title);
+    } catch {
+      // A phone that unsubscribed stays quiet until it subscribes again.
+    }
   }
 }
 

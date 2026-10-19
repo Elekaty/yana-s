@@ -6,8 +6,10 @@ import {
   BREAK_PRACTICE,
   atLocalTime,
   defaultOffsets,
+  offsetsForChoice,
   parseLocalDateTime,
   reminderInstants,
+  titledEvent,
   type Holiday,
   weekdayDates,
 } from "@/lib/calendar/plan";
@@ -49,13 +51,14 @@ export async function saveEvent(formData: FormData) {
   const title = String(formData.get("title") ?? "").trim().slice(0, 140);
   const when = parseLocalDateTime(String(formData.get("when") ?? ""), ctx.timeZone);
   const messageId = String(formData.get("messageId") ?? "");
+  const type = String(formData.get("type") ?? (messageId ? "school" : "family"));
   if (!title || !when) return;
-  const offsets = defaultOffsets(when, new Date(), ctx.timeZone);
+  const offsets = offsetsForChoice(String(formData.get("reminder") ?? ""), when, new Date(), ctx.timeZone);
   const { data: event, error } = await ctx.supabase
     .from("events")
     .insert({
       family_id: ctx.familyId,
-      title,
+      title: titledEvent(title, type),
       starts_at: when.toISOString(),
       source_message_id: messageId || null,
       remind_offsets: offsets,
@@ -79,6 +82,34 @@ export async function saveEvent(formData: FormData) {
   }
   revalidatePath("/parent/calendar");
   redirect("/parent/calendar");
+}
+
+export async function removeEvent(formData: FormData) {
+  const ctx = await parentContext();
+  if (!ctx) return;
+  const id = String(formData.get("eventId") ?? "");
+  if (!id) return;
+  await ctx.supabase.from("reminders").delete().eq("family_id", ctx.familyId).eq("ref_type", "event").eq("ref_id", id);
+  await ctx.supabase.from("events").delete().eq("id", id).eq("family_id", ctx.familyId);
+  revalidatePath("/parent");
+  revalidatePath("/parent/calendar");
+}
+
+export async function savePushSubscription(formData: FormData) {
+  const ctx = await parentContext();
+  if (!ctx) return;
+  const endpoint = String(formData.get("endpoint") ?? "");
+  const p256dh = String(formData.get("p256dh") ?? "");
+  const auth = String(formData.get("auth") ?? "");
+  if (!endpoint.startsWith("https://") || !p256dh || !auth) return;
+  await ctx.supabase.from("push_subscriptions").delete().eq("member_id", ctx.memberId).eq("endpoint", endpoint);
+  await ctx.supabase.from("push_subscriptions").insert({
+    family_id: ctx.familyId,
+    member_id: ctx.memberId,
+    endpoint,
+    keys: { p256dh, auth },
+  });
+  revalidatePath("/parent/calendar");
 }
 
 export async function addTask(formData: FormData) {

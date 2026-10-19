@@ -47,6 +47,44 @@ export async function hidePlanItem(formData: FormData) {
   });
 }
 
+export async function addQuickTask(formData: FormData) {
+  const ctx = await parentContext();
+  if (!ctx) return;
+  const title = clean(formData.get("title"), 140);
+  if (!title) return;
+  const due = clean(formData.get("due"), 10);
+  await ctx.supabase.from("tasks").insert({
+    family_id: ctx.familyId,
+    title,
+    status: "pending",
+    due_at: /^\d{4}-\d{2}-\d{2}$/.test(due) ? `${due}T18:00:00.000Z` : null,
+    assignee_member_id: ctx.memberId,
+  });
+  revalidatePath("/parent/todo");
+}
+
+export async function snoozeTask(formData: FormData) {
+  const ctx = await parentContext();
+  if (!ctx) return;
+  const id = String(formData.get("taskId") ?? "");
+  const minutes = Math.floor(Number(formData.get("minutes")));
+  if (!id || !Number.isInteger(minutes) || minutes < 1 || minutes > 24 * 60) return;
+  await ctx.supabase.from("tasks").update({ due_at: new Date(Date.now() + minutes * 60 * 1000).toISOString() }).eq("id", id).eq("family_id", ctx.familyId);
+  revalidatePath("/parent/todo");
+}
+
+export async function reassignTask(formData: FormData) {
+  const ctx = await parentContext();
+  if (!ctx) return;
+  const id = String(formData.get("taskId") ?? "");
+  const memberId = String(formData.get("memberId") ?? "");
+  if (!id || !memberId) return;
+  const { data: parent } = await ctx.supabase.from("members").select("id").eq("id", memberId).eq("role", "parent").maybeSingle();
+  if (!parent) return;
+  await ctx.supabase.from("tasks").update({ assignee_member_id: memberId }).eq("id", id).eq("family_id", ctx.familyId);
+  revalidatePath("/parent/todo");
+}
+
 export async function addPlanItem(formData: FormData) {
   const ctx = await parentContext();
   if (!ctx) return;
@@ -93,7 +131,8 @@ function clean(value: FormDataEntryValue | null, max: number) {
 }
 
 async function parentContext() {
-  const { supabase, family } = await getFamily();
-  if (!family || family.my_role !== "parent") return null;
-  return { supabase, familyId: family.family_id };
+  const { supabase, user, family } = await getFamily();
+  if (!user || !family || family.my_role !== "parent") return null;
+  const { data: member } = await supabase.from("members").select("id").eq("user_id", user.id).maybeSingle();
+  return { supabase, familyId: family.family_id, memberId: (member?.id as string | undefined) ?? null };
 }
