@@ -46,10 +46,7 @@ export async function finishStory(slug: string) {
     completed_at: new Date().toISOString(),
   });
   if (inserted.error) return { stars: 0, balance: ctx.stars };
-  const { data } = await ctx.supabase.rpc("award_stars", { p_child: ctx.childId, p_amount: 2, p_reason: `story:${slug}` });
-  await bumpSkill(ctx, "reading");
-  const balance = typeof data === "number" ? data : ctx.stars;
-  return { stars: balance > ctx.stars ? 2 : 0, balance };
+  return { stars: 0, balance: ctx.stars };
 }
 
 async function awardOnce(key: string, skill: string) {

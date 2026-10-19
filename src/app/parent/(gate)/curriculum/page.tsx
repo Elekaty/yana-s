@@ -147,7 +147,7 @@ export default async function CurriculumPage() {
         <CardDescription>A game can raise Tables. A status you set stays if it is higher.</CardDescription>
         <ul className="mt-3 space-y-4">
           {(skillQuery.data ?? []).map((skill) => (
-            <li key={skill.skill_key}>
+            <li key={skill.skill_key} id={skill.skill_key}>
               <p className="font-medium">{skill.title_fr}</p>
               <p className="text-sm text-muted-foreground">
                 {skill.area} · {skillStatus(levels.get(skill.skill_key) ?? 0)}

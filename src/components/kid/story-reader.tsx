@@ -42,7 +42,7 @@ export function StoryReader({
       <div className="grid gap-4">
         <p className="text-center text-3xl">{copy.doneTitle}</p>
         <p className="text-center text-2xl">
-          {stars ?? 0} {copy.stars}
+          {stars ? `${stars} ${copy.stars}` : lang === "en" ? "A parent can mark that you read it." : "Un parent peut dire que tu l'as lue."}
         </p>
         <Link href={backHref} className="flex h-14 items-center justify-center rounded-full bg-white/15 text-2xl">
           {copy.back}

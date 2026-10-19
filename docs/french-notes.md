@@ -15,6 +15,10 @@ Please mark each line keep, or write the replacement.
 - **Il garde bien au chaud.** (`manteau-vert` in `src/lib/stories/library.ts`). The coat has no object here. "Il tient chaud" may be the intended line.
 - **Une petite étoile a peur.** (`etoile-timide`). The title says "timide" and the English page says "shy". The French page says she is afraid.
 
+## Story ending
+
+- **Un parent peut dire que tu l'as lue.** (`src/components/kid/story-reader.tsx`). Shown after she finishes a story. Stars wait until a parent taps She read it.
+
 ## Ask-her questions on Progress
 
 Parents read these aloud. They live in `src/lib/plan/outline.ts` and in `supabase/migrations/0010_plan.sql`.

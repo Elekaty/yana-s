@@ -54,7 +54,7 @@ Single list for the finish-the-app pass. One task at a time.
 | P3 | Inbox | DONE | `src/app/parent/(gate)/inbox/page.tsx`, `tests/inbox.test.ts` | Filters, two-tick archive, undo, tier change, and the archive folder. |
 | P4 | Calendar | DONE | `src/app/parent/(gate)/calendar/page.tsx`, `tests/calendar.test.ts` | Month grid, holiday bands, add and remove, and the reminder choice from a message. |
 | P5 | To do | DONE | `src/app/parent/(gate)/todo/page.tsx` | Open tasks link back to the school message. Done, snooze, and reassign. |
-| P6 | Progress and Curriculum | TODO | | |
+| P6 | Progress and Curriculum | DONE | `src/app/parent/(gate)/progress/page.tsx`, `src/lib/parent/progress.ts`, `tests/progress-view.test.ts` | The week shows study minutes, stars earned, and hints. She read it awards the story once. Suggested skills link to Curriculum. The weekly note can be sent to Telegram. Sunday does not send it on its own, and email is not connected. |
 | P7 | Rewards and Voice | DONE | `src/app/parent/(gate)/rewards/page.tsx`, `src/app/parent/(gate)/voice/page.tsx` | Approving a request spends the cost. Voice plays a recording and can react. |
 | P8 | Study and Setup | DONE | `src/app/parent/(gate)/study/page.tsx`, `src/app/parent/(gate)/setup/page.tsx` | Study saves the block, the break, and the prize caps. Setup still shows the family, Telegram, and email fields. |
 | P9 | Notifications | TODO | | |
