@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { allowStoryLink } from "@/app/kid/actions";
 import { BookOpen, Clapperboard, Library, Sparkles } from "lucide-react";
 import { motion, useReducedMotion } from "framer-motion";
 import { Dialog, DialogClose, DialogContent, DialogTitle } from "@/components/ui/dialog";
@@ -47,6 +48,8 @@ const hubs = [
 export function StoryLibrary({ lang }: { lang: "fr" | "en" }) {
   const reduced = useReducedMotion();
   const [open, setOpen] = useState<(typeof hubs)[number] | null>(null);
+  const [allowed, setAllowed] = useState(false);
+  const [pinError, setPinError] = useState("");
   const leave = lang === "en" ? "Leaving Mochi to watch a story! Ask your parent!" : "Tu quittes Mochi pour une histoire ! Demande à un parent !";
   const go = lang === "en" ? "Go to Story" : "Voir l'histoire";
   const cancel = lang === "en" ? "Cancel" : "Annuler";
@@ -75,12 +78,12 @@ export function StoryLibrary({ lang }: { lang: "fr" | "en" }) {
           );
         })}
       </div>
-      <Dialog open={open !== null} onOpenChange={(next) => { if (!next) setOpen(null); }}>
+      <Dialog open={open !== null} onOpenChange={(next) => { if (!next) { setOpen(null); setAllowed(false); setPinError(""); } }}>
         <DialogContent className="kid">
           <MochiFace />
           <DialogTitle className="mt-3 text-center">{leave}</DialogTitle>
           <div className="mt-4 grid gap-2">
-            {open ? (
+            {allowed && open ? (
               <a
                 href={open.href}
                 target="_blank"
@@ -89,7 +92,37 @@ export function StoryLibrary({ lang }: { lang: "fr" | "en" }) {
               >
                 {go}
               </a>
-            ) : null}
+            ) : (
+              <form
+                className="grid gap-2"
+                action={async (formData) => {
+                  const result = await allowStoryLink(String(formData.get("pin") ?? ""));
+                  if (result.ok) {
+                    setAllowed(true);
+                    setPinError("");
+                  } else {
+                    setPinError(
+                      result.error === "need-pin"
+                        ? lang === "en"
+                          ? "A parent needs to set a PIN first."
+                          : "Un parent doit d'abord choisir un code."
+                        : lang === "en"
+                          ? "That PIN is not right."
+                          : "Ce code n'est pas le bon.",
+                    );
+                  }
+                }}
+              >
+                <label className="text-sm">
+                  {lang === "en" ? "Parent PIN" : "Code des parents"}
+                  <input name="pin" inputMode="numeric" autoComplete="off" className="mt-1 block h-14 w-full rounded-full bg-white px-4 text-center text-2xl text-plum" />
+                </label>
+                {pinError ? <p className="text-center text-sm">{pinError}</p> : null}
+                <button type="submit" className="flex h-14 items-center justify-center rounded-full bg-grape text-lg text-white">
+                  {lang === "en" ? "Unlock" : "Ouvrir"}
+                </button>
+              </form>
+            )}
             <DialogClose className="flex h-14 items-center justify-center rounded-full bg-muted text-lg">{cancel}</DialogClose>
           </div>
         </DialogContent>

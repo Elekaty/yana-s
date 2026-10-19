@@ -18,7 +18,7 @@ export default async function AlbumPage({ searchParams }: { searchParams: Promis
   if (rows.length === 0) {
     return (
       <div className="grid gap-4">
-        <p className="text-center text-2xl">{copy.soon}</p>
+        <p className="text-center text-2xl">{family.child_language === "en" ? "Nothing recorded yet." : "Rien d'enregistré pour l'instant."}</p>
         <Link href="/kid/games/voice" className="flex h-14 items-center justify-center rounded-full bg-white/15 text-2xl">
           {copy.back}
         </Link>

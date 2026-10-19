@@ -32,6 +32,7 @@ export async function savePractice(formData: FormData) {
   else settings.town_star_cap = townCap;
   const childSettings = { ...((child?.settings as Record<string, unknown> | null) ?? {}) };
   if (tables.length > 0) childSettings.tables = tables;
+  childSettings.voice = formData.get("voice") === "on";
   await supabase.from("families").update({ settings }).eq("id", family.family_id);
   await supabase.from("children").update({ settings: childSettings }).eq("id", family.child_id);
   revalidatePath("/parent/setup");

@@ -7,8 +7,15 @@ export type SpeakRequest = {
  * Scripted speech only. Call this from a click or tap.
  * Later this can play a reviewed audio file without changing callers.
  */
+let muted = false;
+
+export function setSpeakMuted(value: boolean) {
+  muted = value;
+  if (value && typeof window !== "undefined") window.speechSynthesis?.cancel();
+}
+
 export function speak({ text, lang }: SpeakRequest) {
-  if (typeof window === "undefined" || !window.speechSynthesis) return;
+  if (muted || typeof window === "undefined" || !window.speechSynthesis) return;
   const utterance = new SpeechSynthesisUtterance(text);
   utterance.lang = lang === "fr" ? "fr-FR" : "en-US";
   utterance.pitch = 1.35;
@@ -22,7 +29,7 @@ export function speak({ text, lang }: SpeakRequest) {
 
 export function speakWhenDone({ text, lang }: SpeakRequest) {
   return new Promise<void>((resolve) => {
-    if (typeof window === "undefined" || !window.speechSynthesis) {
+    if (muted || typeof window === "undefined" || !window.speechSynthesis) {
       resolve();
       return;
     }

@@ -14,6 +14,7 @@ export function HomeScreen({
   today,
   copy,
   nudge,
+  voice = true,
 }: {
   childName: string;
   lang: "fr" | "en";
@@ -21,6 +22,7 @@ export function HomeScreen({
   today: string;
   copy: Copy;
   nudge?: string;
+  voice?: boolean;
 }) {
   const [balance, setBalance] = useState(stars);
   const [note, setNote] = useState("");
@@ -52,6 +54,7 @@ export function HomeScreen({
           forced={null}
           childName={childName}
           lang={lang}
+          voice={voice}
           onMeetFriend={(friend: BubbleFriend) => {
             void meetFriend(friend).then((result) => {
               if (result.fresh) setBalance(result.stars);
@@ -60,7 +63,7 @@ export function HomeScreen({
         />
       </div>
       <section className="rounded-[28px] bg-sun px-4 py-4 text-plum shadow-[0_8px_0_#e0b520]">
-        <p className="text-sm font-semibold">{copy.today}</p>
+        <p className="text-sm font-semibold">{today ? (lang === "en" ? "Today's mission" : "Mission du jour") : copy.today}</p>
         <p className="text-2xl">{today || copy.noHomework}</p>
         <Link href="/kid/homework" className="mt-3 flex h-14 items-center justify-center rounded-full bg-plum text-lg text-white">
           {copy.homeworkGo}

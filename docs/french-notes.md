@@ -30,6 +30,10 @@ In `src/lib/voice/packs.ts`, two tongue twisters are only the start of the tradi
 - Un chasseur sachant chasser.
 - Les chaussettes de l'archiduchesse.
 
+## Mochi lines
+
+`src/lib/mochi/phrases.ts` is a new set of three French lines for each event. None of them has been marked correct.
+
 ## Story hub
 
 - **Lectures à jouer** (`src/components/kid/StoryLibrary.tsx`, The Fable Cottage card). Please confirm this is the right short description for interactive read-alongs.

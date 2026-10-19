@@ -59,6 +59,17 @@ export async function postponeStudy(minutes: number): Promise<StudyClock | null>
   return next;
 }
 
+export async function allowStoryLink(pin: string) {
+  const { supabase, family } = await getFamily();
+  if (!family) return { ok: false, error: "no-family" };
+  if (!family.has_pin) return { ok: false, error: "need-pin" };
+  const parsed = pinSchema.safeParse(pin);
+  if (!parsed.success) return { ok: false, error: "bad-pin" };
+  const { data: ok, error } = await supabase.rpc("verify_family_pin", { p_pin: parsed.data });
+  if (error || !ok) return { ok: false, error: "bad-pin" };
+  return { ok: true, error: "" };
+}
+
 export async function skipBreak(pin: string): Promise<{ error?: string; clock?: StudyClock }> {
   const ctx = await clockContext();
   if (!ctx) return { error: "Could not skip the break." };

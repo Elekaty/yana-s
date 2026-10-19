@@ -1,10 +1,13 @@
 "use client";
 
-import { motion, useReducedMotion } from "framer-motion";
-import { useEffect, useState } from "react";
-import { fillPhrase, greetPhrase, phrases } from "@/lib/phrases";
+import { useRouter } from "next/navigation";
+import { useEffect, useMemo, useReducer, useState } from "react";
+import { Mochi } from "@/components/mochi/Mochi";
+import { setSpeakMuted, speak } from "@/lib/speak";
 import { BUBBLE_FRIENDS, MOCHI_STATES, type BubbleFriend, type MochiState } from "@/lib/mochi";
-import { speak } from "@/lib/speak";
+import { FRIEND_CAST } from "@/lib/mochi/friends";
+import { actionMs, initialMochi, nextMochi, type MochiAction } from "@/lib/mochi/machine";
+import { clockTime, greetingKey, pickPhrase, type PhraseKey } from "@/lib/mochi/phrases";
 
 const friendColor: Record<BubbleFriend, string> = {
   bunny: "#f7c6d8",
@@ -21,21 +24,13 @@ export function SalonLab() {
       <div className="mx-auto flex max-w-3xl flex-col gap-4">
         <h1 className="text-3xl">Mochi in the salon</h1>
         <p className="text-white/80">Tap a state, the yarn, or the sofa. She pauses when this tab is hidden.</p>
-        <Salon forced={forced} childName="Yana" lang="fr" />
+        <Salon forced={forced} childName="Yana" lang="fr" voice />
         <div className="flex flex-wrap gap-2">
           <button type="button" className="h-14 rounded-full bg-white/15 px-4" onClick={() => setForced(null)}>
             auto
           </button>
           {MOCHI_STATES.map((state) => (
-            <button
-              key={state}
-              type="button"
-              className="h-14 rounded-full bg-hot px-4"
-              onClick={() => {
-                setForced(state);
-                speak({ text: lineFor(state, "fr", "Yana"), lang: "fr" });
-              }}
-            >
+            <button key={state} type="button" className="h-14 rounded-full bg-hot px-4" onClick={() => setForced(state)}>
               {state}
             </button>
           ))}
@@ -49,69 +44,142 @@ export function Salon({
   forced,
   childName,
   lang,
+  voice = true,
+  busy = false,
   onMeetFriend,
 }: {
   forced: MochiState | null;
   childName: string;
   lang: "fr" | "en";
+  voice?: boolean;
+  busy?: boolean;
   onMeetFriend?: (friend: BubbleFriend) => void;
 }) {
-  const reduce = useReducedMotion();
-  const [auto, setAuto] = useState<MochiState>("greet");
-  const [paused, setPaused] = useState(false);
-  const [pupil, setPupil] = useState({ x: 0, y: 0 });
+  const router = useRouter();
+  const [machine, dispatch] = useReducer(nextMochi, initialMochi(new Date().getHours()));
+  const [look, setLook] = useState({ x: 0, y: 0 });
   const [bubble, setBubble] = useState<BubbleFriend | null>(null);
   const [beside, setBeside] = useState<BubbleFriend | null>(null);
-  const [note, setNote] = useState<{ state: MochiState; text: string } | null>(null);
-  const state = forced ?? auto;
-  const line = note?.state === state ? note.text : lineFor(state, lang, childName);
-  const eyesClosed = state === "nap" || state === "sleepy-at-bedtime";
+  const [spoken, setSpoken] = useState<{ action: MochiAction; text: string } | null>(null);
+  const [sky, setSky] = useState<"real" | "rain" | "night" | "sun">("real");
+  const [lamp, setLamp] = useState(() => {
+    const hour = new Date().getHours();
+    return hour >= 17 && hour < 21;
+  });
+  const [clock, setClock] = useState(() => new Date());
+  const [bubbles, setBubbles] = useState(false);
+  const [wiggle, setWiggle] = useState(false);
+  const [muted, setMuted] = useState(false);
+  const action = forced ? forcedAction(forced) : machine.action;
+  const mood = forced === "sleepy-at-bedtime" ? "sleepy" : machine.mood;
+  const hour = clock.getHours();
+  const realSky = hour < 7 || hour >= 20 ? "#1b1464" : hour >= 17 ? "#f4a261" : "#8ec7ff";
+  const skyFill = sky === "real" ? realSky : sky === "rain" ? "#6b7c93" : sky === "night" ? "#1b1464" : "#ffe08a";
+  const dark = sky === "night" || (sky === "real" && (hour < 7 || hour >= 20));
 
   useEffect(() => {
-    const onHide = () => setPaused(document.hidden);
+    setSpeakMuted(!voice || muted);
+  }, [voice, muted]);
+
+  useEffect(() => {
+    const onHide = () => dispatch({ type: "visibility", hidden: document.hidden });
     document.addEventListener("visibilitychange", onHide);
     return () => document.removeEventListener("visibilitychange", onHide);
   }, []);
 
   useEffect(() => {
-    if (forced || paused || reduce) return;
-    const wait = 6000 + Math.random() * 1000;
-    const id = window.setTimeout(() => {
-      const pool: MochiState[] = [...MOCHI_STATES];
-      setAuto(pool[Math.floor(Math.random() * pool.length)] ?? "idle");
-    }, wait);
-    return () => window.clearTimeout(id);
-  }, [auto, forced, paused, reduce]);
+    const media = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const apply = () => dispatch({ type: "reduced", value: media.matches });
+    apply();
+    media.addEventListener("change", apply);
+    return () => media.removeEventListener("change", apply);
+  }, []);
 
   useEffect(() => {
-    if (paused) return;
+    const read = () => dispatch({ type: "busy", value: busy || document.documentElement.dataset.mochiBusy === "1" });
+    read();
+    const watcher = new MutationObserver(read);
+    watcher.observe(document.documentElement, { attributes: true, attributeFilter: ["data-mochi-busy"] });
+    return () => watcher.disconnect();
+  }, [busy]);
+
+  useEffect(() => {
+    if (forced) return;
+    if (machine.hidden || machine.reduced || machine.busy) return;
+    if (machine.action !== "idle") {
+      const ms = actionMs(machine.action);
+      if (!ms) return;
+      const id = window.setTimeout(() => dispatch({ type: "actionDone", roll: Math.random() }), ms);
+      return () => window.clearTimeout(id);
+    }
+    const id = window.setTimeout(() => dispatch({ type: "idleTick", roll: Math.random() }), 6000 + Math.random() * 1000);
+    return () => window.clearTimeout(id);
+  }, [forced, machine.action, machine.hidden, machine.reduced, machine.busy]);
+
+  useEffect(() => {
+    if (machine.hidden) return;
     const id = window.setInterval(() => {
       setBubble(BUBBLE_FRIENDS[Math.floor(Math.random() * BUBBLE_FRIENDS.length)] ?? "bunny");
     }, 9000);
     return () => window.clearInterval(id);
-  }, [paused]);
+  }, [machine.hidden]);
 
-  const flip = state === "wander";
+  useEffect(() => {
+    const id = window.setInterval(() => setClock(new Date()), 30000);
+    return () => window.clearInterval(id);
+  }, []);
+
+  const script = useMemo(() => pickPhrase(lineKey(action, hour), lang, childName).text, [action, hour, lang, childName]);
+  const line = spoken?.action === action ? spoken.text : script;
+  const yarnX = action === "chasing" ? 560 : 180;
+
+  function say(text: string) {
+    setSpoken({ action, text });
+    if (voice && !muted) speak({ text, lang });
+  }
+
+  function press(run: () => void) {
+    if (!forced) run();
+  }
 
   return (
     <div
       className="relative overflow-hidden rounded-3xl bg-[#3a1468]"
       onPointerMove={(event) => {
-        if (eyesClosed) return;
+        if (action === "napping") return;
         const rect = event.currentTarget.getBoundingClientRect();
         const dx = (event.clientX - rect.left - rect.width / 2) / rect.width;
         const dy = (event.clientY - rect.top - rect.height * 0.55) / rect.height;
-        setPupil({
-          x: Math.max(-1, Math.min(1, dx)) * 3.5,
-          y: Math.max(-1, Math.min(1, dy)) * 2.5,
-        });
+        setLook({ x: Math.max(-1, Math.min(1, dx)) * 4, y: Math.max(-1, Math.min(1, dy)) * 3 });
       }}
     >
-      <svg viewBox="0 0 800 480" className="h-auto w-full" role="img" aria-label="Mochi in the living room">
+      <svg viewBox="0 0 800 480" className="h-auto w-full" role="img" aria-label={lang === "en" ? "Living room" : "Salon"}>
         <rect width="800" height="480" fill="#4a1d7a" />
-        <g data-p="window">
-          <rect x="300" y="36" width="200" height="140" rx="12" fill="#8ec7ff" />
-          <path d="M310 150c40-30 70-10 100-28 20 24 50 20 70 8v46H310z" fill="#d7f3c8" />
+        {dark && !lamp ? <rect width="800" height="480" fill="#000" opacity="0.28" /> : null}
+        <g className="m-lights">
+          {Array.from({ length: 8 }, (_, index) => (
+            <circle key={index} cx={120 + index * 80} cy={18} r="5" fill="#FFD23F" opacity={0.35 + (index % 2) * 0.4}>
+              <animate attributeName="opacity" values="0.3;1;0.3" dur={`${1.6 + index * 0.2}s`} repeatCount="indefinite" />
+            </circle>
+          ))}
+        </g>
+        <g
+          data-p="window"
+          role="button"
+          tabIndex={0}
+          aria-label={lang === "en" ? "Window" : "Fenêtre"}
+          onClick={() => setSky((current) => (current === "real" ? "rain" : current === "rain" ? "night" : current === "night" ? "sun" : "real"))}
+          onKeyDown={(event) => {
+            if (event.key === "Enter" || event.key === " ") setSky((current) => (current === "real" ? "rain" : current === "rain" ? "night" : current === "night" ? "sun" : "real"));
+          }}
+        >
+          <rect x="300" y="36" width="200" height="140" rx="12" fill={skyFill} />
+          {sky === "sun" ? <polygon points="340,150 400,70 460,150" fill="#fff59a" opacity="0.45" /> : null}
+          {sky === "night" || (sky === "real" && dark) ? <circle cx="450" cy="70" r="14" fill="#fff6c2" /> : null}
+          {sky !== "night" && !(sky === "real" && dark) ? <path d="M310 150c40-30 70-10 100-28 20 24 50 20 70 8v46H310z" fill="#d7f3c8" /> : null}
+          {sky === "rain"
+            ? [0, 1, 2, 3, 4].map((drop) => <line key={drop} x1={330 + drop * 32} y1={60} x2={324 + drop * 32} y2={100} stroke="#dbe7ff" strokeWidth="3" />)
+            : null}
           <rect x="396" y="36" width="8" height="140" fill="#fff6" />
           <rect x="300" y="100" width="200" height="8" fill="#fff6" />
         </g>
@@ -119,18 +187,84 @@ export function Salon({
           <path d="M270 24h50l-10 180h-40z" fill="#FF2E93" />
           <path d="M480 24h50l10 180h-40z" fill="#FF2E93" />
         </g>
-        <g data-p="frames">
-          <rect x="70" y="70" width="90" height="70" rx="6" fill="#FFD23F" />
-          <rect x="80" y="80" width="70" height="50" fill="#fff" />
-          <circle cx="115" cy="105" r="12" fill="#7C3AED" />
-          <rect x="620" y="80" width="80" height="64" rx="6" fill="#fff" />
-          <path d="M632 128l18-22 14 16 10-12 14 18z" fill="#7C3AED" />
+        <g
+          data-p="clock"
+          role="button"
+          tabIndex={0}
+          aria-label={lang === "en" ? "Clock" : "Horloge"}
+          onClick={() => say(pickPhrase("clock", lang, childName).text.replaceAll("{time}", clockTime(lang, clock.getHours(), clock.getMinutes())))}
+          onKeyDown={(event) => {
+            if (event.key === "Enter" || event.key === " ") say(pickPhrase("clock", lang, childName).text.replaceAll("{time}", clockTime(lang, clock.getHours(), clock.getMinutes())));
+          }}
+        >
+          <circle cx="210" cy="90" r="28" fill="#fff" />
+          <text x="210" y="96" textAnchor="middle" fontSize="14" fill="#2A0B4A">{`${clock.getHours()}:${String(clock.getMinutes()).padStart(2, "0")}`}</text>
         </g>
-        <g data-p="plant">
-          <rect x="660" y="250" width="36" height="40" rx="6" fill="#c47b4a" />
-          <ellipse cx="678" cy="240" rx="28" ry="16" fill="#3fbf6a" />
-          <ellipse cx="650" cy="230" rx="18" ry="12" fill="#2f9d55" />
-          <ellipse cx="706" cy="228" rx="16" ry="11" fill="#57d07d" />
+        <g
+          data-p="books"
+          role="button"
+          tabIndex={0}
+          aria-label={lang === "en" ? "Bookshelf" : "Livres"}
+          onClick={() => {
+            say(pickPhrase("story", lang, childName).text);
+            router.push("/kid/games/stories");
+          }}
+          onKeyDown={(event) => {
+            if (event.key === "Enter" || event.key === " ") router.push("/kid/games/stories");
+          }}
+        >
+          <rect x="70" y="150" width="90" height="70" rx="6" fill="#5b2a86" />
+          <rect x="78" y="160" width="16" height="50" fill="#FFD23F" />
+          <rect x="98" y="166" width="16" height="44" fill="#FF2E93" />
+          <rect x="118" y="158" width="16" height="52" fill="#fff" />
+          <rect x="138" y="164" width="14" height="46" fill="#7C3AED" />
+        </g>
+        <g
+          data-p="lamp"
+          role="button"
+          tabIndex={0}
+          aria-label={lang === "en" ? "Lamp" : "Lampe"}
+          onClick={() => setLamp((on) => !on)}
+          onKeyDown={(event) => {
+            if (event.key === "Enter" || event.key === " ") setLamp((on) => !on);
+          }}
+        >
+          <rect x="600" y="180" width="10" height="90" fill="#2A0B4A" />
+          <polygon points="570,190 640,190 625,140 585,140" fill={lamp ? "#FFD23F" : "#6b5a86"} />
+          {lamp ? <ellipse cx="605" cy="200" rx="40" ry="16" fill="#FFD23F" opacity="0.35" /> : null}
+        </g>
+        <g
+          data-p="plant"
+          role="button"
+          tabIndex={0}
+          aria-label={lang === "en" ? "Plant" : "Plante"}
+          onClick={() => {
+            setWiggle(true);
+            window.setTimeout(() => setWiggle(false), 700);
+          }}
+        >
+          <g style={{ transformOrigin: "678px 250px", transform: wiggle ? "rotate(8deg)" : "rotate(0deg)", transition: "transform 0.3s" }}>
+            <rect x="660" y="250" width="36" height="40" rx="6" fill="#c47b4a" />
+            <ellipse cx="678" cy="240" rx="28" ry="16" fill="#3fbf6a" />
+            <ellipse cx="650" cy="230" rx="18" ry="12" fill="#2f9d55" />
+            <ellipse cx="706" cy="228" rx="16" ry="11" fill="#57d07d" />
+          </g>
+        </g>
+        <g
+          data-p="fish"
+          role="button"
+          tabIndex={0}
+          aria-label={lang === "en" ? "Fish bowl" : "Bocal"}
+          onClick={() => {
+            setBubbles(true);
+            say(pickPhrase("fish", lang, childName).text);
+            window.setTimeout(() => setBubbles(false), 1600);
+          }}
+        >
+          <ellipse cx="150" cy="300" rx="36" ry="28" fill="#9ad7ff" stroke="#fff" strokeWidth="3" />
+          <ellipse cx="150" cy="292" rx="10" ry="6" fill="#ff8c42" />
+          {bubbles ? <circle cx="160" cy="270" r="5" fill="#fff" /> : null}
+          {bubbles ? <circle cx="142" cy="260" r="3" fill="#fff" /> : null}
         </g>
         <g data-p="rug">
           <ellipse cx="400" cy="430" rx="250" ry="28" fill="#FFD23F" />
@@ -140,133 +274,83 @@ export function Salon({
           data-p="sofa"
           role="button"
           tabIndex={0}
-          aria-label="Sofa, Mochi naps"
-          onClick={() => setAuto("nap")}
+          aria-label={lang === "en" ? "Sofa, Mochi naps" : "Canapé, Mochi fait dodo"}
+          onClick={() => press(() => dispatch({ type: "sofaTap" }))}
           onKeyDown={(event) => {
-            if (event.key === "Enter" || event.key === " ") setAuto("nap");
+            if (event.key === "Enter" || event.key === " ") press(() => dispatch({ type: "sofaTap" }));
           }}
         >
-          <rect x="80" y="280" width="250" height="90" rx="28" fill="#7C3AED" />
-          <rect x="100" y="250" width="70" height="70" rx="20" fill="#9b6cf0" />
-          <rect x="240" y="250" width="70" height="70" rx="20" fill="#9b6cf0" />
+          <rect x="80" y="330" width="220" height="70" rx="28" fill="#7C3AED" />
+          <rect x="90" y="310" width="60" height="50" rx="16" fill="#9b6cf0" />
+          <rect x="220" y="310" width="60" height="50" rx="16" fill="#9b6cf0" />
         </g>
-        <motion.g
-          animate={
-            reduce || paused
-              ? { x: 0, y: 0 }
-              : state === "wander"
-                ? { x: [0, 90, -70, 0], y: 0 }
-                : state === "chase-yarn"
-                  ? { x: [0, 140, 0], y: [0, -10, 0] }
-                  : state === "cheer"
-                    ? { x: 0, y: [0, -18, 0] }
-                    : { x: 0, y: 0 }
-          }
-          transition={{ duration: state === "cheer" ? 0.6 : 6, repeat: !reduce && !paused && (state === "wander" || state === "chase-yarn" || state === "cheer") ? Infinity : 0, ease: "easeInOut" }}
-        >
-          <g
-            data-p="cat"
-            role="button"
-            tabIndex={0}
-            aria-label={lang === "en" ? "Tap Mochi for the next move" : "Touche Mochi pour le mouvement suivant"}
-            transform={flip ? "translate(760 0) scale(-1 1)" : undefined}
-            onClick={() => setAuto(MOCHI_STATES[(MOCHI_STATES.indexOf(state) + 1) % MOCHI_STATES.length] ?? "greet")}
-            onKeyDown={(event) => {
-              if (event.key === "Enter" || event.key === " ") {
-                setAuto(MOCHI_STATES[(MOCHI_STATES.indexOf(state) + 1) % MOCHI_STATES.length] ?? "greet");
-              }
-            }}
-          >
-            <ellipse cx="430" cy="360" rx="78" ry="48" fill="#fff" />
-            <ellipse cx="430" cy="368" rx="60" ry="28" fill="#f3f0ff" />
-            <motion.g
-              animate={state === "purr" && !reduce ? { scale: [1, 1.08, 0.96, 1] } : { scale: 1 }}
-              transition={{ duration: 0.45, repeat: state === "purr" && !reduce ? Infinity : 0 }}
-            >
-              <circle cx="390" cy="250" r="28" fill="#fff" />
-              <circle cx="470" cy="250" r="28" fill="#fff" />
-              <circle cx="390" cy="250" r="14" fill="#ffd0e4" />
-              <circle cx="470" cy="250" r="14" fill="#ffd0e4" />
-              <ellipse cx="430" cy="300" rx="70" ry="58" fill="#fff" />
-              {eyesClosed ? (
-                <g>
-                  <path d="M400 292c8 8 16 8 24 0" fill="none" stroke="#2A0B4A" strokeWidth="3" strokeLinecap="round" />
-                  <path d="M436 292c8 8 16 8 24 0" fill="none" stroke="#2A0B4A" strokeWidth="3" strokeLinecap="round" />
-                  {state === "nap" ? (
-                    <text x="500" y="250" fontSize="28">
-                      💤
-                    </text>
-                  ) : null}
-                </g>
-              ) : (
-                <g>
-                  <ellipse cx="408" cy="292" rx="14" ry="16" fill="#fff" stroke="#2A0B4A" strokeWidth="2" />
-                  <ellipse cx="452" cy="292" rx="14" ry="16" fill="#fff" stroke="#2A0B4A" strokeWidth="2" />
-                  <circle cx={408 + pupil.x} cy={294 + pupil.y} r="6" fill="#2A0B4A" />
-                  <circle cx={452 + pupil.x} cy={294 + pupil.y} r="6" fill="#2A0B4A" />
-                  <circle cx={411 + pupil.x} cy={291 + pupil.y} r="2" fill="#fff" />
-                  <circle cx={455 + pupil.x} cy={291 + pupil.y} r="2" fill="#fff" />
-                </g>
-              )}
-              <path d="M418 318c8 10 18 10 26 0" fill="none" stroke="#FF2E93" strokeWidth="3" strokeLinecap="round" />
-              <ellipse cx="400" cy="314" rx="8" ry="5" fill="#ffb3d1" opacity="0.8" />
-              <ellipse cx="462" cy="314" rx="8" ry="5" fill="#ffb3d1" opacity="0.8" />
-              {state === "purr" ? (
-                <text x="500" y="280" fontSize="22">
-                  ♥
-                </text>
-              ) : null}
-              {state === "think" ? (
-                <text x="500" y="240" fontSize="22">
-                  …
-                </text>
-              ) : null}
-            </motion.g>
-          </g>
-        </motion.g>
         <g
           data-p="yarn"
           role="button"
           tabIndex={0}
-          aria-label="Yarn ball"
-          onClick={() => setAuto("chase-yarn")}
-          onKeyDown={(event) => {
-            if (event.key === "Enter" || event.key === " ") setAuto("chase-yarn");
-          }}
+          aria-label={lang === "en" ? "Yarn ball" : "Pelote"}
+          onClick={() => press(() => {
+            setYarnX(560);
+            dispatch({ type: "yarnTap" });
+            say(pickPhrase("yarn", lang, childName).text);
+          })}
         >
-          <circle cx={state === "chase-yarn" ? 560 : 180} cy="400" r="22" fill="#FF2E93" />
-          <path
-            d={state === "chase-yarn" ? "M560 400c20-16 28 8 40-4" : "M180 400c-20-16-8 10-24-2"}
-            fill="none"
-            stroke="#FFD23F"
-            strokeWidth="3"
-          />
+          <circle cx={yarnX} cy="400" r="22" fill="#FF2E93" />
+          <path d={`M${yarnX} 400c20-16 28 8 40-4`} fill="none" stroke="#FFD23F" strokeWidth="3" />
         </g>
-        {beside ? (
-          <g data-p="friend">
-            <circle cx="560" cy="340" r="26" fill={friendColor[beside]} stroke="#2A0B4A" strokeWidth="3" />
-            <circle cx="550" cy="334" r="3" fill="#2A0B4A" />
-            <circle cx="570" cy="334" r="3" fill="#2A0B4A" />
-          </g>
-        ) : null}
       </svg>
-      <p className="absolute top-3 left-3 rounded-full bg-sun px-3 py-1 text-sm font-semibold text-plum">{moveLabel(state, lang)}</p>
+      <div className="pointer-events-none absolute bottom-[18%] left-[34%] w-[34%] max-w-[240px]">
+        <Mochi
+          action={action}
+          mood={mood}
+          look={look}
+          paused={machine.hidden}
+          reduced={machine.reduced}
+          label={lang === "en" ? "Mochi the cat" : "Mochi le chat"}
+        />
+      </div>
+      <button
+        type="button"
+        className="absolute bottom-[22%] left-[34%] h-40 w-[34%] max-w-[240px] rounded-full"
+        aria-label={lang === "en" ? "Pet Mochi" : "Caresse Mochi"}
+        onClick={() => press(() => {
+          dispatch({ type: "pet" });
+          say(pickPhrase("purr", lang, childName).text);
+        })}
+      />
+      {beside ? (
+        <p className="absolute right-6 bottom-24 rounded-full px-3 py-2 text-sm font-semibold text-plum" style={{ background: friendColor[beside] }}>
+          {FRIEND_CAST[beside].name}
+        </p>
+      ) : null}
+      {voice ? (
+        <button
+          type="button"
+          className="absolute top-3 right-3 h-10 rounded-full bg-white/20 px-3 text-sm"
+          aria-pressed={muted}
+          onClick={() => setMuted((value) => !value)}
+        >
+          {muted ? "🔇" : "🔊"}
+        </button>
+      ) : null}
+      <p className="absolute top-3 left-3 rounded-full bg-sun px-3 py-1 text-sm font-semibold text-plum">{moveLabel(action, lang)}</p>
       {bubble ? (
         <button
           type="button"
           className="absolute top-16 right-8 h-16 w-16 rounded-full border-4 border-white text-xs font-bold text-plum"
           style={{ background: friendColor[bubble] }}
           onClick={() => {
-            const greeting = fillPhrase(phrases.bubble[lang], childName);
-            setBeside(bubble);
+            const friend = bubble;
+            const greeting = lang === "en" ? FRIEND_CAST[friend].en : FRIEND_CAST[friend].fr;
+            setBeside(friend);
             setBubble(null);
-            setNote({ state, text: greeting });
-            speak({ text: greeting, lang });
-            onMeetFriend?.(bubble);
+            press(() => dispatch({ type: "friendPop" }));
+            say(greeting);
+            onMeetFriend?.(friend);
             window.setTimeout(() => setBeside(null), 4000);
           }}
         >
-          {bubble}
+          {FRIEND_CAST[bubble].name}
         </button>
       ) : null}
       <p className="px-4 pb-4 text-center text-lg">{line}</p>
@@ -274,27 +358,38 @@ export function Salon({
   );
 }
 
-function moveLabel(state: MochiState, lang: "fr" | "en") {
-  const labels: Record<MochiState, { fr: string; en: string }> = {
-    idle: { fr: "Mochi attend", en: "Mochi waits" },
-    wander: { fr: "Mochi se promène", en: "Mochi walks" },
-    "chase-yarn": { fr: "Mochi court après la laine", en: "Mochi chases the yarn" },
-    nap: { fr: "Mochi fait la sieste", en: "Mochi naps" },
-    purr: { fr: "Mochi ronronne", en: "Mochi purrs" },
-    cheer: { fr: "Mochi applaudit", en: "Mochi cheers" },
-    think: { fr: "Mochi réfléchit", en: "Mochi thinks" },
-    "sleepy-at-bedtime": { fr: "Mochi a sommeil", en: "Mochi is sleepy" },
-    greet: { fr: "Mochi dit bonjour", en: "Mochi says hello" },
-  };
-  return labels[state][lang];
+function forcedAction(state: MochiState): MochiAction {
+  if (state === "wander") return "walking";
+  if (state === "chase-yarn") return "chasing";
+  if (state === "nap" || state === "sleepy-at-bedtime") return "napping";
+  if (state === "purr") return "happy";
+  if (state === "cheer") return "cheering";
+  return "idle";
 }
 
-function lineFor(state: MochiState, lang: "fr" | "en", name: string) {
-  if (state === "greet" || state === "sleepy-at-bedtime") return greetPhrase(lang, name, new Date().getHours());
-  if (state === "purr") return phrases.purr[lang];
-  if (state === "nap") return phrases.nap[lang];
-  if (state === "cheer") return fillPhrase(phrases.cheer[lang], name);
-  if (state === "think") return phrases.think[lang];
-  if (state === "chase-yarn") return phrases.yarn[lang];
-  return greetPhrase(lang, name, new Date().getHours());
+function lineKey(action: MochiAction, hour: number): PhraseKey {
+  if (action === "napping") return hour >= 20 ? "bedtime" : "nap";
+  if (action === "happy") return "purr";
+  if (action === "cheering") return "cheer";
+  if (action === "chasing") return "yarn";
+  if (action === "surprised") return "cheer";
+  return greetingKey(hour);
+}
+
+function moveLabel(action: MochiAction, lang: "fr" | "en") {
+  const labels: Record<MochiAction, { fr: string; en: string }> = {
+    idle: { fr: "Mochi attend", en: "Mochi waits" },
+    walking: { fr: "Mochi se promène", en: "Mochi walks" },
+    chasing: { fr: "Mochi court après la laine", en: "Mochi chases the yarn" },
+    napping: { fr: "Mochi fait la sieste", en: "Mochi naps" },
+    stretching: { fr: "Mochi s'étire", en: "Mochi stretches" },
+    yawning: { fr: "Mochi bâille", en: "Mochi yawns" },
+    licking: { fr: "Mochi se lèche", en: "Mochi licks a paw" },
+    pouncing: { fr: "Mochi bondit", en: "Mochi pounces" },
+    happy: { fr: "Mochi ronronne", en: "Mochi purrs" },
+    surprised: { fr: "Mochi est surprise", en: "Mochi is surprised" },
+    cheering: { fr: "Mochi applaudit", en: "Mochi cheers" },
+    listening: { fr: "Mochi écoute", en: "Mochi listens" },
+  };
+  return labels[action][lang];
 }

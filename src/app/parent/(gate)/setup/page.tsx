@@ -282,6 +282,10 @@ export default async function SetupPage({ searchParams }: { searchParams: Promis
             Chests per day
             <input name="chestCap" type="number" min={0} max={5} defaultValue={settings.chest_daily_cap ?? 3} className="mt-1 block h-10 w-24 rounded-md border border-border bg-background px-2" />
           </label>
+          <label className="flex items-center gap-2">
+            <input type="checkbox" name="voice" value="on" defaultChecked={(childRow?.settings as { voice?: boolean } | null)?.voice !== false} />
+            Mochi may speak
+          </label>
           <fieldset className="flex flex-wrap gap-3">
             <legend>Tables</legend>
             {[2, 3, 4, 5, 10].map((table) => (

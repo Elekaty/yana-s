@@ -73,6 +73,14 @@ export function BreakGate({
     return () => window.clearInterval(id);
   }, [settings, router]);
 
+  useEffect(() => {
+    const resting = Boolean(clock && clock.mode === "break" && clock.remainingSec > 0);
+    document.documentElement.dataset.mochiBusy = resting ? "1" : "";
+    return () => {
+      document.documentElement.dataset.mochiBusy = "";
+    };
+  }, [clock]);
+
   if (!settings || !clock || (clock.mode === "break" && clock.remainingSec <= 0)) return children;
 
   const canPostpone = clock.mode === "heads_up" && clock.postponements < settings.maxPostponements;

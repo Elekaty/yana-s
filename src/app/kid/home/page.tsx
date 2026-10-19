@@ -12,6 +12,10 @@ export default async function KidHomePage() {
   const lang = family?.child_language === "en" ? "en" : "fr";
   const today = family ? await todayTitle(supabase, family.family_id, lang) : "";
   const nudge = family ? await kidNudge(supabase, family.family_id, family.child_name ?? "", lang, family.timezone || "Europe/Paris") : "";
+  const { data: child } = family?.child_id
+    ? await supabase.from("children").select("settings").eq("id", family.child_id).maybeSingle()
+    : { data: null };
+  const voice = (child?.settings as { voice?: boolean } | null)?.voice !== false;
   return (
     <HomeScreen
       childName={family?.child_name ?? ""}
@@ -20,6 +24,7 @@ export default async function KidHomePage() {
       today={today}
       copy={copy}
       nudge={nudge}
+      voice={voice}
     />
   );
 }
