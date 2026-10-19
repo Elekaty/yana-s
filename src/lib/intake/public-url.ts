@@ -12,8 +12,8 @@ export function publicAppUrl(env: { APP_URL?: string; VERCEL_PROJECT_PRODUCTION_
   if (fromEnv && host !== RETIRED_HOST) return fromEnv;
   const production = (env.VERCEL_PROJECT_PRODUCTION_URL ?? "").replace(/\/$/, "");
   if (production) return `https://${production}`;
-  const preview = (env.VERCEL_URL ?? "").replace(/\/$/, "");
-  if (preview) return `https://${preview}`;
+  const deploymentHost = (env.VERCEL_URL ?? "").replace(/\/$/, "");
+  if (deploymentHost) return `https://${deploymentHost}`;
   if (host === RETIRED_HOST) return LIVE_APP;
   return "";
 }
