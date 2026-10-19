@@ -1,7 +1,7 @@
 import "server-only";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { dayKey } from "@/lib/calendar/plan";
+import { dayKey, holidayDates, holidayOn, schoolZone, type Holiday } from "@/lib/calendar/plan";
 import { planTonight, type Duty, type PlannerParent, type TonightPlan } from "@/lib/plan/tonight";
 import type { FamilySummary } from "@/lib/types";
 
@@ -13,16 +13,18 @@ type Settings = {
   evening_to?: string;
   tonight_prefer?: string;
   tonight_prefer_date?: string;
+  school_zone?: string;
 };
 
 export async function loadTonight(supabase: SupabaseClient, family: FamilySummary): Promise<TonightPlan> {
   const timeZone = family.timezone || "Europe/Paris";
   const today = dayKey(new Date(), timeZone);
-  const [{ data: members }, { data: roster }, { data: hours }, { data: row }] = await Promise.all([
+  const [{ data: members }, { data: roster }, { data: hours }, { data: row }, { data: holidays }] = await Promise.all([
     supabase.from("members").select("id, display_name, role").eq("role", "parent"),
     supabase.from("roster_days").select("member_id, status").eq("date", today),
     supabase.from("availability").select("member_id, weekday, from_time, to_time"),
     supabase.from("families").select("settings").eq("id", family.family_id).maybeSingle(),
+    supabase.from("school_calendar").select("family_id, label, starts_on, ends_on, zone, kind"),
   ]);
   const settings = (row?.settings as Settings | null) ?? {};
   const parents = (members ?? []) as { id: string; display_name: string }[];
@@ -56,7 +58,26 @@ export async function loadTonight(supabase: SupabaseClient, family: FamilySummar
     windowTo: settings.evening_to || "20:00",
     parents: plannerParents,
     preferId: settings.tonight_prefer_date === today ? settings.tonight_prefer : null,
+    onBreak: Boolean(holidayOn(today, (holidays ?? []) as Holiday[], schoolZone(settings))),
   });
+}
+
+export async function familyOnBreak(supabase: SupabaseClient, family: { family_id: string; timezone?: string | null }) {
+  const timeZone = family.timezone || "Europe/Paris";
+  const today = dayKey(new Date(), timeZone);
+  const [{ data: holidays }, { data: row }] = await Promise.all([
+    supabase.from("school_calendar").select("family_id, label, starts_on, ends_on, zone, kind"),
+    supabase.from("families").select("settings").eq("id", family.family_id).maybeSingle(),
+  ]);
+  return Boolean(holidayOn(today, (holidays ?? []) as Holiday[], schoolZone((row?.settings as Settings | null) ?? null)));
+}
+
+export async function breakWeekDays(supabase: SupabaseClient, familyId: string, days: string[]) {
+  const [{ data: holidays }, { data: row }] = await Promise.all([
+    supabase.from("school_calendar").select("family_id, label, starts_on, ends_on, zone, kind"),
+    supabase.from("families").select("settings").eq("id", familyId).maybeSingle(),
+  ]);
+  return holidayDates(days, (holidays ?? []) as Holiday[], schoolZone((row?.settings as Settings | null) ?? null));
 }
 
 function weekdayNumber(day: string, timeZone: string) {

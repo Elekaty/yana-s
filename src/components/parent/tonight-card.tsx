@@ -2,6 +2,7 @@ import { swapTonight } from "@/app/parent/(gate)/setup/roster-actions";
 import { Button } from "@/components/ui/button";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 import { getFamily } from "@/lib/family";
+import { tonightLine } from "@/lib/parent/labels";
 import { loadTonight } from "@/lib/plan/load";
 
 export async function TonightCard({ compact = false }: { compact?: boolean }) {
@@ -9,10 +10,8 @@ export async function TonightCard({ compact = false }: { compact?: boolean }) {
   if (!family || family.my_role !== "parent") return null;
   const plan = await loadTonight(supabase, family);
   const { data: parents } = await supabase.from("members").select("id").eq("role", "parent");
-  const other = (parents ?? []).map((parent) => parent.id as string).find((id) => id !== plan.leaderId);
-  const line = plan.voiceNote
-    ? `Tonight: ${plan.leaderName}, ${plan.duration} min, plus a voice note`
-    : `Tonight: ${plan.leaderName}, ${plan.start}, ${plan.duration} min`;
+  const other = plan.leaderId ? (parents ?? []).map((parent) => parent.id as string).find((id) => id !== plan.leaderId) : undefined;
+  const line = plan.role === "break" ? tonightLine(plan) : `Tonight: ${tonightLine(plan)}`;
 
   if (compact) {
     return (
@@ -33,7 +32,7 @@ export async function TonightCard({ compact = false }: { compact?: boolean }) {
   return (
     <Card>
       <CardTitle>{line}</CardTitle>
-      <CardDescription>{plan.voiceNote ? "Neither parent is home and free." : "The parent who is home and free leads."}</CardDescription>
+      <CardDescription>{plan.role === "break" ? "Games and reading. A scan is not required." : plan.voiceNote ? "Neither parent is home and free." : "The parent who is home and free leads."}</CardDescription>
       <ol className="mt-3 list-decimal space-y-1 pl-5 text-sm">
         {plan.questions.map((question) => (
           <li key={question}>{question}</li>

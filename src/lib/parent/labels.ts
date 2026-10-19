@@ -3,7 +3,9 @@ export function homeworkLabel(
   taskStatus: string | null,
   flagged: boolean,
   step?: { current: number; total: number } | null,
+  onBreak = false,
 ) {
+  if (onBreak && !scanStatus) return "No scan needed on this break";
   if (!scanStatus) return "Not scanned";
   if (flagged || taskStatus === "stuck" || taskStatus === "needs_you") return "Stuck, needs you";
   if (taskStatus === "completed" || taskStatus === "done") return "Done";
@@ -12,7 +14,8 @@ export function homeworkLabel(
   return "Scanned, not started";
 }
 
-export function tonightLine(plan: { leaderName: string; start: string; duration: number; voiceNote: boolean }) {
+export function tonightLine(plan: { leaderName: string; start: string; duration: number; voiceNote: boolean; role?: string }) {
+  if (plan.role === "break") return `Break: ${plan.duration} min of games and reading`;
   if (plan.voiceNote) return `${plan.leaderName} solo, ${plan.duration} min, plus a voice note`;
   return `${plan.leaderName}, ${plan.start}, ${plan.duration} min`;
 }

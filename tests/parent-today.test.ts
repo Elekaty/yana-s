@@ -8,6 +8,8 @@ import type { Holiday } from "@/lib/calendar/plan";
 describe("today labels", () => {
   it("names the homework state", () => {
     expect(homeworkLabel(null, null, false)).toBe("Not scanned");
+    expect(homeworkLabel(null, null, false, null, true)).toBe("No scan needed on this break");
+    expect(tonightLine({ leaderName: "Break", start: "10:00", duration: 10, voiceNote: false, role: "break" })).toBe("Break: 10 min of games and reading");
     expect(homeworkLabel("ready", null, false)).toBe("Scanned, not started");
     expect(homeworkLabel("ready", "started", false)).toBe("In progress");
     expect(homeworkLabel("ready", "done", false)).toBe("Done");

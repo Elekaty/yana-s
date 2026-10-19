@@ -28,6 +28,7 @@ describe("study clock", () => {
   it("counts a second only while she is active", () => {
     const clock = { ...initialClock(settings), remainingSec: 301 };
     expect(tickClock(clock, settings, false).clock.remainingSec).toBe(301);
+    expect(tickClock(clock, settings, true, true).clock.remainingSec).toBe(301);
     const next = tickClock(clock, settings, true);
     expect(next.clock.remainingSec).toBe(300);
     expect(next.clock.mode).toBe("heads_up");

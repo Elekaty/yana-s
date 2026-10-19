@@ -23,6 +23,7 @@ export function BreakGate({
   lang,
   voice,
   copy,
+  paused,
   children,
 }: {
   settings: StudySettings | null;
@@ -31,6 +32,7 @@ export function BreakGate({
   lang: "fr" | "en";
   voice: boolean;
   copy: Copy;
+  paused?: boolean;
   children: React.ReactNode;
 }) {
   const router = useRouter();
@@ -51,15 +53,16 @@ export function BreakGate({
       const active = !document.hidden && Date.now() - lastTouch.current < IDLE_MS;
       setIdle(!active);
       const current = clockRef.current;
-      const next = current ? tickClock(current, settings, active).clock : current;
+      const next = current ? tickClock(current, settings, active, paused).clock : current;
       clockRef.current = next;
       setClock(next);
     }, 1000);
     return () => window.clearInterval(id);
-  }, [settings]);
+  }, [settings, paused]);
 
   useEffect(() => {
     if (!settings) return;
+    if (paused) return;
     const id = window.setInterval(() => {
       const current = clockRef.current;
       if (!current) return;
@@ -71,17 +74,17 @@ export function BreakGate({
       });
     }, 5000);
     return () => window.clearInterval(id);
-  }, [settings, router]);
+  }, [settings, router, paused]);
 
   useEffect(() => {
-    const resting = Boolean(clock && clock.mode === "break" && clock.remainingSec > 0);
+    const resting = Boolean(!paused && clock && clock.mode === "break" && clock.remainingSec > 0);
     document.documentElement.dataset.mochiBusy = resting ? "1" : "";
     return () => {
       document.documentElement.dataset.mochiBusy = "";
     };
-  }, [clock]);
+  }, [clock, paused]);
 
-  if (!settings || !clock || (clock.mode === "break" && clock.remainingSec <= 0)) return children;
+  if (paused || !settings || !clock || (clock.mode === "break" && clock.remainingSec <= 0)) return children;
 
   const canPostpone = clock.mode === "heads_up" && clock.postponements < settings.maxPostponements;
 

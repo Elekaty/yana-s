@@ -35,7 +35,8 @@ export function HomeScreen({
     const result = await checkInNow();
     setBalance(result.stars);
     if (result.note === "ok" || result.note === "week" || result.note === "already") setHere(true);
-    setNote(result.note === "ok" || result.note === "week" || result.note === "already" ? copy.checkInDone : copy.checkInClosed);
+    const noted = result.note === "ok" || result.note === "week" || result.note === "already";
+    setNote(noted ? copy.checkInDone : result.note === "paused" ? copy.checkInPaused : copy.checkInClosed);
   }
 
   return (

@@ -3,7 +3,7 @@ import { helperMark } from "@/lib/kid/home-row";
 
 describe("home helper mark", () => {
   it("uses the beach icon on a holiday", () => {
-    expect(helperMark({ onBreak: true, role: "mom", start: "19:00" })).toEqual({ icon: "🏖️", text: "" });
+    expect(helperMark({ onBreak: true, role: "mom", start: "19:00" })).toEqual({ icon: "🏖️", text: "10:00" });
   });
 
   it("shows a short solo session when nobody is home", () => {

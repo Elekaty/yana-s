@@ -5,6 +5,7 @@ import { ScreenVoice } from "@/components/kid/screen-voice";
 import { MochiProvider } from "@/components/mochi/mochi-stage";
 import { getFamily } from "@/lib/family";
 import { t } from "@/lib/i18n";
+import { familyOnBreak } from "@/lib/plan/load";
 import { ensureStudyClock } from "@/lib/study/load";
 
 export const dynamic = "force-dynamic";
@@ -20,6 +21,7 @@ export default async function KidLayout({ children }: { children: React.ReactNod
     [copy.games, "/kid/games"],
   ] as const;
   const loaded = family.child_id ? await ensureStudyClock(supabase, family.family_id, family.child_id) : null;
+  const onBreak = await familyOnBreak(supabase, family);
   const { data: child } = family.child_id
     ? await supabase.from("children").select("settings").eq("id", family.child_id).maybeSingle()
     : { data: null };
@@ -35,6 +37,7 @@ export default async function KidLayout({ children }: { children: React.ReactNod
         lang={family.child_language}
         voice={voice}
         copy={copy}
+        paused={onBreak}
       >
         <div className="mx-auto flex min-h-dvh max-w-5xl flex-col min-[820px]:flex-row">
           <ScreenVoice lang={family.child_language === "en" ? "en" : "fr"} name={family.child_name ?? ""} voice={voice} />

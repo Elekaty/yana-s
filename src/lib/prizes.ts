@@ -117,13 +117,14 @@ export function addStudySeconds(state: PrizeState, day: string, seconds: number,
   return { state: next, awards, prizes };
 }
 
-export function markCheckIn(state: PrizeState, day: string, weekDays: string[], weekKey: string, open: boolean, settings: PrizeSettings) {
+export function markCheckIn(state: PrizeState, day: string, weekDays: string[], weekKey: string, open: boolean, settings: PrizeSettings, freeDays: string[] = []) {
+  if (freeDays.includes(day)) return { state, awards: [] as StarAward[], status: "paused" as const };
   if (!open) return { state, awards: [] as StarAward[], status: "closed" as const };
   if (state.checkins.includes(day)) return { state, awards: [] as StarAward[], status: "already" as const };
   const checkins = [...state.checkins, day];
   const awards: StarAward[] = [{ amount: settings.onTimeStars, reason: `checkin:${day}` }];
   const perfectWeeks = [...state.perfectWeeks];
-  const perfect = weekDays.every((item) => checkins.includes(item));
+  const perfect = weekDays.every((item) => checkins.includes(item) || freeDays.includes(item));
   if (perfect && !perfectWeeks.includes(weekKey)) {
     perfectWeeks.push(weekKey);
     awards.push({ amount: 5, reason: `week:${weekKey}:a` }, { amount: 5, reason: `week:${weekKey}:b` });

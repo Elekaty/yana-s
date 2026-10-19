@@ -14,6 +14,7 @@ import {
   type StudyClock,
 } from "@/lib/study/clock";
 import { growGarden } from "@/lib/garden/grow";
+import { breakWeekDays, familyOnBreak } from "@/lib/plan/load";
 import { stepsFromGames, type RunStatus } from "@/lib/study/homework";
 
 const pinSchema = z.string().regex(/^\d{4,6}$/);
@@ -22,6 +23,7 @@ export async function saveClock(proposedRemaining: number): Promise<StudyClock |
   const ctx = await clockContext();
   if (!ctx) return null;
   const now = Date.now();
+  if (ctx.onBreak) return ctx.clock;
   const result = applyClientTick({
     saved: ctx.clock,
     savedAt: ctx.updatedAt,
@@ -55,6 +57,7 @@ export async function saveClock(proposedRemaining: number): Promise<StudyClock |
 export async function postponeStudy(minutes: number): Promise<StudyClock | null> {
   const ctx = await clockContext();
   if (!ctx) return null;
+  if (ctx.onBreak) return ctx.clock;
   const next = postponeClock(ctx.clock, ctx.settings, minutes);
   await writeClock(ctx.supabase, ctx.childId, next);
   return next;
@@ -74,6 +77,7 @@ export async function allowStoryLink(pin: string) {
 export async function skipBreak(pin: string): Promise<{ error?: string; clock?: StudyClock }> {
   const ctx = await clockContext();
   if (!ctx) return { error: "Could not skip the break." };
+  if (ctx.onBreak) return { clock: ctx.clock };
   if (!ctx.hasPin) return { error: "A parent needs to set a PIN first." };
   const parsed = pinSchema.safeParse(pin);
   if (!parsed.success) return { error: "That PIN is not right." };
@@ -182,9 +186,11 @@ export async function checkInNow() {
   const clock = new Intl.DateTimeFormat("en-GB", { timeZone, hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).format(new Date());
   const open = clock >= from.slice(0, 5) && clock <= to.slice(0, 5);
   const monday = mondayKey(day);
-  const marked = markCheckIn(readPrizeState(child?.settings), day, weekDays(monday), monday, open, prizeSettings(familyRow?.settings));
+  const days = weekDays(monday);
+  const freeDays = await breakWeekDays(supabase, family.family_id, days);
+  const marked = markCheckIn(readPrizeState(child?.settings), day, days, monday, open, prizeSettings(familyRow?.settings), freeDays);
   if (marked.awards.length === 0) {
-    const note = marked.status === "already" ? "already" : "closed";
+    const note = marked.status === "already" ? "already" : marked.status === "paused" ? "paused" : "closed";
     return { stars: family.star_balance, note };
   }
   const stars = await payAwards(supabase, family.child_id, marked.awards, family.star_balance);
@@ -255,6 +261,7 @@ async function clockContext() {
     settings,
     clock,
     updatedAt: Date.parse(row.updated_at),
+    onBreak: await familyOnBreak(supabase, family),
   };
 }
 

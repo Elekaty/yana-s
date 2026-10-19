@@ -5,8 +5,8 @@ Single list for the finish-the-app pass. One task at a time.
 | ID | Title | Status | Proof | Notes |
 |---|---|---|---|---|
 | A1 | Audit and PIN gate | DONE | `src/lib/parent-gate.ts`, `tests/parent-gate.test.ts`, `tests/pin-guard.test.ts` | Signed-in visits to `/parent`, `/parent/inbox`, `/parent/setup` and `/parent/rewards` redirect to `/parent/unlock` without a valid unlock cookie. `/parent/unlock` stays on the PIN form. Opening kid mode clears the cookie. Five wrong PINs lock for 5 minutes. The preview family path is gone. |
-| A2 | Apply all migrations | TODO | | |
-| B1 | School calendar and break mode | TODO | | |
+| A2 | Apply all migrations | DONE | `supabase/migrations/0012_garden.sql` | The live database already has the tables and `plant_next` from `0001` through `0012`, including `garden_items` and `homework_scans.image_hash`. Nothing new was applied in this pass. |
+| B1 | School calendar and break mode | DONE | `src/lib/plan/tonight.ts`, `src/lib/prizes.ts`, `src/lib/study/clock.ts`, `tests/plan.test.ts` | On a holiday the plan is 10 minutes at 10:00 and names nobody. The on-time bonus waits, a holiday weekday still allows a perfect week, and the break timer does not count. A missing scan says no scan is needed. The break-plan button was already on the calendar. |
 | B2 | Study block and break timer | TODO | | |
 | B3 | On-time bonus and study chests | DONE | `src/lib/prizes.ts`, `src/app/kid/actions.ts`, `tests/prizes.test.ts` | A check-in in the evening window awards the daily stars, and five days award two fives. Active study opens up to three chests a day. Star chests use `award_stars`. |
 | B3b | Six characters | TODO | | |
@@ -62,7 +62,7 @@ Single list for the finish-the-app pass. One task at a time.
 
 ## A1 route check
 
-Migrations on disk: `0001_core` through `0011_scan_cache`.
+Migrations on disk: `0001_core` through `0012_garden`. The live database already has those tables.
 
 Parent pages live under `src/app/parent/(gate)/`, so they share the parent header. `/parent/unlock` is outside that folder, so it renders only the PIN card. The old preview switch sent `/parent/unlock` to `/parent`, which is why the parent screens appeared there. That switch is removed.
 

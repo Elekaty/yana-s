@@ -64,6 +64,14 @@ describe("check-in", () => {
     expect(last.awards.map((award) => award.amount)).toEqual([2, 5, 5]);
     expect(markCheckIn(last.state, days[4] ?? "", days, monday, true, settings).status).toBe("already");
     expect(markCheckIn(state, "2026-10-17", days, monday, false, settings).status).toBe("closed");
+    expect(markCheckIn(readPrizeState({}), days[0] ?? "", days, monday, true, settings, [days[0] ?? ""]).status).toBe("paused");
+    const free = days[1] ?? "";
+    let partial = readPrizeState({});
+    for (const day of days.slice(0, 4)) {
+      if (day === free) continue;
+      partial = markCheckIn(partial, day, days, monday, true, settings, [free]).state;
+    }
+    expect(markCheckIn(partial, days[4] ?? "", days, monday, true, settings, [free]).status).toBe("week");
     expect(chestStars("2026-10-17", 1)).toBeGreaterThanOrEqual(1);
   });
 });

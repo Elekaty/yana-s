@@ -47,8 +47,8 @@ export function initialClock(settings: StudySettings): StudyClock {
   };
 }
 
-export function tickClock(clock: StudyClock, settings: StudySettings, active: boolean) {
-  if (!active) return { clock, finishedBreak: false };
+export function tickClock(clock: StudyClock, settings: StudySettings, active: boolean, paused = false) {
+  if (paused || !active) return { clock, finishedBreak: false };
   if (clock.mode === "break" && clock.remainingSec <= 0) {
     return { clock, finishedBreak: !clock.breakAwarded };
   }
@@ -61,7 +61,9 @@ export function applyClientTick(input: {
   proposedRemaining: number;
   now: number;
   settings: StudySettings;
+  paused?: boolean;
 }) {
+  if (input.paused) return { clock: input.saved, finishedBreak: false };
   const elapsed = Math.max(0, Math.floor((input.now - input.savedAt) / 1000));
   if (input.saved.mode === "break" && input.saved.remainingSec <= 0) {
     return { clock: input.saved, finishedBreak: !input.saved.breakAwarded };

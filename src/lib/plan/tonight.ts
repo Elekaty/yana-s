@@ -16,12 +16,13 @@ export type TonightInput = {
   windowTo: string;
   parents: PlannerParent[];
   preferId?: string | null;
+  onBreak?: boolean;
 };
 
 export type TonightPlan = {
   leaderId: string | null;
   leaderName: string;
-  role: "mom" | "dad" | "solo";
+  role: "mom" | "dad" | "solo" | "break";
   start: string;
   duration: number;
   voiceNote: boolean;
@@ -31,6 +32,17 @@ export type TonightPlan = {
 const QUESTIONS = ["What did she understand?", "Where did she get stuck?", "What is one thing to try tomorrow?"] as const;
 
 export function planTonight(input: TonightInput): TonightPlan {
+  if (input.onBreak) {
+    return {
+      leaderId: null,
+      leaderName: "Break",
+      role: "break",
+      start: "10:00",
+      duration: 10,
+      voiceNote: false,
+      questions: ["Which story did she like?", "What did she count?", "Which game felt easy?"],
+    };
+  }
   const cap = Math.max(1, Math.min(60, Math.floor(input.capMinutes)));
   const eligible = input.parents.filter((parent) => canLead(parent, input.windowFrom, input.windowTo));
   const preferred = input.preferId ? eligible.find((parent) => parent.id === input.preferId) : undefined;

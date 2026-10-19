@@ -116,6 +116,14 @@ export function holidayOn(day: string, rows: Holiday[], zone: string) {
   return visibleHolidays(rows, zone).find((row) => row.kind === "holiday" && row.starts_on <= day && day <= row.ends_on) ?? null;
 }
 
+export function schoolZone(settings: { school_zone?: string } | null | undefined) {
+  return settings?.school_zone === "B" || settings?.school_zone === "C" ? settings.school_zone : "A";
+}
+
+export function holidayDates(days: string[], rows: Holiday[], zone: string) {
+  return days.filter((day) => holidayOn(day, rows, zone));
+}
+
 export function weekdayDates(start: string, end: string) {
   const days: string[] = [];
   const cursor = new Date(`${start}T12:00:00Z`);

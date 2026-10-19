@@ -58,6 +58,20 @@ describe("tonight plan", () => {
     expect(plan.duration).toBe(10);
   });
 
+  it("uses a ten-minute morning plan on a school break and assigns nobody", () => {
+    const plan = planTonight({
+      ...window,
+      date: "2026-10-19",
+      onBreak: true,
+      parents: [parent({ id: "mom", role: "mom" }), parent({ id: "dad", role: "dad" })],
+    });
+    expect(plan.role).toBe("break");
+    expect(plan.leaderId).toBeNull();
+    expect(plan.start).toBe("10:00");
+    expect(plan.duration).toBe(10);
+    expect(plan.voiceNote).toBe(false);
+  });
+
   it("uses the swapped parent when that parent is free", () => {
     const plan = planTonight({
       ...window,
