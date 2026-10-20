@@ -6,6 +6,7 @@ import { lockAndGoToKid } from "@/app/parent/unlock/actions";
 
 export function ModeSwitch() {
   const path = usePathname();
+  if (path.startsWith("/guest")) return null;
   const parent = path.startsWith("/parent");
   const kid = path.startsWith("/kid");
 

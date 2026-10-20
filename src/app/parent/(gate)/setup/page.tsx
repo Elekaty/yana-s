@@ -1,4 +1,5 @@
 import { CopyCode } from "@/app/parent/(gate)/setup/copy-code";
+import { createGuestLink, revokeGuestLink } from "@/app/parent/(gate)/setup/guest-actions";
 import { savePractice } from "@/app/parent/(gate)/setup/practice-actions";
 import { addSender, registerWebhook, removeSender } from "@/app/parent/(gate)/setup/intake-actions";
 import { addRosterDay, confirmRoster, readRoster, saveAvailability, saveEvening, updateDraft, uploadRoster } from "@/app/parent/(gate)/setup/roster-actions";
@@ -7,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 import { studySettings } from "@/lib/study/clock";
 import { tablesFrom } from "@/lib/games/questions";
+import { readGuestLink } from "@/lib/parent/guest";
 import { requireParent } from "@/lib/parent/guard";
 
 export const dynamic = "force-dynamic";
@@ -45,6 +47,7 @@ export default async function SetupPage({ searchParams }: { searchParams: Promis
               : "";
   const domain = process.env.INBOUND_EMAIL_DOMAIN ?? "";
   const inbound = domain ? `${family.invite_code}@${domain}` : "";
+  const guest = readGuestLink(familyRow?.settings);
   const telegramNote =
     query.telegram === "connected"
       ? "The webhook is registered."
@@ -78,6 +81,23 @@ export default async function SetupPage({ searchParams }: { searchParams: Promis
         <CardTitle>Invite the other parent</CardTitle>
         <CardDescription>On the other phone, open the app and choose Join with a code.</CardDescription>
         <CopyCode code={family.invite_code} />
+      </Card>
+      <Card>
+        <CardTitle>Guest link</CardTitle>
+        <CardDescription>A view-only link for someone who is not a parent. It lasts 7 days, and you can revoke it.</CardDescription>
+        {guest ? (
+          <div className="mt-3 space-y-3">
+            <a className="block break-all text-sm underline" href={`/guest/${guest.token}`}>{`/guest/${guest.token}`}</a>
+            <p className="text-sm">Ends {new Intl.DateTimeFormat("en-GB", { timeZone: family.timezone || "Europe/Paris", day: "numeric", month: "long", year: "numeric" }).format(new Date(guest.expiresAt))}.</p>
+            <form action={revokeGuestLink}>
+              <Button type="submit" variant="outline">Revoke the guest link</Button>
+            </form>
+          </div>
+        ) : (
+          <form action={createGuestLink} className="mt-3">
+            <Button type="submit">Create a guest link</Button>
+          </form>
+        )}
       </Card>
       <Card>
         <CardTitle>Parents</CardTitle>

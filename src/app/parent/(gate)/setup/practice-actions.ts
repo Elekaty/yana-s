@@ -57,6 +57,8 @@ export async function saveStudy(formData: FormData) {
   if (capRaw === "") delete settings.town_star_cap;
   else settings.town_star_cap = clampSetting(formData.get("townCap"), 0, 500, 0);
   settings.building_shop = formData.get("buildingShop") === "on";
+  if (process.env.NODE_ENV === "development" && formData.get("demoNext") === "on") settings.demo_next_day = true;
+  else delete settings.demo_next_day;
   await supabase.from("families").update({ settings }).eq("id", family.family_id);
   revalidatePath("/parent/study");
   revalidatePath("/parent/setup");

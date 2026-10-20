@@ -1,5 +1,6 @@
 import { saveStudy } from "@/app/parent/(gate)/setup/practice-actions";
 import { Button } from "@/components/ui/button";
+import { demoDayLabel, demoEnabled } from "@/lib/parent/guest";
 import { requireParent } from "@/lib/parent/guard";
 import { studySettings } from "@/lib/study/clock";
 
@@ -15,8 +16,10 @@ export default async function StudyPage() {
     daily_cap_minutes?: number;
     town_star_cap?: number;
     building_shop?: boolean;
+    demo_next_day?: boolean;
   } | null) ?? {};
   const study = studySettings(familyRow?.settings);
+  const demo = demoEnabled(settings);
 
   return (
     <div className="space-y-4">
@@ -67,6 +70,13 @@ export default async function StudyPage() {
           <input type="checkbox" name="buildingShop" value="on" defaultChecked={settings.building_shop === true} />
           Enable the building shop
         </label>
+        {process.env.NODE_ENV === "development" ? (
+          <label className="flex h-12 items-center gap-2">
+            <input type="checkbox" name="demoNext" value="on" defaultChecked={demo} />
+            Demo: next day
+          </label>
+        ) : null}
+        {demo ? <p className="text-sm">Demo day is {demoDayLabel(new Date(), family.timezone || "Europe/Paris", true)}.</p> : null}
         <p className="text-sm text-muted-foreground">A perfect week adds 10 stars, as two fives. Idle time does not open a chest.</p>
         <Button type="submit" size="lg">Save</Button>
       </form>
