@@ -34,32 +34,58 @@ export function afterClassifyError(attempts: number) {
   return { job: "queued" as const, read: "saved" as const };
 }
 
+export function decodeHeaderWords(value: string) {
+  const decoded = value.replace(/=\?([^?]+)\?([BbQq])\?([^?]*)\?=/g, (_match, charset: string, encoding: string, text: string) => {
+    const bytes = encoding.toLowerCase() === "b" ? Buffer.from(text, "base64") : Buffer.from(quotedBytes(text.replace(/_/g, " ")));
+    const label = String(charset).toLowerCase();
+    if (label === "iso-8859-1" || label === "latin1" || label === "us-ascii") return bytes.toString("latin1");
+    return bytes.toString("utf8");
+  });
+  return decoded.replace(/\s+/g, " ").trim();
+}
+
 export function extractPlainText(raw: string) {
   const normalized = raw.replace(/\r\n/g, "\n");
   const headerEnd = normalized.indexOf("\n\n");
+  const top = headerEnd >= 0 ? normalized.slice(0, headerEnd) : "";
   const body = headerEnd >= 0 ? normalized.slice(headerEnd + 2) : normalized;
   const parts = body.split(/\n--[^\n]+/);
-  const chunks = parts.length > 1 ? parts : [body];
-  for (const part of chunks) {
-    if (parts.length > 1 && !/text\/plain/i.test(part)) continue;
+  if (parts.length === 1) return decodeBody(body, top).trim().slice(0, 20_000);
+  for (const part of parts) {
+    if (!/text\/plain/i.test(part)) continue;
     const splitAt = part.indexOf("\n\n");
     const headers = splitAt >= 0 ? part.slice(0, splitAt) : "";
     const content = splitAt >= 0 ? part.slice(splitAt + 2) : part;
-    const decoded = /content-transfer-encoding:\s*base64/i.test(headers)
-      ? decodeBase64(content)
-      : /quoted-printable/i.test(headers)
-        ? decodeQuoted(content)
-        : content;
-    const text = decoded.trim();
+    const text = decodeBody(content, /content-transfer-encoding/i.test(headers) ? headers : `${headers}\n${top}`).trim();
     if (text) return text.slice(0, 20_000);
   }
   return "";
 }
 
+function decodeBody(content: string, headers: string) {
+  if (/content-transfer-encoding:\s*base64/i.test(headers)) return decodeBase64(content);
+  if (/quoted-printable/i.test(headers)) return decodeQuoted(content);
+  return content;
+}
+
 function decodeQuoted(value: string) {
-  return value
-    .replace(/=\n/g, "")
-    .replace(/=([0-9A-F]{2})/gi, (_, hex: string) => String.fromCharCode(Number.parseInt(hex, 16)));
+  return Buffer.from(quotedBytes(value.replace(/=\n/g, ""))).toString("utf8");
+}
+
+function quotedBytes(value: string) {
+  const bytes: number[] = [];
+  for (let i = 0; i < value.length; i += 1) {
+    const hex = value.slice(i + 1, i + 3);
+    if (value[i] === "=" && /^[0-9A-F]{2}$/i.test(hex)) {
+      bytes.push(Number.parseInt(hex, 16));
+      i += 2;
+      continue;
+    }
+    const code = value.charCodeAt(i);
+    if (code < 128) bytes.push(code);
+    else bytes.push(...Buffer.from(value[i] ?? "", "utf8"));
+  }
+  return bytes;
 }
 
 function decodeBase64(value: string) {

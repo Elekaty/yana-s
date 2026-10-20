@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { CLASSIFY_SYSTEM_PROMPT } from "@/lib/intake/prompt";
 import {
   afterClassifyError,
+  decodeHeaderWords,
   extractPlainText,
   familyCodeFromAddress,
   incomingHash,
@@ -79,6 +80,18 @@ describe("school intake", () => {
       "--abc--",
     ].join("\n");
     expect(extractPlainText(raw)).toBe("La sortie est vendredi.");
+    const french = [
+      "From: teacher@school.fr",
+      "Subject: =?UTF-8?Q?R=C3=A9union?=",
+      "Content-Type: text/plain; charset=utf-8",
+      "Content-Transfer-Encoding: quoted-printable",
+      "",
+      "La r=C3=A9union est vendredi.",
+      "",
+      "Apportez un manteau.",
+    ].join("\n");
+    expect(extractPlainText(french)).toBe("La réunion est vendredi.\n\nApportez un manteau.");
+    expect(decodeHeaderWords("=?UTF-8?Q?R=C3=A9union?=")).toBe("Réunion");
   });
 
   it("keeps the original when a reading fails three times", () => {

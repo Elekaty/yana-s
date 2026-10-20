@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { extractEmail, extractPlainText, familyCodeFromAddress, incomingHash, senderAllowed } from "@/lib/intake/mail";
+import { decodeHeaderWords, extractEmail, extractPlainText, familyCodeFromAddress, incomingHash, senderAllowed } from "@/lib/intake/mail";
 import { allowedEmails, familyIdForCode, saveIncoming } from "@/lib/intake/save";
 
 export async function POST(request: Request) {
@@ -23,8 +23,10 @@ export async function POST(request: Request) {
   const allowed = await allowedEmails(familyId);
   if (!senderAllowed(body.from, allowed)) return NextResponse.json({ ok: true, ignored: "sender" });
 
-  const text = [body.subject ?? "", body.text || (body.raw ? extractPlainText(body.raw) : "")].filter(Boolean).join("\n\n");
-  const externalId = body.messageId?.trim() || incomingHash(text, [], `${body.from}:${body.to}:${body.subject ?? ""}`);
+  const subject = decodeHeaderWords(body.subject ?? "");
+  const bodyText = body.text?.trim() || (body.raw ? extractPlainText(body.raw) : "");
+  const text = [subject, bodyText].filter(Boolean).join("\n\n") || (body.raw ?? "").slice(0, 20_000);
+  const externalId = body.messageId?.trim() || incomingHash(text, [], `${body.from}:${body.to}:${subject}`);
   await saveIncoming({
     familyId,
     source: "email",
@@ -32,7 +34,7 @@ export async function POST(request: Request) {
     text,
     hash: incomingHash(text, [], externalId),
     sender: extractEmail(body.from),
-    raw: { from: extractEmail(body.from), to: extractEmail(body.to), subject: body.subject ?? "" },
+    raw: { from: extractEmail(body.from), to: extractEmail(body.to), subject },
     files: [],
   });
   return NextResponse.json({ ok: true });

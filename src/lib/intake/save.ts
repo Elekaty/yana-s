@@ -121,12 +121,13 @@ export async function downloadTelegramFile(fileId: string) {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify({ file_id: fileId }),
+    signal: AbortSignal.timeout(8000),
   });
   if (!meta.ok) throw new Error("Could not fetch the Telegram file");
   const payload = (await meta.json()) as { result?: { file_path?: string; file_size?: number } };
   const filePath = payload.result?.file_path;
   if (!filePath || (payload.result?.file_size ?? 0) > 8_000_000) throw new Error("That file is too large");
-  const file = await fetch(`https://api.telegram.org/file/bot${token}/${filePath}`);
+  const file = await fetch(`https://api.telegram.org/file/bot${token}/${filePath}`, { signal: AbortSignal.timeout(8000) });
   if (!file.ok) throw new Error("Could not download the Telegram file");
   return Buffer.from(await file.arrayBuffer());
 }
