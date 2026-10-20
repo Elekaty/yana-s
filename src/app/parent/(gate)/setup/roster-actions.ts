@@ -32,6 +32,22 @@ export async function readRoster() {
   redirect(result.failed ? "/parent/setup?roster=failed" : "/parent/setup?roster=read");
 }
 
+export async function addRosterDay(formData: FormData) {
+  const ctx = await parentContext();
+  if (!ctx) return;
+  const memberId = String(formData.get("memberId") ?? "");
+  const date = String(formData.get("date") ?? "");
+  const status = String(formData.get("status") ?? "");
+  if (!memberId || !/^\d{4}-\d{2}-\d{2}$/.test(date) || !DUTIES.has(status)) return;
+  const { data: parent } = await ctx.supabase.from("members").select("id").eq("id", memberId).eq("role", "parent").maybeSingle();
+  if (!parent) return;
+  await ctx.supabase.from("roster_drafts").upsert(
+    { family_id: ctx.familyId, member_id: memberId, date, status },
+    { onConflict: "family_id,member_id,date" },
+  );
+  revalidatePath("/parent/setup");
+}
+
 export async function updateDraft(formData: FormData) {
   const ctx = await parentContext();
   if (!ctx) return;
@@ -48,13 +64,15 @@ export async function confirmRoster(formData: FormData) {
   const memberId = String(formData.get("memberId") ?? "");
   if (!memberId) return;
   const { data: drafts } = await ctx.supabase.from("roster_drafts").select("date, status").eq("member_id", memberId).eq("family_id", ctx.familyId);
+  let saved = true;
   for (const draft of drafts ?? []) {
     const status = draft.status as Duty;
-    await ctx.supabase.from("roster_days").upsert(
+    const { error } = await ctx.supabase.from("roster_days").upsert(
       { family_id: ctx.familyId, member_id: memberId, date: draft.date, status },
       { onConflict: "family_id,member_id,date" },
     );
-    if (status === "flying" || status === "layover") {
+    if (error) saved = false;
+    else if (status === "flying" || status === "layover") {
       const title = status === "flying" ? "Flying" : "Layover";
       const starts = atLocalTime(String(draft.date), 8, 0, ctx.timeZone);
       const { data: existing } = await ctx.supabase.from("events").select("id").eq("family_id", ctx.familyId).eq("title", title).eq("starts_at", starts.toISOString()).limit(1);
@@ -68,7 +86,7 @@ export async function confirmRoster(formData: FormData) {
       }
     }
   }
-  await ctx.supabase.from("roster_drafts").delete().eq("family_id", ctx.familyId).eq("member_id", memberId);
+  if (saved) await ctx.supabase.from("roster_drafts").delete().eq("family_id", ctx.familyId).eq("member_id", memberId);
   revalidatePath("/parent/setup");
   revalidatePath("/parent/calendar");
   revalidatePath("/parent");

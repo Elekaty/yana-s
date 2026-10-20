@@ -1,7 +1,7 @@
 import { CopyCode } from "@/app/parent/(gate)/setup/copy-code";
 import { savePractice } from "@/app/parent/(gate)/setup/practice-actions";
 import { addSender, registerWebhook, removeSender } from "@/app/parent/(gate)/setup/intake-actions";
-import { confirmRoster, readRoster, saveAvailability, saveEvening, updateDraft, uploadRoster } from "@/app/parent/(gate)/setup/roster-actions";
+import { addRosterDay, confirmRoster, readRoster, saveAvailability, saveEvening, updateDraft, uploadRoster } from "@/app/parent/(gate)/setup/roster-actions";
 import { sendTestMessage, trySchoolNote } from "@/app/parent/(gate)/setup/test-message";
 import { Button } from "@/components/ui/button";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
@@ -157,6 +157,24 @@ export default async function SetupPage({ searchParams }: { searchParams: Promis
           <Button type="submit" variant="outline">
             Read the roster
           </Button>
+        </form>
+        <form action={addRosterDay} className="mt-3 flex flex-wrap items-end gap-2 text-sm">
+          <select name="memberId" aria-label="Whose day" className="h-10 rounded-md border border-border bg-background px-2">
+            {parents.map((parent) => (
+              <option key={parent.id} value={parent.id}>
+                {parent.display_name}
+              </option>
+            ))}
+          </select>
+          <input name="date" type="date" aria-label="Roster day" required className="h-10 rounded-md border border-border bg-background px-2" />
+          <select name="status" aria-label="Duty" defaultValue="flying" className="h-10 rounded-md border border-border bg-background px-2">
+            {["off", "flying", "standby", "layover"].map((status) => (
+              <option key={status} value={status}>
+                {status}
+              </option>
+            ))}
+          </select>
+          <Button type="submit" variant="outline">Add day</Button>
         </form>
         <ul className="mt-4 space-y-2">
           {(drafts.data ?? []).map((draft) => (

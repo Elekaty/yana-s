@@ -202,6 +202,7 @@ export async function saveHoliday(formData: FormData) {
     zone: zone || null,
   });
   revalidatePath("/parent/calendar");
+  revalidatePath("/parent");
 }
 
 export async function createBreakPlan() {

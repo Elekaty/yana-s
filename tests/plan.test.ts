@@ -72,6 +72,27 @@ describe("tonight plan", () => {
     expect(plan.voiceNote).toBe(false);
   });
 
+  it("plans five sample rosters and never gives a flying day to that parent", () => {
+    const mom = (duty: PlannerParent["duty"]) => parent({ id: "mom", role: "mom", duty });
+    const dad = (duty: PlannerParent["duty"]) => parent({ id: "dad", role: "dad", duty });
+    const samples = [
+      { date: "2026-10-19", parents: [mom("flying"), dad("off")], leader: "dad", duration: 10 },
+      { date: "2026-10-20", parents: [mom("flying"), dad("off")], leader: "dad", duration: 10 },
+      { date: "2026-10-21", parents: [mom("layover"), dad("flying")], leader: null, duration: 5 },
+      { date: "2026-10-22", parents: [mom("off"), dad("standby")], leader: "mom", duration: 15 },
+      { date: "2026-10-23", parents: [mom("off"), dad("off")], leader: "dad", duration: 10 },
+    ];
+    for (const sample of samples) {
+      const plan = planTonight({ ...window, date: sample.date, parents: sample.parents });
+      expect(plan.leaderId).toBe(sample.leader);
+      expect(plan.duration).toBe(sample.duration);
+      expect(plan.duration).toBeLessThanOrEqual(window.capMinutes);
+      for (const person of sample.parents) {
+        if (person.duty === "flying" || person.duty === "layover" || person.duty === "standby") expect(plan.leaderId).not.toBe(person.id);
+      }
+    }
+  });
+
   it("uses the swapped parent when that parent is free", () => {
     const plan = planTonight({
       ...window,
