@@ -2,6 +2,8 @@ import "server-only";
 
 import { notifyParents } from "@/lib/calendar/due";
 import { arrivalTargets, digestBody, progressBody } from "@/lib/notify/copy";
+import { weekStartIso } from "@/lib/parent/progress";
+import { skillStatus, weekCounts } from "@/lib/plan/outline";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { digestKind, escalationTargets } from "@/lib/inbox/sort";
 
@@ -95,21 +97,35 @@ async function markDigests(now: Date) {
     if (kind !== "fyi") continue;
     const progress = await admin.from("digest_marks").insert({ family_id: family.id, kind: "progress", day });
     if (progress.error) continue;
-    await notifyParents(family.id as string, progressBody(await weekProgress(family.id as string, now)));
+    await notifyParents(family.id as string, await weekProgress(family.id as string, now, zone));
   }
 }
 
-async function weekProgress(familyId: string, now: Date) {
+async function weekProgress(familyId: string, now: Date, timeZone: string) {
   const admin = createAdminClient();
-  const since = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
-  const [{ data: games }, { data: homework }, { data: child }] = await Promise.all([
-    admin.from("game_sessions").select("id").eq("family_id", familyId).gte("created_at", since),
-    admin.from("homework_runs").select("id").eq("family_id", familyId).eq("status", "done").gte("updated_at", since),
-    admin.from("children").select("star_balance").eq("family_id", familyId).limit(1).maybeSingle(),
+  const since = weekStartIso(now, timeZone);
+  const { data: child } = await admin.from("children").select("id, name").eq("family_id", familyId).limit(1).maybeSingle();
+  const childId = child?.id as string | undefined;
+  const [{ data: games }, { data: homework }, { data: voice }, { data: stories }, { data: ledger }, { data: skills }] = await Promise.all([
+    admin.from("game_sessions").select("game").eq("family_id", familyId).gte("created_at", since),
+    admin.from("homework_runs").select("hint_level, status").eq("family_id", familyId).gte("updated_at", since),
+    admin.from("voice_recordings").select("id").eq("family_id", familyId).gte("created_at", since),
+    admin.from("story_reads").select("id").eq("family_id", familyId).gte("completed_at", since),
+    childId ? admin.from("star_ledger").select("amount").eq("child_id", childId).gte("created_at", since) : Promise.resolve({ data: [] as { amount: number }[] }),
+    childId ? admin.from("skill_progress").select("level").eq("child_id", childId) : Promise.resolve({ data: [] as { level: number }[] }),
   ]);
-  return {
-    homework: homework?.length ?? 0,
-    games: games?.length ?? 0,
-    stars: Number(child?.star_balance ?? 0),
-  };
+  const counts = weekCounts((games ?? []).map((row) => String(row.game)));
+  const levels = (skills ?? []).map((row) => Number(row.level));
+  return progressBody({
+    childName: String(child?.name ?? ""),
+    homework: (homework ?? []).filter((row) => row.status === "done").length,
+    games: counts.games,
+    logic: counts.logic,
+    voice: voice?.length ?? 0,
+    stories: stories?.length ?? 0,
+    stars: (ledger ?? []).reduce((sum, row) => sum + Math.max(0, Number(row.amount ?? 0)), 0),
+    hints: (homework ?? []).reduce((sum, row) => sum + Math.max(0, Number(row.hint_level ?? 0)), 0),
+    strong: levels.filter((level) => skillStatus(level) === "strong").length,
+    practicing: levels.filter((level) => skillStatus(level) === "practicing").length,
+  });
 }

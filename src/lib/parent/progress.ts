@@ -12,6 +12,15 @@ export function scanUsage(cached: boolean[]) {
   return { cache, ai: cached.length - cache };
 }
 
+export function weekStartIso(now: Date, timeZone: string) {
+  const today = new Intl.DateTimeFormat("en-CA", { timeZone, year: "numeric", month: "2-digit", day: "2-digit" }).format(now);
+  const date = new Date(`${today}T12:00:00Z`);
+  const day = date.getUTCDay();
+  date.setUTCDate(date.getUTCDate() - (day === 0 ? 6 : day - 1));
+  date.setUTCHours(0, 0, 0, 0);
+  return date.toISOString();
+}
+
 export function weeklyDigest(input: {
   childName: string;
   homework: number;

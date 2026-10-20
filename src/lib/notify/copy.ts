@@ -1,3 +1,5 @@
+import { weeklyDigest } from "@/lib/parent/progress";
+
 export function arrivalTargets(parents: { id: string }[], alreadySent: string[]) {
   return parents.filter((parent) => !alreadySent.includes(parent.id)).map((parent) => parent.id);
 }
@@ -9,8 +11,19 @@ export function digestBody(kind: "important" | "fyi", titles: string[]) {
   return `${head}:\n${lines.map((line) => `• ${line}`).join("\n")}`;
 }
 
-export function progressBody(counts: { homework: number; games: number; stars: number }) {
-  return `This week: ${counts.homework} homework, ${counts.games} games, ${counts.stars} stars.`;
+export function progressBody(input: {
+  childName: string;
+  homework: number;
+  games: number;
+  logic: number;
+  voice: number;
+  stories: number;
+  stars: number;
+  hints: number;
+  strong: number;
+  practicing: number;
+}) {
+  return weeklyDigest(input);
 }
 
 export function customSnoozeReply() {

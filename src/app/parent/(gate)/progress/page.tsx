@@ -4,7 +4,7 @@ import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
 import { confirmStory, raiseSkill, reactToVoice, sendDigest } from "@/app/parent/(gate)/progress/actions";
 import { requireParent } from "@/lib/parent/guard";
-import { playDropped, scanUsage, suggestedNext, weeklyDigest } from "@/lib/parent/progress";
+import { playDropped, scanUsage, suggestedNext, weekStartIso, weeklyDigest } from "@/lib/parent/progress";
 import { skillStatus, weekCounts } from "@/lib/plan/outline";
 import { ensureOutline } from "@/lib/plan/seed";
 import { ensureStories } from "@/lib/stories/seed";
@@ -121,7 +121,7 @@ export default async function ProgressPage() {
       <Card>
         <CardTitle>Weekly note</CardTitle>
         <CardDescription>{digest}</CardDescription>
-        <p className="mt-2 text-sm text-muted-foreground">Send posts this note to a linked Telegram chat. Email is not connected. It is not sent on its own on Sunday.</p>
+        <p className="mt-2 text-sm text-muted-foreground">Send posts this note to a linked Telegram chat. Sunday at 18:00 sends this same note with the school notes. Email is not connected.</p>
         <form action={sendDigest} className="mt-3">
           <input type="hidden" name="text" value={digest} />
           <Button type="submit" className="h-12">Send to Telegram</Button>
@@ -232,10 +232,5 @@ export default async function ProgressPage() {
 }
 
 function weekStart(timeZone: string) {
-  const today = new Intl.DateTimeFormat("en-CA", { timeZone, year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
-  const date = new Date(`${today}T12:00:00Z`);
-  const day = date.getUTCDay();
-  date.setUTCDate(date.getUTCDate() - (day === 0 ? 6 : day - 1));
-  date.setUTCHours(0, 0, 0, 0);
-  return date.toISOString();
+  return weekStartIso(new Date(), timeZone);
 }

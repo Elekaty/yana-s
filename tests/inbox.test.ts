@@ -70,7 +70,18 @@ describe("inbox tiers", () => {
     expect(arrivalTargets([{ id: "mom" }, { id: "dad" }], ["mom"])).toEqual(["dad"]);
     expect(digestBody("important", ["Permission slip"])).toContain("Permission slip");
     expect(digestBody("fyi", [])).toContain("nothing new");
-    expect(progressBody({ homework: 2, games: 4, stars: 6 })).toBe("This week: 2 homework, 4 games, 6 stars.");
+    expect(progressBody({
+      childName: "Yana",
+      homework: 2,
+      games: 4,
+      logic: 1,
+      voice: 0,
+      stories: 1,
+      stars: 6,
+      hints: 3,
+      strong: 1,
+      practicing: 2,
+    })).toBe("Yana this week: 2 homework, 4 games, 1 logic, 0 voice, 1 stories. 6 stars earned. 3 hints used. 1 strong, 2 practicing.");
     const buttons = reminderButtons("11111111-1111-1111-1111-111111111111");
     expect(buttons.map((button) => button.text)).toEqual(["Done", "30", "45", "60", "Custom"]);
     expect(customSnoozeReply()).toBe("Open the app to choose a custom time.");

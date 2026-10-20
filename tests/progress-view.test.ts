@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { playDropped, scanUsage, suggestedNext, weeklyDigest } from "../src/lib/parent/progress";
+import { playDropped, scanUsage, suggestedNext, weekStartIso, weeklyDigest } from "../src/lib/parent/progress";
 
 describe("progress view", () => {
   it("suggests the first skills that have not started", () => {
@@ -20,6 +20,11 @@ describe("progress view", () => {
 
   it("splits saved readings from new AI reads", () => {
     expect(scanUsage([true, false, true])).toEqual({ cache: 2, ai: 1 });
+  });
+
+  it("starts the week on Monday in the family timezone", () => {
+    expect(weekStartIso(new Date("2026-10-20T09:00:00.000Z"), "Europe/Paris")).toBe("2026-10-19T00:00:00.000Z");
+    expect(weekStartIso(new Date("2026-10-18T16:00:00.000Z"), "Europe/Paris")).toBe("2026-10-12T00:00:00.000Z");
   });
 
   it("writes a plain weekly note", () => {
