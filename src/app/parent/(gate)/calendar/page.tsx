@@ -55,6 +55,7 @@ export default async function CalendarPage({ searchParams }: { searchParams: Pro
   const selectedDay = query.day && /^\d{4}-\d{2}-\d{2}$/.test(query.day) ? query.day : today;
   const dayEvents = (events ?? []).filter((event) => dayKey(new Date(event.starts_at as string), timeZone) === selectedDay);
   const coming = (events ?? []).filter((event) => dayKey(new Date(event.starts_at as string), timeZone) >= today).slice(0, 5);
+  const eventNames = new Map((events ?? []).map((event) => [String(event.id), displayTitle(String(event.title))]));
   const vapid = process.env.VAPID_PUBLIC_KEY ?? "";
 
   return (
@@ -159,9 +160,12 @@ export default async function CalendarPage({ searchParams }: { searchParams: Pro
         <CardTitle>Reminders</CardTitle>
         <ul className="mt-3 space-y-3 text-sm">
           {(reminders ?? []).length === 0 ? <li className="text-muted-foreground">No reminders yet.</li> : null}
-          {(reminders ?? []).map((reminder) => (
+          {(reminders ?? []).map((reminder) => {
+            const name = reminder.ref_type === "event" ? eventNames.get(String(reminder.ref_id)) : null;
+            return (
             <li key={reminder.id} className="space-y-2">
               <p>
+                {name ? `${name} · ` : ""}
                 {new Date(reminder.due_at as string).toLocaleString("en-GB", { timeZone, dateStyle: "medium", timeStyle: "short" })}
                 {reminder.note ? ` · ${reminder.note}` : ""}
                 {reminder.escalated ? " · Still waiting for the other parent." : ""}
@@ -182,7 +186,8 @@ export default async function CalendarPage({ searchParams }: { searchParams: Pro
                 </form>
               </div>
             </li>
-          ))}
+            );
+          })}
         </ul>
       </Card>
       <Card>
