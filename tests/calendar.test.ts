@@ -17,6 +17,7 @@ import {
   weekdayDates,
   type Holiday,
 } from "@/lib/calendar/plan";
+import { taskFromMessage } from "@/lib/parent/tasks";
 
 const paris = "Europe/Paris";
 const toussaint: Holiday = {
@@ -101,5 +102,10 @@ describe("calendar reminders", () => {
     expect(eventMark("📝 Tables", false)).toBe("homework");
     expect(eventMark("Picnic", true)).toBe("school");
     expect(displayTitle("🏫 Sortie")).toBe("Sortie");
+    expect(taskFromMessage({ original_text: "Sortie au musée vendredi." }).title).toBe("Sortie au musée vendredi.");
+    expect(taskFromMessage({ title: "Museum", summary_en: "The trip is Friday.", original_text: "Sortie" })).toEqual({
+      title: "Museum",
+      parentAction: "The trip is Friday.",
+    });
   });
 });

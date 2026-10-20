@@ -13,6 +13,7 @@ import {
   type Holiday,
   weekdayDates,
 } from "@/lib/calendar/plan";
+import { taskFromMessage } from "@/lib/parent/tasks";
 import { noticeHoliday } from "@/lib/parent/today";
 import { extractEventDate } from "@/lib/calendar/extract";
 import { applyReminderAction } from "@/lib/calendar/due";
@@ -116,14 +117,21 @@ export async function addTask(formData: FormData) {
   const ctx = await parentContext();
   if (!ctx) return;
   const messageId = String(formData.get("messageId") ?? "");
-  const { data: message } = await ctx.supabase.from("messages").select("title, summary_en").eq("id", messageId).maybeSingle();
+  const { data: message } = await ctx.supabase
+    .from("messages")
+    .select("title, summary_en, original_text")
+    .eq("id", messageId)
+    .eq("family_id", ctx.familyId)
+    .maybeSingle();
   if (!message) return;
+  const task = taskFromMessage(message);
   await ctx.supabase.from("tasks").insert({
     family_id: ctx.familyId,
     message_id: messageId,
-    title: message.title || "To do",
-    parent_action: message.summary_en,
+    title: task.title,
+    parent_action: task.parentAction,
     status: "pending",
+    assignee_member_id: ctx.memberId,
   });
   revalidatePath("/parent");
   revalidatePath("/parent/todo");
